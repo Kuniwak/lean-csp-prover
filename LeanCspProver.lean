@@ -32,3 +32,4 @@ import LeanCspProver.CSP.Trace_seq
 import LeanCspProver.CSP.Trace_ren
 import LeanCspProver.CSP.Trace_op
 import LeanCspProver.CSP.CSP_Main
+import LeanCspProver.CSP.CSP
