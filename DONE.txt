@@ -39,3 +39,4 @@
 ./CSP-Prover-5-1-2020/CSP_F/Domain_F.thy
 ./CSP-Prover-5-1-2020/CSP_T/Domain_T_cms.thy
 ./CSP-Prover-5-1-2020/CSP_F/Domain_F_cms.thy
+./CSP-Prover-5-1-2020/CSP_T/CSP_T_semantics.thy
