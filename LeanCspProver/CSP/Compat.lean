@@ -69,3 +69,12 @@ abbrev mono {α : Type _} {β : Type _} [Preorder α] [Preorder β] (f : α → 
 theorem mono_def {α : Type _} {β : Type _} [Preorder α] [Preorder β] {f : α → β} :
     mono f ↔ ∀ ⦃x y : α⦄, x <= y → f x <= f y :=
   Iff.rfl
+
+noncomputable abbrev card (X : Set α) : Nat :=
+  Set.ncard X
+
+noncomputable abbrev SOME {α : Type _} [Inhabited α] (p : α → Prop) : α :=
+  chooseOrDefault p
+
+noncomputable abbrev THE {α : Type _} [Inhabited α] (p : α → Prop) : α :=
+  chooseOrDefault p
