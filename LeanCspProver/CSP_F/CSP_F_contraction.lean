@@ -794,7 +794,7 @@ axiom contraction_alpha_failures_Depth_rest {p : Type _} {α : Type _}
 
 /- (*** non_expanding ***) -/
 
-axiom continuous_failures_variable_lm {p : Type _} {α : Type _} {p0 : p} :
+axiom non_expanding_failures_variable_lm {p : Type _} {α : Type _} {p0 : p} :
     non_expanding (fun M : p → domFType α => sndF (M p0))
 
 axiom non_expanding_failures_variable {p : Type _} {α : Type _} {p0 : p} :

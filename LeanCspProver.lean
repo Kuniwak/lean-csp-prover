@@ -70,5 +70,6 @@ import LeanCspProver.CSP_F.CSP_F_law_ref
 import LeanCspProver.CSP_F.CSP_F_law_step
 import LeanCspProver.CSP_F.CSP_F_law_step_ext
 import LeanCspProver.CSP_F.CSP_F_mono
+import LeanCspProver.CSP_F.CSP_F_continuous
 import LeanCspProver.CSP_F.CSP_F_law_dist
 import LeanCspProver.CSP_F.CSP_F_surj
