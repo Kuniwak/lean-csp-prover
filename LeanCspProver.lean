@@ -94,5 +94,6 @@ import LeanCspProver.FNF_F.FNF_F_nf_int
 import LeanCspProver.FNF_F.FNF_F_nf_id
 import LeanCspProver.FNF_F.FNF_F_sf_def
 import LeanCspProver.FNF_F.FNF_F_sf_int
+import LeanCspProver.FNF_F.FNF_F_sf_induct
 import LeanCspProver.DM
 import LeanCspProver.DFP
