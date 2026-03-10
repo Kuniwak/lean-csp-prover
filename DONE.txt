@@ -47,3 +47,4 @@
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_domain.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_T_domain.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_contraction.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_contraction.thy

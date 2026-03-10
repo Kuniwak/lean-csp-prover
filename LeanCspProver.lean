@@ -41,4 +41,5 @@ import LeanCspProver.CSP_F.Set_F
 import LeanCspProver.CSP_F.CSP_F_semantics
 import LeanCspProver.CSP_F.CSP_F_failures
 import LeanCspProver.CSP_F.CSP_F_domain
+import LeanCspProver.CSP_F.CSP_F_contraction
 import LeanCspProver.CSP_F.CSP_F_T_domain
