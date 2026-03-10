@@ -53,6 +53,7 @@ import LeanCspProver.CSP_F.CSP_F_op_alpha_par
 import LeanCspProver.CSP_F.CSP_F_contraction
 import LeanCspProver.CSP_F.CSP_F_T_domain
 import LeanCspProver.CSP_F.CSP_F_law_decompo
+import LeanCspProver.CSP_F.CSP_F_law_alpha_par
 import LeanCspProver.CSP_F.CSP_F_law_basic
 import LeanCspProver.CSP_F.CSP_F_law_SKIP
 import LeanCspProver.CSP_F.CSP_F_law_SKIP_DIV

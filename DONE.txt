@@ -71,3 +71,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_op_alpha_par.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_op_alpha_par.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_alpha_par.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_alpha_par.thy
