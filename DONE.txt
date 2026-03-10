@@ -106,3 +106,4 @@
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F.thy
 ./CSP-Prover-5-1-2020/DFP/DFP_subseteqEX.thy
 ./CSP-Prover-5-1-2020/DFP/DFP_Network.thy
+./CSP-Prover-5-1-2020/DFP/DFP_Deadlock.thy
