@@ -47,10 +47,10 @@ declare Sup_image_eq [simp del]
 declare Inf_image_eq [simp del]
 -/
 
-private def tickTrace : traceType α :=
+def tickTrace : traceType α :=
   Abs_trace [event.Tick]
 
-private def restCond (s : traceType α) (n : Nat) : Prop :=
+def restCond (s : traceType α) (n : Nat) : Prop :=
   LT.lt (lengtht s) n ∨
     (lengtht s = n ∧ Exists fun s' => s = s' ^^^ (tickTrace (α := α)) ∧ noTick s')
 
