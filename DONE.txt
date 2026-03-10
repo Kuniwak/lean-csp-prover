@@ -108,3 +108,4 @@
 ./CSP-Prover-5-1-2020/DFP/DFP_Network.thy
 ./CSP-Prover-5-1-2020/DFP/DFP_Deadlock.thy
 ./CSP-Prover-5-1-2020/DFP/DFP_Block.thy
+./CSP-Prover-5-1-2020/DFP/DFP_DFtick.thy
