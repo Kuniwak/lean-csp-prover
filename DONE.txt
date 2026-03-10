@@ -32,3 +32,4 @@
 ./CSP-Prover-5-1-2020/CSP/Trace_op.thy
 ./CSP-Prover-5-1-2020/CSP/CSP_Main.thy
 ./CSP-Prover-5-1-2020/CSP/CSP.thy
+./CSP-Prover-5-1-2020/CSP_F/Set_F.thy
