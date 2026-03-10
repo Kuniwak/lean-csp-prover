@@ -40,3 +40,25 @@ theorem nth_cons_zero [Inhabited α] (a : α) (s : List α) : nth (a :: s) 0 = a
 theorem nth_cons_succ [Inhabited α] (a : α) (s : List α) (i : Nat) :
     nth (a :: s) (i + 1) = nth s i := by
   simp [nth]
+
+/-
+Compatibility definition for Isabelle/HOL's use of `THE ... else the None`.
+Lean needs an explicit default inhabitant for the undefined branch.
+-/
+noncomputable def chooseOrDefault {α : Type _} [Inhabited α] (p : α → Prop) : α :=
+  by
+    classical
+    exact if h : ∃ x, p x then Classical.choose h else default
+
+theorem chooseOrDefault_spec {α : Type _} [Inhabited α] {p : α → Prop} (h : ∃ x, p x) :
+    p (chooseOrDefault p) := by
+  classical
+  unfold chooseOrDefault
+  simpa [h] using Classical.choose_spec h
+
+theorem chooseOrDefault_eq {α : Type _} [Inhabited α] {p : α → Prop} {x : α}
+    (hx : p x) (_huniq : ∀ y, p y → y = x) :
+    chooseOrDefault p = x := by
+  classical
+  let h : ∃ y, p y := ⟨x, hx⟩
+  simpa [chooseOrDefault, h] using _huniq (Classical.choose h) (Classical.choose_spec h)
