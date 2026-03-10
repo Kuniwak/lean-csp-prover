@@ -126,3 +126,4 @@
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_induct.thy
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_ext.thy
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_par.thy
+./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_ren.thy
