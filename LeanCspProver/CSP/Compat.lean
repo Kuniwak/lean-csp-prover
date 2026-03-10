@@ -62,3 +62,10 @@ theorem chooseOrDefault_eq {α : Type _} [Inhabited α] {p : α → Prop} {x : �
   classical
   let h : ∃ y, p y := ⟨x, hx⟩
   simpa [chooseOrDefault, h] using _huniq (Classical.choose h) (Classical.choose_spec h)
+
+abbrev mono {α : Type _} {β : Type _} [Preorder α] [Preorder β] (f : α → β) : Prop :=
+  Monotone f
+
+theorem mono_def {α : Type _} {β : Type _} [Preorder α] [Preorder β] {f : α → β} :
+    mono f ↔ ∀ ⦃x y : α⦄, x <= y → f x <= f y :=
+  Iff.rfl

@@ -4,4 +4,5 @@ import LeanCspProver.CSP.Infra_HOL
 import LeanCspProver.CSP.Infra_nat
 import LeanCspProver.CSP.Infra_list
 import LeanCspProver.CSP.Infra_order
+import LeanCspProver.CSP.Infra_fun
 import LeanCspProver.CSP.Infra_exp
