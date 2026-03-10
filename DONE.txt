@@ -1,1 +1,2 @@
 ./CSP-Prover-5-1-2020/CSP/Infra_common.thy
+./CSP-Prover-5-1-2020/CSP/Infra_HOL.thy
