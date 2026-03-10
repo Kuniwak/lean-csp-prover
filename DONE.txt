@@ -5,3 +5,4 @@
 ./CSP-Prover-5-1-2020/CSP/Infra_order.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_exp.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_fun.thy
+./CSP-Prover-5-1-2020/CSP/Infra_pair.thy
