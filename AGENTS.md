@@ -30,4 +30,11 @@ Isabelle にあって Lean にはない定義があった場合、別途ファ�
 # 作業手順
 ## 依存グラフの極小元から始める
 CSP-Prover 内の依存グラフの極小元（CSP-Prover のどこにも依存していないファイル）から移植してください。
-極小元1つの移植に成功（証明が成功）したら commit し、依存グラフからその極小元を取り除いたのちの次の極小元を1つ選び移植してください。
+極小元は次のコマンドで取得可能です：
+
+```console
+$ cat ./DONE.txt | go run ./scripts/go/minimal/main.go | head -1
+...
+```
+
+証明が成功し、移植が完了したら ./DONE.txt にそのファイルのファイルパス（e.g. `./CSP-Prover-5-1-2020/CSP/CSP.thy`）を追記し、そのファイルと DONE.txt を commit してください。
