@@ -103,3 +103,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_Main.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_Main.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F.thy
