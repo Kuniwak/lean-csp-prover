@@ -35,6 +35,7 @@ import LeanCspProver.CSP.CSP_Main
 import LeanCspProver.CSP.CSP
 import LeanCspProver.CSP_T.Domain_T
 import LeanCspProver.CSP_T.Domain_T_cms
+import LeanCspProver.CSP_T.CSP_T_mono
 import LeanCspProver.CSP_T.CSP_T_semantics
 import LeanCspProver.CSP_T.CSP_T_contraction
 import LeanCspProver.CSP_T.CSP_T_law_decompo
