@@ -42,3 +42,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_semantics.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_semantics.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_failures.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_xsymbols.thy
