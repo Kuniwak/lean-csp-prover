@@ -22,3 +22,4 @@
 ./CSP-Prover-5-1-2020/CSP/RS.thy
 ./CSP-Prover-5-1-2020/CSP/RS_pair.thy
 ./CSP-Prover-5-1-2020/CSP/RS_prod.thy
+./CSP-Prover-5-1-2020/CSP/Trace.thy
