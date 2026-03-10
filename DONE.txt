@@ -81,3 +81,4 @@
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_op_rep_par.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_rep_par.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_surj.thy
+./CSP-Prover-5-1-2020/CSP_T/Domain_T_cpo.thy

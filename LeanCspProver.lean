@@ -34,6 +34,7 @@ import LeanCspProver.CSP.Trace_op
 import LeanCspProver.CSP.CSP_Main
 import LeanCspProver.CSP.CSP
 import LeanCspProver.CSP_T.Domain_T
+import LeanCspProver.CSP_T.Domain_T_cpo
 import LeanCspProver.CSP_T.Domain_T_cms
 import LeanCspProver.CSP_T.CSP_T_mono
 import LeanCspProver.CSP_T.CSP_T_semantics
