@@ -38,6 +38,7 @@ import LeanCspProver.CSP_T.Domain_T_cms
 import LeanCspProver.CSP_T.CSP_T_mono
 import LeanCspProver.CSP_T.CSP_T_semantics
 import LeanCspProver.CSP_T.CSP_T_contraction
+import LeanCspProver.CSP_T.CSP_T_op_alpha_par
 import LeanCspProver.CSP_T.CSP_T_law_decompo
 import LeanCspProver.CSP_T.CSP_T_law_basic
 import LeanCspProver.CSP_T.CSP_T_law_DIV
