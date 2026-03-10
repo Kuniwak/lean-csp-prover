@@ -90,6 +90,7 @@ import LeanCspProver.CSP_F.CSP_F_surj
 import LeanCspProver.CSP_F.CSP_F_Main
 import LeanCspProver.CSP_F.CSP_F
 import LeanCspProver.FNF_F.FNF_F_nf_def
+import LeanCspProver.FNF_F.FNF_F_nf_int
 import LeanCspProver.FNF_F.FNF_F_nf_id
 import LeanCspProver.DM
 import LeanCspProver.DFP
