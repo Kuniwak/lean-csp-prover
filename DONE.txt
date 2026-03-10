@@ -8,5 +8,6 @@
 ./CSP-Prover-5-1-2020/CSP/Infra_pair.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_real.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_prog.thy
+./CSP-Prover-5-1-2020/CSP/Infra_type.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_ren.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_set.thy
