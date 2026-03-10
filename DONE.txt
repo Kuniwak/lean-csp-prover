@@ -19,3 +19,4 @@
 ./CSP-Prover-5-1-2020/CSP/CPO_set.thy
 ./CSP-Prover-5-1-2020/CSP/CSP_syntax.thy
 ./CSP-Prover-5-1-2020/CSP/Norm_seq.thy
+./CSP-Prover-5-1-2020/CSP/RS.thy

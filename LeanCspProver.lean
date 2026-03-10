@@ -20,3 +20,4 @@ import LeanCspProver.CSP.CPO_prod
 import LeanCspProver.CSP.CPO_set
 import LeanCspProver.CSP.CMS
 import LeanCspProver.CSP.Norm_seq
+import LeanCspProver.CSP.RS
