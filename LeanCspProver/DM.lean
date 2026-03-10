@@ -8,6 +8,7 @@ import LeanCspProver.DM.DM1_Imp_def
 import LeanCspProver.DM.DM2_para
 import LeanCspProver.DM.DM3_hide
 import LeanCspProver.DM.DM4_Spc_def
+import LeanCspProver.DM.DM5_Spc_Imp
 
 /- *****************************************************************
 
