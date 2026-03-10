@@ -36,6 +36,7 @@ import LeanCspProver.CSP.CSP
 import LeanCspProver.CSP_T.Domain_T
 import LeanCspProver.CSP_T.Domain_T_cms
 import LeanCspProver.CSP_T.CSP_T_semantics
+import LeanCspProver.CSP_T.CSP_T_contraction
 import LeanCspProver.CSP_F.Set_F
 import LeanCspProver.CSP_F.CSP_F_semantics
 import LeanCspProver.CSP_F.CSP_F_failures
