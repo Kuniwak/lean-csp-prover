@@ -30,3 +30,4 @@ import LeanCspProver.CSP.RS_prod
 import LeanCspProver.CSP.CSP_xsymbols
 import LeanCspProver.CSP.Trace_seq
 import LeanCspProver.CSP.Trace_ren
+import LeanCspProver.CSP.Trace_op
