@@ -26,3 +26,4 @@ import LeanCspProver.CSP.RS
 import LeanCspProver.CSP.RS_pair
 import LeanCspProver.CSP.RS_prod
 import LeanCspProver.CSP.CSP_xsymbols
+import LeanCspProver.CSP.Trace_seq
