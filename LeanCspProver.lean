@@ -89,5 +89,6 @@ import LeanCspProver.CSP_F.CSP_F_tactic
 import LeanCspProver.CSP_F.CSP_F_surj
 import LeanCspProver.CSP_F.CSP_F_Main
 import LeanCspProver.CSP_F.CSP_F
+import LeanCspProver.FNF_F.FNF_F_nf_def
 import LeanCspProver.DM
 import LeanCspProver.DFP
