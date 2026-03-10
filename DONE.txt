@@ -3,3 +3,4 @@
 ./CSP-Prover-5-1-2020/CSP/Infra_nat.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_list.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_order.thy
+./CSP-Prover-5-1-2020/CSP/Infra_exp.thy
