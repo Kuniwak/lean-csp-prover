@@ -13,3 +13,4 @@ import LeanCspProver.CSP.Infra_exp
 import LeanCspProver.CSP.Infra_real
 import LeanCspProver.CSP.Infra_prog
 import LeanCspProver.CSP.Infra
+import LeanCspProver.CSP.CMS

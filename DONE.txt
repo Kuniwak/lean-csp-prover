@@ -12,3 +12,4 @@
 ./CSP-Prover-5-1-2020/CSP/Infra_ren.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_set.thy
 ./CSP-Prover-5-1-2020/CSP/Infra.thy
+./CSP-Prover-5-1-2020/CSP/CMS.thy
