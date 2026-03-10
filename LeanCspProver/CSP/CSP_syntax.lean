@@ -66,6 +66,8 @@ inductive proc (p : Type u) (α : Type v) where
 
 open proc
 
+instance : Inhabited (proc p α) := ⟨proc.STOP⟩
+
 infixr:80 " ~> " => proc.Act_prefix
 infixl:72 " [+] " => proc.Ext_choice
 infixl:64 " |~| " => proc.Int_choice
@@ -181,7 +183,7 @@ notation:76 P " |[" X "," Y "]| " Q => Alpha_parallel P X Y Q
 
 def Inductive_parallel : List (proc p α × Set α) → proc p α
   | [] => SKIP
-  | PX :: PXs => (Prod.fst PX) |[Prod.snd PX ∪ Set.sUnion (Prod.snd '' set PXs)]| Inductive_parallel PXs
+  | PX :: PXs => (Prod.fst PX) |[Prod.snd PX, Set.sUnion (Prod.snd '' set PXs)]| Inductive_parallel PXs
 
 def Rep_parallel (I : Set ι) (PXf : ι → proc p α × Set α) : proc p α :=
   Inductive_parallel (List.map PXf (SOME fun Is : List ι => isListOf Is I))
@@ -205,7 +207,7 @@ axiom Rep_parallel_empty (PXf : ι → proc p α × Set α) :
 
 axiom Rep_parallel_one (PXf : ι → proc p α × Set α) {i : ι} :
     Rep_parallel (p := p) ({i} : Set ι) PXf =
-      (Prod.fst (PXf i)) |[Prod.snd (PXf i) ∪ {}]| SKIP
+      (Prod.fst (PXf i)) |[Prod.snd (PXf i), {}]| SKIP
 
 /- (*** timeout ***) -/
 
