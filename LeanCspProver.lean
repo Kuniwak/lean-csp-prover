@@ -37,6 +37,7 @@ import LeanCspProver.CSP_T.Domain_T
 import LeanCspProver.CSP_T.Domain_T_cpo
 import LeanCspProver.CSP_T.Domain_T_cms
 import LeanCspProver.CSP_T.CSP_T_mono
+import LeanCspProver.CSP_T.CSP_T_continuous
 import LeanCspProver.CSP_T.CSP_T_semantics
 import LeanCspProver.CSP_T.CSP_T_xsymbols
 import LeanCspProver.CSP_T.CSP_T_contraction
