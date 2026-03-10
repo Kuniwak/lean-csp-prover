@@ -380,4 +380,63 @@ theorem cspF_SKIP_Depth_rest
    `cspF_Seq_compo_unit_l`, `cspF_Seq_compo_unit_r`,
    `cspF_SKIP_Seq_compo_step`, and `cspF_SKIP_Depth_rest`. -/
 
+/-
+(*********************************************************
+                       P [+] SKIP
+ *********************************************************)
+-/
+
+/- p.141 -/
+
+theorem cspF_Ext_choice_SKIP_resolve
+    {P : proc p α} {M : p → domFType α} :
+    eqF (P [+] (proc.SKIP : proc p α)) M M (P [> (proc.SKIP : proc p α)) := by
+  rw [cspF_cspT_eqF_semantics]
+  refine ⟨cspT_Ext_choice_SKIP_resolve, ?_⟩
+  apply le_antisymm
+  · rw [subsetF_iff]
+    intro s X hs
+    rw [in_failures_Ext_choice] at hs
+    rw [in_failures_Timeout1]
+    rcases hs with hs | hs
+    · rcases hs with ⟨⟨Y, hEq⟩, hsP, hsQ⟩
+      exact Or.inl (by simpa [hEq] using hsQ)
+    · rcases hs with hs | hs
+      · rcases hs with ⟨t, ⟨Y, hEq⟩, hsPQ, htNe⟩
+        rcases hsPQ with hsP | hsQ
+        · exact Or.inr <| Or.inl ⟨t, Y, hEq, htNe, by simpa [hEq] using hsP⟩
+        · exact Or.inl (by simpa [hEq] using hsQ)
+      · rcases hs with ⟨Y, hEq, hTick, hSub⟩
+        rcases hTick with hTick | hTick
+        · exact Or.inr <| Or.inr ⟨Y, hEq, hSub, hTick⟩
+        · exact Or.inl <| by
+            simpa [hEq] using
+              (in_failures_SKIP (f := ((<>, Y) : failure α)) (M := M)).2
+                (Or.inl ⟨Y, rfl, hSub⟩)
+  · rw [subsetF_iff]
+    intro s X hs
+    rw [in_failures_Timeout1] at hs
+    rw [in_failures_Ext_choice]
+    rcases hs with hSkip | hs
+    · rw [in_failures_SKIP] at hSkip
+      rcases hSkip with hSkip | hSkip
+      · rcases hSkip with ⟨Y, hEq, hSub⟩
+        exact Or.inr <| Or.inr ⟨Y, hEq, Or.inr <|
+          (in_traces_SKIP (t := Abs_trace [Tick]) (M := fstF ∘ M)).2 (Or.inr rfl), hSub⟩
+      · rcases hSkip with ⟨Y, hEq⟩
+        exact Or.inr <| Or.inl ⟨Abs_trace [Tick], ⟨Y, hEq⟩, Or.inr <| by
+          simpa [hEq] using
+            (in_failures_SKIP (f := ((Abs_trace [Tick], Y) : failure α)) (M := M)).2
+              (Or.inr ⟨Y, rfl⟩), by simp⟩
+    · rcases hs with hs | hs
+      · rcases hs with ⟨t, Y, hEq, htNe, htY⟩
+        exact Or.inr <| Or.inl ⟨t, ⟨Y, hEq⟩, Or.inl <| by simpa [hEq] using htY, htNe⟩
+      · rcases hs with ⟨Y, hEq, hSub, hTick⟩
+        exact Or.inr <| Or.inr ⟨Y, hEq, Or.inl hTick, hSub⟩
+
+theorem cspF_Ext_choice_SKIP_resolve_sym
+    {P : proc p α} {M : p → domFType α} :
+    eqF (P [> (proc.SKIP : proc p α)) M M (P [+] (proc.SKIP : proc p α)) := by
+  exact cspF_sym cspF_Ext_choice_SKIP_resolve
+
 end
