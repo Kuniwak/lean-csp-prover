@@ -8,3 +8,4 @@ import LeanCspProver.CSP.Infra_pair
 import LeanCspProver.CSP.Infra_fun
 import LeanCspProver.CSP.Infra_exp
 import LeanCspProver.CSP.Infra_real
+import LeanCspProver.CSP.Infra_prog
