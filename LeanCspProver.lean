@@ -15,6 +15,7 @@ import LeanCspProver.CSP.Infra_prog
 import LeanCspProver.CSP.Infra
 import LeanCspProver.CSP.CSP_syntax
 import LeanCspProver.CSP.Trace
+import LeanCspProver.CSP.Prefix
 import LeanCspProver.CSP.CPO
 import LeanCspProver.CSP.CPO_pair
 import LeanCspProver.CSP.CPO_prod
