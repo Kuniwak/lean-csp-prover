@@ -44,3 +44,4 @@ import LeanCspProver.CSP_F.CSP_F_failures
 import LeanCspProver.CSP_F.CSP_F_domain
 import LeanCspProver.CSP_F.CSP_F_contraction
 import LeanCspProver.CSP_F.CSP_F_T_domain
+import LeanCspProver.CSP_F.CSP_F_law_decompo
