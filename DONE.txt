@@ -98,3 +98,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_aux.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_etc.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_etc.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_tactic.thy
