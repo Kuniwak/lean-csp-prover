@@ -67,3 +67,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_step_ext.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_step_ext.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_mono.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_mono.thy
