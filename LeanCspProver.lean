@@ -39,6 +39,7 @@ import LeanCspProver.CSP_T.CSP_T_semantics
 import LeanCspProver.CSP_T.CSP_T_contraction
 import LeanCspProver.CSP_T.CSP_T_law_decompo
 import LeanCspProver.CSP_T.CSP_T_law_basic
+import LeanCspProver.CSP_T.CSP_T_law_DIV
 import LeanCspProver.CSP_F.Set_F
 import LeanCspProver.CSP_F.CSP_F_semantics
 import LeanCspProver.CSP_F.CSP_F_failures
