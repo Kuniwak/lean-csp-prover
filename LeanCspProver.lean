@@ -17,6 +17,7 @@ import LeanCspProver.CSP.CSP_syntax
 import LeanCspProver.CSP.Trace
 import LeanCspProver.CSP.Prefix
 import LeanCspProver.CSP.Trace_hide
+import LeanCspProver.CSP.Trace_par
 import LeanCspProver.CSP.CPO
 import LeanCspProver.CSP.CPO_pair
 import LeanCspProver.CSP.CPO_prod

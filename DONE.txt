@@ -27,3 +27,4 @@
 ./CSP-Prover-5-1-2020/CSP/Prefix.thy
 ./CSP-Prover-5-1-2020/CSP/Trace_seq.thy
 ./CSP-Prover-5-1-2020/CSP/Trace_hide.thy
+./CSP-Prover-5-1-2020/CSP/Trace_par.thy
