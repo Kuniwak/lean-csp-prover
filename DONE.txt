@@ -118,3 +118,4 @@
 ./CSP-Prover-5-1-2020/DM/DM3_hide.thy
 ./CSP-Prover-5-1-2020/DM/DM4_Spc_def.thy
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_nf_def.thy
+./CSP-Prover-5-1-2020/FNF_F/FNF_F_nf_id.thy
