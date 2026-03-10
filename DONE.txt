@@ -113,3 +113,4 @@
 ./CSP-Prover-5-1-2020/DFP/DFP_Main.thy
 ./CSP-Prover-5-1-2020/DFP/DFP.thy
 ./CSP-Prover-5-1-2020/DM/DM1_Imp_def.thy
+./CSP-Prover-5-1-2020/DM/DM2_para.thy
