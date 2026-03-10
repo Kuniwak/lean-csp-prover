@@ -63,3 +63,4 @@
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_ref.thy
 ./CSP-Prover-5-1-2020/CSP_T/CSP_T_law_step.thy
 ./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_ref.thy
+./CSP-Prover-5-1-2020/CSP_F/CSP_F_law_step.thy
