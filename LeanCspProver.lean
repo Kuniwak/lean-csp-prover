@@ -42,6 +42,7 @@ import LeanCspProver.CSP_T.CSP_T_op_alpha_par
 import LeanCspProver.CSP_T.CSP_T_op_rep_par
 import LeanCspProver.CSP_T.CSP_T_law_decompo
 import LeanCspProver.CSP_T.CSP_T_law_alpha_par
+import LeanCspProver.CSP_T.CSP_T_law_rep_par
 import LeanCspProver.CSP_T.CSP_T_law_dist
 import LeanCspProver.CSP_T.CSP_T_law_basic
 import LeanCspProver.CSP_T.CSP_T_law_DIV
