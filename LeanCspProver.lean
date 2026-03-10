@@ -77,4 +77,5 @@ import LeanCspProver.CSP_F.CSP_F_continuous
 import LeanCspProver.CSP_F.CSP_F_law_dist
 import LeanCspProver.CSP_F.CSP_F_law_ufp
 import LeanCspProver.CSP_F.CSP_F_law_fp
+import LeanCspProver.CSP_F.CSP_F_law_fix
 import LeanCspProver.CSP_F.CSP_F_surj
