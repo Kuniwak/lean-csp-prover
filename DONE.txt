@@ -16,3 +16,4 @@
 ./CSP-Prover-5-1-2020/CSP/CPO.thy
 ./CSP-Prover-5-1-2020/CSP/CPO_pair.thy
 ./CSP-Prover-5-1-2020/CSP/CPO_prod.thy
+./CSP-Prover-5-1-2020/CSP/CPO_set.thy

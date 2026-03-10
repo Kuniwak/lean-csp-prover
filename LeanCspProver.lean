@@ -16,4 +16,5 @@ import LeanCspProver.CSP.Infra
 import LeanCspProver.CSP.CPO
 import LeanCspProver.CSP.CPO_pair
 import LeanCspProver.CSP.CPO_prod
+import LeanCspProver.CSP.CPO_set
 import LeanCspProver.CSP.CMS
