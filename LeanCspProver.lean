@@ -106,5 +106,6 @@ import LeanCspProver.FNF_F.FNF_F_Main
 import LeanCspProver.FNF_F.FNF_F
 import LeanCspProver.FNF_F.DIV_Example
 import LeanCspProver.FNF_F.Counter_EX
+import LeanCspProver.NBuff.TwoBuff
 import LeanCspProver.DM
 import LeanCspProver.DFP
