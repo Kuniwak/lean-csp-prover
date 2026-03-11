@@ -137,3 +137,4 @@
 ./CSP-Prover-5-1-2020/FNF_F/DIV_Example.thy
 ./CSP-Prover-5-1-2020/NBuff/NBuff.thy
 ./CSP-Prover-5-1-2020/NBuff/TwoBuff.thy
+./CSP-Prover-5-1-2020/SA_Kung/SA_definition.thy
