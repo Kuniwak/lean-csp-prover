@@ -135,3 +135,4 @@
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F.thy
 ./CSP-Prover-5-1-2020/FNF_F/Counter_EX.thy
 ./CSP-Prover-5-1-2020/FNF_F/DIV_Example.thy
+./CSP-Prover-5-1-2020/NBuff/NBuff.thy
