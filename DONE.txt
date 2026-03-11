@@ -144,3 +144,4 @@
 ./CSP-Prover-5-1-2020/SA_Kung/SA_local.thy
 ./CSP-Prover-5-1-2020/SA_Kung/SA_main.thy
 ./CSP-Prover-5-1-2020/Test/Test_Buffer.thy
+./CSP-Prover-5-1-2020/Test/Test_proof.thy
