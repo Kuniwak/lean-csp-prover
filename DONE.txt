@@ -141,3 +141,4 @@
 ./CSP-Prover-5-1-2020/SA_Kung/SA_condition.thy
 ./CSP-Prover-5-1-2020/SA_Kung/SA_expanding.thy
 ./CSP-Prover-5-1-2020/SA_Kung/SA_local.thy
+./CSP-Prover-5-1-2020/SA_Kung/SA_main.thy
