@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP/CPO.lean:244:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:329:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:332:82: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:427:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CMS.lean:120:2: Try `simp at hxy` instead of `simpa using hxy`
+warning: LeanCspProver/CSP/CMS.lean:255:2: Try this: intro hx delta hdelta
+warning: LeanCspProver/CSP/CMS.lean:407:35: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:412:35: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:417:37: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:387:2: Try this: intro hcontr hxs n

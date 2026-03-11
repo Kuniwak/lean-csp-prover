@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:59:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:177:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:205:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:228:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:257:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:29:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:149:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:160:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:372:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:384:100: This line exceeds the 100 character limit, please shorten it!

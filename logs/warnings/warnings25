@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP.lean:80:6: Try `simp at hInter` instead of `simpa using hInter`
+warning: LeanCspProver/CSP_F/CSP_F_law_ref.lean:444:6: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:29:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:60:2: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:183:2: Try this: intro hTFs hTFsIn s hs
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:206:2: Try this: intro hTFs hTFsIn s X Y hsX hNo hY
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:232:2: Try this: intro hTFs hTFsIn s X hsX
+warning: LeanCspProver/CSP_F/CSP_F_continuous.lean:757:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:16:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:66:100: This line exceeds the 100 character limit, please shorten it!

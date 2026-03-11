@@ -1,0 +1,10 @@
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:244:5: unused variable `hFin`
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:343:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:101:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:243:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:259:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:113:6: 'simp [hBoth]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:119:8: 'simp [hA1, hA2]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:125:8: 'simp [hA1, hA2]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Block.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_Block.lean:206:2: try 'simp' instead of 'simpa'

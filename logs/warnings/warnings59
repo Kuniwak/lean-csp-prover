@@ -1,0 +1,10 @@
+warning: LeanCspProver/SA_Kung/SA_condition.lean:338:16: 'simp at hBase' is a flexible tactic modifying 'hBase'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:343:16: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:343:16: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_expanding.lean:86:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_main.lean:57:4: Try `simp at hMem` instead of `simpa using hMem`
+warning: LeanCspProver/FNF_F/Counter_EX.lean:103:41: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:117:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:118:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:124:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:107:27: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice

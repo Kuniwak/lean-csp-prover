@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:416:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:425:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:441:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:442:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:448:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:478:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:479:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:501:57: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:17:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:58:100: This line exceeds the 100 character limit, please shorten it!

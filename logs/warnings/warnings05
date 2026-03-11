@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP/Trace.lean:1281:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:1400:10: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:148:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:171:6: Try `simp at hvNo` instead of `simpa using hvNo`
+warning: LeanCspProver/CSP/Prefix.lean:174:8: Try `simp at hEq` instead of `simpa using hEq`
+warning: LeanCspProver/CSP/Prefix.lean:191:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:198:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:199:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace_hide.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP/CPO.lean:115:26: try 'simp' instead of 'simpa'

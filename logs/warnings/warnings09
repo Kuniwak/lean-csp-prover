@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP/RS_pair.lean:259:47: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS_pair.lean:274:52: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS_pair.lean:389:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS_pair.lean:403:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS_pair.lean:473:2: Try this: intro hcauchy delta hdelta
+warning: LeanCspProver/CSP/RS_pair.lean:489:2: Try this: intro hcauchy delta hdelta
+warning: LeanCspProver/CSP/RS_pair.lean:519:2: Try this: intro hnormal n m
+warning: LeanCspProver/CSP/RS_pair.lean:533:2: Try this: intro hnormal n m
+warning: LeanCspProver/CSP/RS_pair.lean:559:2: Try this: intro hxc hyc n m
+warning: LeanCspProver/CSP/RS_pair.lean:588:2: Try this: intro hconv eps heps

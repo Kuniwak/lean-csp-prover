@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:231:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:315:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:321:39: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:301:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:315:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:355:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:418:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:422:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:70:100: This line exceeds the 100 character limit, please shorten it!

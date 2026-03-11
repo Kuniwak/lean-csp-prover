@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP/Infra_set.lean:286:30: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:282:10: This simp argument is unused:
+warning: LeanCspProver/CSP/Infra_set.lean:326:12: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:289:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Infra_set.lean:301:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Infra_set.lean:451:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:604:54: unused variable `hc`
+warning: LeanCspProver/CSP/Infra_set.lean:869:20: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:876:27: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:894:31: try 'simp' instead of 'simpa'

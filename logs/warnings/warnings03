@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP/Trace.lean:459:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:477:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:573:33: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:639:47: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:639:52: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:755:4: 'simp at hst' is a flexible tactic modifying 'hst'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:760:2: Try this: intro hs ht hTick
+warning: LeanCspProver/CSP/Trace.lean:831:2: 'simp [trace]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:850:38: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:850:45: This simp argument is unused:

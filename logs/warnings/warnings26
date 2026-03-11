@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:316:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:159:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:166:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:175:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:176:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:278:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:280:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:282:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:284:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:276:100: This line exceeds the 100 character limit, please shorten it!

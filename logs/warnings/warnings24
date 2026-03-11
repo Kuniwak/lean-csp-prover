@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:580:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:759:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:13:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:53:28: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:58:27: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:89:30: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:138:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:187:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:188:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:189:100: This line exceeds the 100 character limit, please shorten it!

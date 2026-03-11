@@ -1,0 +1,602 @@
+warning: LeanCspProver/CSP/Infra_set.lean:286:30: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:282:10: This simp argument is unused:
+warning: LeanCspProver/CSP/Infra_set.lean:326:12: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:289:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Infra_set.lean:301:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Infra_set.lean:451:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:604:54: unused variable `hc`
+warning: LeanCspProver/CSP/Infra_set.lean:869:20: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:876:27: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Infra_set.lean:894:31: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CSP_syntax.lean:186:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:24:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP/Trace.lean:60:4: 'simp [Evset] at *' is a flexible tactic modifying '*'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:60:4: 'simp [Evset] at *' is a flexible tactic modifying '*'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:60:4: 'simp [Evset] at *' is a flexible tactic modifying '*'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:60:4: 'simp [Evset] at *' is a flexible tactic modifying '*'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:65:4: 'simp [Evset] at he' is a flexible tactic modifying 'he'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:316:2: 'simp [trace] at h ⊢' is a flexible tactic modifying 'h'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:316:2: 'simp [trace] at h ⊢' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:316:2: 'simp [trace] at h ⊢' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:316:2: 'simp [trace] at h ⊢' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:329:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:325:2: 'simp [trace] at h ⊢' is a flexible tactic modifying 'h'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:325:2: 'simp [trace] at h ⊢' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:325:2: 'simp [trace] at h ⊢' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:352:2: 'simp [trace]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:353:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:394:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:396:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:454:4: Try `simp at hTick` instead of `simpa using hTick`
+warning: LeanCspProver/CSP/Trace.lean:459:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:477:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:573:33: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:639:47: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:639:52: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:755:4: 'simp at hst' is a flexible tactic modifying 'hst'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:760:2: Try this: intro hs ht hTick
+warning: LeanCspProver/CSP/Trace.lean:831:2: 'simp [trace]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:850:38: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:850:45: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:899:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:940:37: This simp argument is unused:
+warning: LeanCspProver/CSP/Trace.lean:991:2: 'simp [appt, Abs_trace_inverse] at hrep' is a flexible tactic modifying 'hrep'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:1006:2: 'simp [appt, Abs_trace_inverse, Rep_compo_last_in_trace hs, Rep_compo_last_in_trace ht] at hrep' is a flexible tactic modifying 'hrep'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP/Trace.lean:1029:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:1070:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:1080:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:1141:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:1151:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace.lean:1280:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:1281:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace.lean:1400:10: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:148:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:171:6: Try `simp at hvNo` instead of `simpa using hvNo`
+warning: LeanCspProver/CSP/Prefix.lean:174:8: Try `simp at hEq` instead of `simpa using hEq`
+warning: LeanCspProver/CSP/Prefix.lean:191:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:198:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Prefix.lean:199:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace_hide.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP/CPO.lean:115:26: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:244:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:329:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:332:82: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CPO.lean:427:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/CMS.lean:120:2: Try `simp at hxy` instead of `simpa using hxy`
+warning: LeanCspProver/CSP/CMS.lean:255:2: Try this: intro hx delta hdelta
+warning: LeanCspProver/CSP/CMS.lean:407:35: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:412:35: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:417:37: This simp argument is unused:
+warning: LeanCspProver/CSP/CMS.lean:387:2: Try this: intro hcontr hxs n
+warning: LeanCspProver/CSP/CMS.lean:497:2: Try this: intro hcontr hxs delta hdelta
+warning: LeanCspProver/CSP/RS.lean:284:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:496:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS.lean:499:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS.lean:571:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:601:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:660:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:733:55: Try `simp at hle1` instead of `simpa using hle1`
+warning: LeanCspProver/CSP/RS.lean:742:26: This simp argument is unused:
+warning: LeanCspProver/CSP/RS.lean:742:37: This simp argument is unused:
+warning: LeanCspProver/CSP/RS.lean:763:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:791:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:792:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:796:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:797:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS.lean:828:23: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS.lean:928:41: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS.lean:925:12: This simp argument is unused:
+warning: LeanCspProver/CSP/RS.lean:925:20: This simp argument is unused:
+warning: LeanCspProver/CSP/RS.lean:925:28: This simp argument is unused:
+warning: LeanCspProver/CSP/RS_pair.lean:259:47: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS_pair.lean:274:52: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS_pair.lean:389:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS_pair.lean:403:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/RS_pair.lean:473:2: Try this: intro hcauchy delta hdelta
+warning: LeanCspProver/CSP/RS_pair.lean:489:2: Try this: intro hcauchy delta hdelta
+warning: LeanCspProver/CSP/RS_pair.lean:519:2: Try this: intro hnormal n m
+warning: LeanCspProver/CSP/RS_pair.lean:533:2: Try this: intro hnormal n m
+warning: LeanCspProver/CSP/RS_pair.lean:559:2: Try this: intro hxc hyc n m
+warning: LeanCspProver/CSP/RS_pair.lean:588:2: Try this: intro hconv eps heps
+warning: LeanCspProver/CSP/RS_pair.lean:604:2: Try this: intro hconv eps heps
+warning: LeanCspProver/CSP/RS_pair.lean:624:2: Try this: intro hfst hsnd eps heps
+warning: LeanCspProver/CSP/RS_prod.lean:215:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/RS_prod.lean:356:2: Try this: intro hcauchy delta hdelta
+warning: LeanCspProver/CSP/RS_prod.lean:372:2: Try this: intro hnormal n m
+warning: LeanCspProver/CSP/RS_prod.lean:383:2: Try this: intro h n m
+warning: LeanCspProver/CSP/RS_prod.lean:411:2: Try this: intro hconv i eps heps
+warning: LeanCspProver/CSP/Trace_seq.lean:68:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace_seq.lean:75:15: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace_seq.lean:126:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace_seq.lean:127:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace_seq.lean:196:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP/Trace_seq.lean:228:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP/Trace_ren.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/Domain_T.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/Domain_T.lean:71:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/Domain_T.lean:69:4: 'simp at ht' is a flexible tactic modifying 'ht'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/Domain_T.lean:219:4: Try `simp at hNil` instead of `simpa using hNil`
+warning: LeanCspProver/CSP_T/Domain_T.lean:269:4: Try `simp at hnil` instead of `simpa using hnil`
+warning: LeanCspProver/CSP_T/Domain_T.lean:282:4: Try `simp at hT` instead of `simpa using hT`
+warning: LeanCspProver/CSP_T/Domain_T.lean:297:4: Try `simp at hnil` instead of `simpa using hnil`
+warning: LeanCspProver/CSP_T/Domain_T.lean:333:4: Try `simp at hT` instead of `simpa using hT`
+warning: LeanCspProver/CSP_T/Domain_T.lean:381:14: Try `simp at hT` instead of `simpa using hT`
+warning: LeanCspProver/CSP_T/Domain_T.lean:431:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/Domain_T.lean:504:4: 'simp [domT_UnT_Rep] at ht' is a flexible tactic modifying 'ht'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/Domain_T.lean:504:4: 'simp [domT_UnT_Rep] at ht' is a flexible tactic modifying 'ht'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/Domain_T_cms.lean:25:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/CSP_T_semantics.lean:25:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/CSP_T_semantics.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_semantics.lean:240:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_semantics.lean:302:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:41:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:45:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:49:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_continuous.lean:74:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_continuous.lean:375:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:161:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:172:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:324:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_op_alpha_par.lean:77:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_op_alpha_par.lean:79:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_fix.lean:66:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_alpha_par.lean:71:8: Try `simp at he'` instead of `simpa using he'`
+warning: LeanCspProver/CSP_T/CSP_T_law_basic.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:122:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:129:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:138:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:139:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:231:35: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:231:35: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:231:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:315:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:321:39: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:301:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:315:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:355:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:418:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_step.lean:422:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:70:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:119:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:126:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:135:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:136:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:183:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:213:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:239:37: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:259:35: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:270:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:282:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:287:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:339:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:348:31: This simp argument is unused:
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:375:10: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:384:41: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:390:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:441:35: This simp argument is unused:
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:478:33: This simp argument is unused:
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:357:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:376:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:416:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:425:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:441:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:442:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:448:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:478:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:479:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_DIV.lean:501:57: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:17:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:58:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:59:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:145:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:181:10: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:191:10: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:184:10: 'simp [hTick] at hright' is a flexible tactic modifying 'hright'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:189:10: 'simp [hTick] at hright' is a flexible tactic modifying 'hright'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_surj.lean:213:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/Domain_F.lean:22:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/Domain_F.lean:129:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: LeanCspProver/CSP_F/Domain_F.lean:169:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Set_F_cms.lean:163:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: LeanCspProver/CSP_F/Set_F_cms.lean:423:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Set_F_cms.lean:436:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Set_F_cms.lean:482:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Set_F_cms.lean:483:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:31:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:376:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:411:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:450:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:463:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:482:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:706:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/Domain_F_cms.lean:744:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_semantics.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_semantics.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_semantics.lean:245:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:155:25: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:159:4: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:147:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:168:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:395:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_failures.lean:425:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:524:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:603:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:609:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:641:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_domain.lean:647:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:52:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:57:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:59:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:177:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:205:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:228:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_op_rep_par.lean:257:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:29:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:149:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:160:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:372:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:384:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:580:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_contraction.lean:759:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:13:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:53:28: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:58:27: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:89:30: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:138:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:187:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:188:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_T_domain.lean:189:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP.lean:80:6: Try `simp at hInter` instead of `simpa using hInter`
+warning: LeanCspProver/CSP_F/CSP_F_law_ref.lean:444:6: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:29:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:60:2: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:183:2: Try this: intro hTFs hTFsIn s hs
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:206:2: Try this: intro hTFs hTFsIn s X Y hsX hNo hY
+warning: LeanCspProver/CSP_F/Domain_F_cpo.lean:232:2: Try this: intro hTFs hTFsIn s X hsX
+warning: LeanCspProver/CSP_F/CSP_F_continuous.lean:757:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:16:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:66:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_surj.lean:316:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:159:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:166:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:175:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:176:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:278:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:280:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:282:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:284:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:276:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:301:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:303:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:305:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:307:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_SKIP_DIV.lean:299:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_alpha_par.lean:64:2: 'simp [Alpha_parallel_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:129:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:136:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:145:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:146:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:248:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:250:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:252:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:254:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:246:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:271:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:273:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:275:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:277:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law_SKIP_DIV.lean:269:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:102:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:104:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:106:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:108:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:100:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:122:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:148:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:180:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:206:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:238:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law.lean:264:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:51:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:53:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:55:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:57:4: 'simp' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:49:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:71:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:96:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:127:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:152:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:183:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_F/CSP_F_law.lean:208:4: 'simp [hSkip]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:261:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:267:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:273:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:279:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/FNF_F/FNF_F_nf_def.lean:211:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/FNF_F/FNF_F_nf_def.lean:329:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:176:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:178:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:180:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:218:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:220:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:256:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:258:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:294:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:296:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:321:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:323:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:343:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:391:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/ep2/ep2_acl.lean:240:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/ep2/ep2_acl.lean:314:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM1_Imp_def.lean:65:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/FNF_F_sf_rest.lean:290:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Network.lean:93:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:100:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:340:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:187:21: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:189:21: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:243:5: unused variable `hI`
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:244:5: unused variable `hFin`
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:343:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:101:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:243:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DM/DM3_hide.lean:259:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:113:6: 'simp [hBoth]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:119:8: 'simp [hA1, hA2]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_ext.lean:125:8: 'simp [hA1, hA2]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Block.lean:21:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_Block.lean:206:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Block.lean:210:5: unused variable `hI`
+warning: LeanCspProver/DFP/DFP_Block.lean:211:5: unused variable `hFin`
+warning: LeanCspProver/DFP/DFP_Block.lean:215:4: Try this: intro hBusy i hi
+warning: LeanCspProver/DFP/DFP_Block.lean:228:4: Try this: intro hBusyP i hi sigma hSigma
+warning: LeanCspProver/DFP/DFP_Block.lean:251:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Block.lean:428:2: Try `simp at this` instead of `simpa using this`
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:113:6: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:113:6: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:113:6: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:113:6: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:113:6: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:123:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:123:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:123:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:123:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:123:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:131:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:131:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_seq.lean:131:10: 'simp [SP_step_Seq_compo_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:122:6: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:134:10: 'simp [SP_step_Hiding_def]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:145:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/FNF_F/FNF_F_sf_hide.lean:147:12: 'simp [SP_step_Hiding_def, hEmpty]' is a flexible tactic modifying '⊢'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:69:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:69:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:69:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:147:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:147:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/DFP/DFP_Proof_Rule1.lean:147:4: 'simp at hk' is a flexible tactic modifying 'hk'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_definition.lean:155:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_definition.lean:182:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_definition.lean:212:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_definition.lean:215:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:284:6: 'simp [Faiures_out_hori_def] at hInner' is a flexible tactic modifying 'hInner'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:291:4: 'simp [Faiures_out_vert_def] at hInner' is a flexible tactic modifying 'hInner'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:278:2: 'simp [Faiures_out_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:306:6: Try `simp at hMem` instead of `simpa using hMem`
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:322:18: 'simp at hBase' is a flexible tactic modifying 'hBase'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:322:18: 'simp at hBase' is a flexible tactic modifying 'hBase'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:327:18: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:327:18: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:309:6: 'simp [peF_rec, Faiures_in_def] at hMem' is a flexible tactic modifying 'hMem'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:338:16: 'simp at hBase' is a flexible tactic modifying 'hBase'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:338:16: 'simp at hBase' is a flexible tactic modifying 'hBase'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:343:16: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_condition.lean:343:16: 'simp at hRec' is a flexible tactic modifying 'hRec'. Try 'simp?' and use the suggested 'simp only [...]'. Alternatively, use `suffices` to explicitly state the simplified form.
+warning: LeanCspProver/SA_Kung/SA_expanding.lean:86:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/SA_Kung/SA_main.lean:57:4: Try `simp at hMem` instead of `simpa using hMem`
+warning: LeanCspProver/FNF_F/Counter_EX.lean:103:41: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:117:8: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:118:6: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:124:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:107:27: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
+warning: LeanCspProver/FNF_F/Counter_EX.lean:145:39: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:168:8: try 'simp' instead of 'simpa'

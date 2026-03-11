@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_T/CSP_T_semantics.lean:302:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:41:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:45:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_mono.lean:49:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/CSP_T/CSP_T_continuous.lean:74:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_continuous.lean:375:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:161:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:172:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_contraction.lean:324:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/CSP_T/CSP_T_op_alpha_par.lean:77:4: try 'simp' instead of 'simpa'

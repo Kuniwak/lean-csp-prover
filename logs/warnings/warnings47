@@ -1,0 +1,10 @@
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:273:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/CSP_T/CSP_T_law_etc.lean:279:2: This central dot `·` is isolated; please merge it with the next line.
+warning: LeanCspProver/FNF_F/FNF_F_nf_def.lean:211:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/FNF_F/FNF_F_nf_def.lean:329:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:176:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:178:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:180:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:218:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_subseteqEX.lean:220:100: This line exceeds the 100 character limit, please shorten it!

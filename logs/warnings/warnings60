@@ -1,0 +1,2 @@
+warning: LeanCspProver/FNF_F/Counter_EX.lean:145:39: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/Counter_EX.lean:168:8: try 'simp' instead of 'simpa'

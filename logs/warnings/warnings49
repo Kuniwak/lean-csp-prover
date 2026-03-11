@@ -1,0 +1,10 @@
+warning: LeanCspProver/DM/DM1_Imp_def.lean:65:4: try 'simp' instead of 'simpa'
+warning: LeanCspProver/FNF_F/FNF_F_sf_rest.lean:290:2: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Network.lean:93:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:100:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:236:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Network.lean:340:100: This line exceeds the 100 character limit, please shorten it!
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:18:5: please avoid 'open (scoped) Classical' statements: this can hide theorem statements which would be better stated with explicit decidability statements.
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:187:21: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:189:21: try 'simp' instead of 'simpa'
+warning: LeanCspProver/DFP/DFP_Deadlock.lean:243:5: unused variable `hI`
