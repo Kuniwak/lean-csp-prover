@@ -155,3 +155,4 @@
 ./CSP-Prover-5-1-2020/ep2/ep2_nucleus.thy
 ./CSP-Prover-5-1-2020/ep2/ep2_nucleusDF.thy
 ./CSP-Prover-5-1-2020/CSP/Infra_common.thy
+./CSP-Prover-5-1-2020/CSP/Infra_common.thy
