@@ -130,3 +130,4 @@
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_rest.thy
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf_seq.thy
 ./CSP-Prover-5-1-2020/FNF_F/FNF_F_sf.thy
+./CSP-Prover-5-1-2020/FNF_F/FNF_F_nf.thy
