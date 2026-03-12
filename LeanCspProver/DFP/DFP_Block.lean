@@ -210,6 +210,8 @@ theorem BusyNetwork_BusyNetworkP [HasPNfun p α] [HasFPmode]
     (hFin : I.Finite)
     (hF : isFailureOf (I, FXf) (I, PXf)) :
     BusyNetwork (I, FXf) ↔ BusyNetworkP (I, PXf) := by
+  let _ := hI
+  let _ := hFin
   constructor
   · intro hBusy i hi
     have hFi : isFailureOf (({i} : Set ι), FXf) (({i} : Set ι), PXf) := by

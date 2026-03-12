@@ -755,7 +755,7 @@ theorem continuous_semFf
   apply continuous_domF
   · intro M
     change (traces P (fstF ∘ M), failures P M) ∈ domF (α := α)
-    simpa [semFf_def] using (proc_domF (P := P) (M := M))
+    exact proc_domF (P := P) (M := M)
   · simpa [Function.comp] using (continuous_traces_fstF (P := P))
   · simpa using (continuous_failures (P := P))
 

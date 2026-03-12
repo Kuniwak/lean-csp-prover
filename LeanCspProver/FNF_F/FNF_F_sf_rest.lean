@@ -287,7 +287,8 @@ lemma fsfF_Depth_rest_rel_zero_in
   intro hSP
   have hEq : SP = SDIV :=
     (fsfF_Depth_rest_rel_zero_iff (P1 := P1) (SP := SP)).1 hSP
-  simpa [hEq] using (fsfF_SDIV_in (p := p) (α := α))
+  subst SP
+  exact fsfF_SDIV_in (p := p) (α := α)
 
 axiom fsfF_Depth_rest_rel_in
     {P1 SP : proc p α}

@@ -151,13 +151,11 @@ theorem Ext_pre_choice_setF {X : Set α} {Ff : α → setFType α} :
   · rcases hs with ⟨Y', hEq, hEmpty⟩
     rcases Prod.mk.inj hEq with ⟨hsEq, hYEq⟩
     subst hsEq
-    have hZY' : Z ⊆ Y' := by
-      simp [hYEq] at hZY
-      exact hZY
+    subst Y
     refine Or.inl ⟨Z, by simp, ?_⟩
     apply Set.eq_empty_iff_forall_notMem.mpr
     intro e he
-    have : e ∈ (event.Ev '' X) ∩ Y' := ⟨he.1, hZY' he.2⟩
+    have : e ∈ (event.Ev '' X) ∩ Y' := ⟨he.1, hZY he.2⟩
     simp [hEmpty] at this
   · rcases hs with ⟨a, t, Y', hEq, htY, haX⟩
     rcases Prod.mk.inj hEq with ⟨hs, hY⟩
