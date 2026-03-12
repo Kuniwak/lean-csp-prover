@@ -119,7 +119,8 @@ axiom cspT_SKIP_Parallel_Ext_choice_SKIP_l
 theorem cspT_SKIP_Parallel_Ext_choice_SKIP_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] proc.SKIP)) ) M M
-      (((proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.SKIP)) := by
+      (((proc.Ext_pre_choice (Y \ X)
+          (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.SKIP)) := by
   have h₁ :
       eqT (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] proc.SKIP))) M M
         ((((proc.Ext_pre_choice Y Pf) [+] proc.SKIP) |[X]| (proc.SKIP : proc p α))) :=

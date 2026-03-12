@@ -393,7 +393,8 @@ theorem in_failures_Parallel {f : failure α} {P Q : proc p α} {X : Set α} {M 
 /- (*** Hiding_setF ***) -/
 
 theorem Hiding_setF {X : Set α} {F : setFType α} :
-    {f : failure α | ∃ s Y, f = (hide_tr s X, Y) ∧ (s, (event.Ev '' X) ∪ Y) :f F} ∈ setF (α := α) := by
+    {f : failure α |
+      ∃ s Y, f = (hide_tr s X, Y) ∧ (s, (event.Ev '' X) ∪ Y) :f F} ∈ setF (α := α) := by
   intro t Y Z hs hZY
   rcases hs with ⟨s, Y', hEq, hsY⟩
   rcases Prod.mk.inj hEq with ⟨ht, hY⟩
@@ -423,7 +424,8 @@ theorem in_failures_Hiding {f : failure α} {P : proc p α} {X : Set α} {M : p 
 /- (*** Renaming_setF ***) -/
 
 theorem Renaming_setF {r : Set (α × β)} {F : setFType α} :
-    {f : failure β | ∃ s t X, f = (t, X) ∧ ren_tr s r t ∧ (s, ren_inv r X) :f F} ∈ setF (α := β) := by
+    {f : failure β |
+      ∃ s t X, f = (t, X) ∧ ren_tr s r t ∧ (s, ren_inv r X) :f F} ∈ setF (α := β) := by
   intro t X Y hs hYX
   rcases hs with ⟨s, t', X', hEq, hRen, hsX⟩
   rcases Prod.mk.inj hEq with ⟨ht, hX⟩

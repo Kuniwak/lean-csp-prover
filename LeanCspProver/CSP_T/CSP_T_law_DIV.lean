@@ -67,7 +67,8 @@ theorem cspT_DIV_Parallel
 theorem cspT_DIV_Parallel_step_l
     {X Y : Set α} {Qf : α → proc p α} {M : p → domTType α} :
     eqT (((proc.DIV : proc p α) |[X]| proc.Ext_pre_choice Y Qf)) M M
-      ((proc.Ext_pre_choice (Y \ X) (fun x => ((proc.DIV : proc p α) |[X]| Qf x))) [+] proc.DIV) := by
+      ((proc.Ext_pre_choice (Y \ X)
+          (fun x => ((proc.DIV : proc p α) |[X]| Qf x))) [+] proc.DIV) := by
   rw [cspT_eqT_semantics]
   apply le_antisymm
   · rw [subdomT_iff]
@@ -118,7 +119,8 @@ theorem cspT_DIV_Parallel_step_l
 theorem cspT_DIV_Parallel_step_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice Y Pf) |[X]| (proc.DIV : proc p α)) M M
-      ((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.DIV : proc p α)))) [+] proc.DIV) := by
+      ((proc.Ext_pre_choice (Y \ X)
+          (fun x => (Pf x |[X]| (proc.DIV : proc p α)))) [+] proc.DIV) := by
   have h₁ :
       eqT ((proc.Ext_pre_choice Y Pf) |[X]| (proc.DIV : proc p α)) M M
         (((proc.DIV : proc p α) |[X]| proc.Ext_pre_choice Y Pf)) :=

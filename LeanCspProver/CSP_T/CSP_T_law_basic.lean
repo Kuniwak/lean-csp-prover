@@ -233,7 +233,8 @@ axiom cspT_Rep_int_choice_sum_union_Int {C1 C2 : sets_nats α} {Pf : aset_anat �
         (proc.Rep_int_choice (C1 Uns C2) Pf) M M
         ((proc.Rep_int_choice C1 Pf) |~| (proc.Rep_int_choice C2 Pf))
 
-axiom cspT_Rep_int_choice_nat_union_Int {N1 N2 : Set Nat} {Pf : Nat → proc p α} {M : p → domTType α} :
+axiom cspT_Rep_int_choice_nat_union_Int
+    {N1 N2 : Set Nat} {Pf : Nat → proc p α} {M : p → domTType α} :
     eqT
       (Rep_int_choice_nat (N1 ∪ N2) Pf) M M
       ((Rep_int_choice_nat N1 Pf) |~| (Rep_int_choice_nat N2 Pf))

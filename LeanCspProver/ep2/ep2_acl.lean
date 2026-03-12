@@ -237,7 +237,9 @@ def AC : proc ACName Event :=
   (proc.Proc_name ACName.TInit) |[Set.range Event.C_SI_Init]| (proc.Proc_name ACName.AcquirerInit)
 
 theorem AC_def :
-    AC = (proc.Proc_name ACName.TInit) |[Set.range Event.C_SI_Init]| (proc.Proc_name ACName.AcquirerInit) :=
+    AC =
+      (proc.Proc_name ACName.TInit) |[Set.range Event.C_SI_Init]|
+        (proc.Proc_name ACName.AcquirerInit) :=
   rfl
 
 /- *********************************************************

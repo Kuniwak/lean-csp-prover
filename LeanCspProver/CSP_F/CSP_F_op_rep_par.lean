@@ -49,12 +49,14 @@ axiom in_failures_Inductive_parallel_lm2
 
 axiom in_failures_Inductive_parallel_lm3
     {zs : List ((proc p α × Set α) × Set (event α))} :
-    Set.sUnion {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))} ⊆
+    Set.sUnion
+        {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))} ⊆
       Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (Prod.fst '' _root_.set zs))))
 
 axiom in_failures_Inductive_parallel_lm4
     {zs : List ((proc p α × Set α) × Set (event α))} :
-    Set.sUnion {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))} ∩
+    Set.sUnion
+        {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))} ∩
         Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (Prod.fst '' _root_.set zs)))) =
       Set.sUnion
         {S | ∃ P X Y,

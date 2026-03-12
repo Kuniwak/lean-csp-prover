@@ -520,7 +520,8 @@ axiom sndF_proc_domF2 {P : proc p α} {M : p → domFType α} :
     sndF (traces P (fun x => fstF (M x)) ,, failures P M) = failures P M
 
 theorem fstF_proc_domF_fun {β : Type _} {f : β → proc p α} {M : p → domFType α} :
-    fstF ∘ (fun p => traces (f p) (fstF ∘ M) ,, failures (f p) M) = fun p => traces (f p) (fstF ∘ M) := by
+    fstF ∘ (fun p => traces (f p) (fstF ∘ M) ,, failures (f p) M) =
+      fun p => traces (f p) (fstF ∘ M) := by
   funext p
   simp
 
@@ -599,15 +600,19 @@ theorem semFf_Proc_name {p0 : p} :
  |          =F and <=F            |
  *-------------------------------- -/
 
-theorem cspF_eqF_semantics {P : proc p α} {Q : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
+theorem cspF_eqF_semantics
+    {P : proc p α} {Q : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
     eqF P M1 M2 Q ↔
-      (traces P (fstF ∘ M1) = traces Q (fstF ∘ M2) ∧ failures P M1 = failures Q M2) := by
+      (traces P (fstF ∘ M1) = traces Q (fstF ∘ M2) ∧
+        failures P M1 = failures Q M2) := by
   rw [eqF_def]
   exact (eqF_decompo (SF := semFf P M1) (SE := semFf Q M2)).trans <| by simp
 
-theorem cspF_refF_semantics {P : proc p α} {Q : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
+theorem cspF_refF_semantics
+    {P : proc p α} {Q : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
     refF P M1 M2 Q ↔
-      (traces Q (fstF ∘ M2) <= traces P (fstF ∘ M1) ∧ failures Q M2 <= failures P M1) := by
+      (traces Q (fstF ∘ M2) <= traces P (fstF ∘ M1) ∧
+        failures Q M2 <= failures P M1) := by
   rw [refF_def]
   exact (subdomF_decompo (SF := semFf Q M2) (SE := semFf P M1)).trans <| by simp
 
@@ -637,13 +642,15 @@ axiom in_failures_Timeout1 {f : failure α} {P Q : proc p α} {M : p → domFTyp
     (f :f failures (P [> Q) M) ↔
       (f :f failures Q M ∨
         (∃ s X, f = (s, X) ∧ s ≠ <> ∧ (s, X) :f failures P M) ∨
-        ∃ X, f = (<>, X) ∧ X ⊆ Evset ∧ (Abs_trace [event.Tick] : traceType α) :t traces P (fstF ∘ M))
+        ∃ X, f = (<>, X) ∧ X ⊆ Evset ∧
+          (Abs_trace [event.Tick] : traceType α) :t traces P (fstF ∘ M))
 
 theorem in_failures_Timeout2 {f : failure α} {P Q : proc p α} {M : p → domFType α} :
     (f :f failures (Timeout P Q) M) ↔
       (f :f failures Q M ∨
         (∃ s X, f = (s, X) ∧ s ≠ <> ∧ (s, X) :f failures P M) ∨
-        ∃ X, f = (<>, X) ∧ X ⊆ Evset ∧ (Abs_trace [event.Tick] : traceType α) :t traces P (fstF ∘ M)) := by
+        ∃ X, f = (<>, X) ∧ X ⊆ Evset ∧
+          (Abs_trace [event.Tick] : traceType α) :t traces P (fstF ∘ M)) := by
   simpa [Timeout_def] using (in_failures_Timeout1 (f := f) (P := P) (Q := Q) (M := M))
 
 /- The Isabelle theorem bundle `in_failures_Timeout` is represented by
