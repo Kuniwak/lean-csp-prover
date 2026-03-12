@@ -18,7 +18,6 @@
 import LeanCspProver.CSP_T.CSP_T_semantics
 import LeanCspProver.CSP_F.Domain_F_cms
 
-open Classical
 open SumType
 
 noncomputable section
@@ -164,9 +163,11 @@ theorem semFf_semFfun (Pf : p → proc p α) (M : p → domFType α) :
  *------------------------------------------------------------------*
 -/
 
+open Classical in
 def semFfix [HasFPmode] (Pf : p → proc p α) : p → domFType α :=
   if FPmode = fpmode.CMSmode then UFP (semFfun Pf) else LFP (semFfun Pf)
 
+open Classical in
 theorem semFfix_def [HasFPmode] (Pf : p → proc p α) :
     semFfix Pf = (if FPmode = fpmode.CMSmode then UFP (semFfun Pf) else LFP (semFfun Pf)) :=
   rfl
@@ -233,7 +234,8 @@ theorem eqF_semF [HasPNfun p α] [HasFPmode] (P1 P2 : proc p α) :
  *------------------*)
 -/
 
-theorem cspF_eq_ref_iff {P1 : proc p α} {P2 : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
+theorem cspF_eq_ref_iff
+    {P1 : proc p α} {P2 : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :
     eqF P1 M1 M2 P2 ↔ (refF P1 M1 M2 P2 ∧ refF P2 M2 M1 P1) := by
   constructor
   · intro h
@@ -242,7 +244,6 @@ theorem cspF_eq_ref_iff {P1 : proc p α} {P2 : proc q α} {M1 : p → domFType �
     · exact show semFf P2 M2 <= semFf P1 M1 from le_of_eq h.symm
     · exact show semFf P1 M1 <= semFf P2 M2 from le_of_eq h
   · intro h
-    show semFf P1 M1 = semFf P2 M2
     exact le_antisymm h.2 h.1
 
 theorem cspF_eq_ref {P1 : proc p α} {P2 : proc q α} {M1 : p → domFType α} {M2 : q → domFType α} :

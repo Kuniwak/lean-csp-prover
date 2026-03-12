@@ -74,9 +74,9 @@ theorem par_tr_rest_tr_if_all {X Y : Set α} {u : traceType α} :
           u ∈ (u rest-tr X) |[X ∩ Y]|tr (u rest-tr Y))
       ?_ ?_ ?_
   · intro _
-    simpa using (par_tr_nil_nil (X := X ∩ Y))
+    simp
   · intro _
-    simpa using (par_tr_Tick_Tick (X := X ∩ Y))
+    simp
   · intro s a ih hsXY
     have hsXY' : sett s ⊆ Set.insert Tick (Ev '' (X ∪ Y)) := by
       intro e he

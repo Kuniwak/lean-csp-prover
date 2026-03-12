@@ -152,7 +152,8 @@ theorem Faiures_out_hori_def {r : Type _} (y : r) :
               e = event.Ev (Event.vert (i + 1, j) z) ∨
               (e = event.Ev (Event.hori (i, j + 1) z) ∧ z ≠ y)})} ∪
           {u | ∃ s Y,
-            u = (((Abs_trace [event.Ev (Event.hori (i, j + 1) y)] : traceType (Event r)) ^^^ s), Y) ∧
+            u =
+              (((Abs_trace [event.Ev (Event.hori (i, j + 1) y)] : traceType (Event r)) ^^^ s), Y) ∧
               (s, Y) ∈ F} :=
   rfl
 
@@ -179,7 +180,8 @@ theorem Faiures_out_vert_def {r : Type _} (x : r) :
               e = event.Ev (Event.hori (i, j + 1) z) ∨
               (e = event.Ev (Event.vert (i + 1, j) z) ∧ z ≠ x)})} ∪
           {u | ∃ s Y,
-            u = (((Abs_trace [event.Ev (Event.vert (i + 1, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
+            u =
+              (((Abs_trace [event.Ev (Event.vert (i + 1, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
               (s, Y) ∈ F} :=
   rfl
 
@@ -209,10 +211,12 @@ theorem Faiures_out_def {r : Type _} (x y : r) :
               (e = event.Ev (Event.hori (i, j + 1) z) ∧ z ≠ y) ∨
               (e = event.Ev (Event.vert (i + 1, j) z) ∧ z ≠ x)})} ∪
           {u | ∃ s Y,
-            u = (((Abs_trace [event.Ev (Event.vert (i + 1, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
+            u =
+              (((Abs_trace [event.Ev (Event.vert (i + 1, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
               (s, Y) ∈ Faiures_out_hori y (i, j) F} ∪
           {u | ∃ s Y,
-            u = (((Abs_trace [event.Ev (Event.hori (i, j + 1) y)] : traceType (Event r)) ^^^ s), Y) ∧
+            u =
+              (((Abs_trace [event.Ev (Event.hori (i, j + 1) y)] : traceType (Event r)) ^^^ s), Y) ∧
               (s, Y) ∈ Faiures_out_vert x (i, j) F} :=
   rfl
 

@@ -110,20 +110,17 @@ theorem fsfF_Ext_choice_in
   refine fsfF_proc.fsfF_proc_ext ?_ ?_
   · intro a ha
     by_cases hBoth : a ∈ A1 ∧ a ∈ A2
-    · simp [hBoth]
-      exact fsfF_Int_choice_in (hPf1 a hBoth.1) (hPf2 a hBoth.2)
+    · simpa [hBoth] using fsfF_Int_choice_in (hPf1 a hBoth.1) (hPf2 a hBoth.2)
     · by_cases hA1 : a ∈ A1
       · have hA2 : a ∉ A2 := by
           intro hA2
           exact hBoth ⟨hA1, hA2⟩
-        simp [hA1, hA2]
-        exact hPf1 a hA1
+        simpa [hA1, hA2] using hPf1 a hA1
       · have hA2 : a ∈ A2 := by
           rcases ha with hA1' | hA2
           · exact False.elim (hA1 hA1')
           · exact hA2
-        simp [hA1, hA2]
-        exact hPf2 a hA2
+        simpa [hA1, hA2] using hPf2 a hA2
   · rcases hQ1 with rfl | rfl | rfl <;> rcases hQ2 with rfl | rfl | rfl <;>
       simp
 

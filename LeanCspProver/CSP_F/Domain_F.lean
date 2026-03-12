@@ -19,8 +19,6 @@
 import LeanCspProver.CSP_T.Domain_T
 import LeanCspProver.CSP_F.Set_F
 
-open Classical
-
 noncomputable section
 
 /-
@@ -103,14 +101,11 @@ theorem HC_T3_F4_iff {TF : domTsetF α} :
   constructor
   · intro hTF
     constructor
-    · show HC_T3 TF
-      intro s hs X
+    · intro s hs X
       exact (hTF s hs).2 X
-    · show HC_F4 TF
-      intro s hs
+    · intro s hs
       exact (hTF s hs).1
   · rintro ⟨hT3, hF4⟩
-    show HC_T3_F4 TF
     intro s hs
     exact ⟨hF4 s hs, hT3 s hs⟩
 
@@ -126,11 +121,7 @@ theorem BOT_T2_T3_F3_F4 :
   constructor
   · intro s X Y hsX _ _
     exact False.elim ((memF_empF (sX := (s, X))) hsX)
-  · show
-      ∀ s, memT (s ^^^ Tickt (α := α)) (Abs_domT ({<>} : Set (traceType α))) ∧ noTick s →
-        ((s, Evset) :f ({}f : setFType α) ∧
-          ∀ X, (s ^^^ Tickt (α := α), X) :f ({}f : setFType α))
-    intro s hs
+  · intro s hs
     have hFalse : False := by
       have hEq : s ^^^ Tickt (α := α) = <> := memT_nilt.mp hs.1
       have hNil := (appt_nil hs.2).mp hEq
@@ -166,7 +157,10 @@ noncomputable def Abs_domF (SF : domTsetF α) : domFType α :=
           HC_F3 ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)) ∧
           HC_F4 ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α))
       rcases BOT_T2_T3_F3_F4 (α := α) with ⟨hT2, hF3, hT3F4⟩
-      rcases (HC_T3_F4_iff (TF := ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)))).mp hT3F4 with
+      rcases
+          (HC_T3_F4_iff
+            (TF := ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)))).mp hT3F4
+        with
         ⟨hT3, hF4⟩
       exact ⟨hT2, hT3, hF3, hF4⟩⟩
 
@@ -369,11 +363,11 @@ theorem BOT_in_domF :
 theorem BOT_is_bottom_domF {SF : domFType α} :
     Abs_domF ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)) <= SF := by
   rw [subdomF_def]
-  simpa [BOT_in_domF] using
-    (show ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)) <= Rep_domF SF from
-      order_pair_def.mpr ⟨
-        BOT_is_bottom_domT,
-        fun sX hsX => False.elim ((memF_empF (sX := sX)) hsX)⟩)
+  have hbot :
+      ((Abs_domT ({<>} : Set (traceType α))), ({}f : setFType α)) <= Rep_domF SF :=
+    order_pair_def.mpr
+      ⟨BOT_is_bottom_domT, fun sX hsX => False.elim ((memF_empF (sX := sX)) hsX)⟩
+  simpa [BOT_in_domF] using hbot
 
 /-
 (***********************************************************
@@ -577,8 +571,7 @@ theorem maxFof_domF {T : domTType α} :
     rcases hs' with ⟨⟨X', hEq⟩, hsT⟩
     cases hEq
     exact (in_maxFof (T := T) (f := (s, X ∪ Y))).2 ⟨s, ⟨X ∪ Y, rfl⟩, hsT⟩
-  · show HC_T3_F4 (T, maxFof T)
-    intro s hs
+  · intro s hs
     have hsT : memT s T := by
       exact memT_prefix_closed hs.1 (prefix_appt_simp (s := s) (t := Tickt (α := α)) (Or.inl hs.2))
     constructor

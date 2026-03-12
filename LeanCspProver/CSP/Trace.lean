@@ -21,8 +21,6 @@
 
 import LeanCspProver.CSP.Infra
 
-open Classical
-
 /-  The following simplification rules are deleted in this theory file -/
 /-  because they unexpectedly rewrite `(notick \/ t = <>)`.          -/
 
@@ -57,12 +55,14 @@ theorem Un_Evset {X : Set α} : Ev '' X ∪ Evset = (Evset : Set (event α)) := 
   ext e
   constructor
   · intro he
-    simp [Evset] at *
-    rcases he with ⟨a, _, rfl⟩ | he
-    · simp
+    rw [Set.mem_union] at he
+    rcases he with he | he
+    · rw [Set.mem_image] at he
+      rcases he with ⟨a, _, rfl⟩
+      simp [Evset]
     · exact he
   · intro he
-    simp [Evset] at he
+    rw [Set.mem_union]
     exact Or.inr he
 
 /- *******************************
@@ -124,6 +124,7 @@ abbrev traceType (α : Type u) := {ss : List (event α) // ss ∈ trace (α := �
 
 def Rep_trace (s : traceType α) : List (event α) := s.1
 
+open Classical in
 noncomputable def Abs_trace (s : List (event α)) : traceType α :=
   if h : s ∈ trace (α := α) then ⟨s, h⟩ else ⟨[], by simp [trace]⟩
 
@@ -131,11 +132,13 @@ noncomputable def Abs_trace (s : List (event α)) : traceType α :=
 theorem Rep_trace_mk {s : List (event α)} {h : s ∈ trace (α := α)} :
     Rep_trace (Subtype.mk s h : traceType α) = s := rfl
 
+open Classical in
 @[simp]
 theorem Abs_trace_inverse {s : List (event α)} (hs : s ∈ trace (α := α)) :
     Rep_trace (Abs_trace s) = s := by
   simp [Abs_trace, hs]
 
+open Classical in
 @[simp]
 theorem Rep_trace_inverse (s : traceType α) : Abs_trace (Rep_trace s) = s := by
   cases s with
@@ -163,10 +166,12 @@ theorem Rep_trace_inject {s t : traceType α} : (Rep_trace s = Rep_trace t) ↔ 
     cases h
     rfl
 
+open Classical in
 theorem Abs_trace_eq_of_mem {s : List (event α)} (hs : s ∈ trace (α := α)) :
     Abs_trace s = Subtype.mk s hs := by
   simp [Abs_trace, hs]
 
+open Classical in
 theorem Abs_trace_eq_nil_of_not_mem {s : List (event α)} (hs : s ∉ trace (α := α)) :
     Abs_trace s = (Subtype.mk [] (by simp [trace]) : traceType α) := by
   simp [Abs_trace, hs]
@@ -313,20 +318,24 @@ theorem notic_in_trace {s : List (event α)} : Tick ∉ set s → s ∈ trace (�
 theorem decompo_app_in_trace_only_if1 {s t : List (event α)} :
     s ++ t ∈ trace (α := α) → s ∈ trace (α := α) := by
   intro h
-  simp [trace] at h ⊢
-  have := (notin_butlast_decompo (e := Tick) (s := s) (t := t)).mp h
-  rcases this with h' | h'
+  have htrace : Tick ∉ set (butlast (s ++ t)) := by
+    simpa [trace] using h
+  have hdecomp := (notin_butlast_decompo (e := Tick) (s := s) (t := t)).mp htrace
+  change Tick ∉ set (butlast s)
+  rcases hdecomp with h' | h'
   · exact notin_set_butlast h'.1
   · exact h'.1
 
 theorem decompo_app_in_trace_only_if2 {s t : List (event α)} :
     s ++ t ∈ trace (α := α) → t ∈ trace (α := α) := by
   intro h
-  simp [trace] at h ⊢
-  have := (notin_butlast_decompo (e := Tick) (s := s) (t := t)).mp h
-  rcases this with h' | h'
+  have htrace : Tick ∉ set (butlast (s ++ t)) := by
+    simpa [trace] using h
+  have hdecomp := (notin_butlast_decompo (e := Tick) (s := s) (t := t)).mp htrace
+  change Tick ∉ set (butlast t)
+  rcases hdecomp with h' | h'
   · exact h'.2
-  · simpa [h'.2] using h'.1
+  · simp [h'.2]
 
 theorem decompo_app_in_trace_only_if {s t : List (event α)} :
     s ++ t ∈ trace (α := α) →
@@ -349,8 +358,12 @@ theorem decompo_app_in_trace_only_if {s t : List (event α)} :
 theorem decompo_app_in_trace_if {s t : List (event α)} :
     Tick ∉ set s → t ∈ trace (α := α) → s ++ t ∈ trace (α := α) := by
   intro hs ht
-  simp [trace]
-  exact (notin_butlast_decompo (e := Tick) (s := s) (t := t)).2 <| Or.inl ⟨hs, by simpa [trace] using ht⟩
+  have ht' : Tick ∉ set (butlast t) := by
+    simpa [trace] using ht
+  change Tick ∉ set (butlast (s ++ t))
+  exact
+    (notin_butlast_decompo (e := Tick) (s := s) (t := t)).2 <|
+      Or.inl ⟨hs, ht'⟩
 
 theorem decompo_app_in_trace {s t : List (event α)} :
     (s ++ t ∈ trace (α := α)) ↔
@@ -391,9 +404,9 @@ theorem decompo_head_in_trace {a : event α} {t : List (event α)} :
       refine ⟨?_, hrest.2⟩
       intro hEq
       apply hrest.1
-      simpa [_root_.set, hEq]
+      simp [_root_.set, hEq]
   · rintro (rfl | ⟨ha, ht⟩)
-    · simpa using event_in_trace a
+    · exact event_in_trace a
     · exact decompo_head_in_trace_if ha ht
 
 theorem decompo_last_in_trace_if {s : List (event α)} {a : event α} :
@@ -450,13 +463,11 @@ theorem one_neq_nil_sym {a : event α} : (<> : traceType α) ≠ Abs_trace [a] :
 @[simp]
 theorem noTick_Ev (a : α) : noTick (Abs_trace [Ev a] : traceType α) := by
   intro hTick
-  have : Tick = Ev a := by
-    simpa [noTick, sett, Abs_trace_inverse, _root_.set] using hTick
-  cases this
+  simp [sett, Abs_trace_inverse, _root_.set] at hTick
 
 theorem noTick_EvI {e : event α} : (∃ a, e = Ev a) → noTick (Abs_trace [e] : traceType α) := by
   rintro ⟨a, rfl⟩
-  simpa using noTick_Ev a
+  exact noTick_Ev a
 
 @[simp]
 theorem noTick_nil : noTick (<> : traceType α) := by
@@ -474,7 +485,7 @@ theorem not_noTick_Tick : ¬ noTick (Abs_trace [Tick] : traceType α) := by
 @[simp]
 theorem Event_eq {e1 e2 : event α} :
     ((Abs_trace [e1] : traceType α) = Abs_trace [e2]) ↔ e1 = e2 := by
-  simpa [Abs_trace_inject (event_in_trace e1) (event_in_trace e2)]
+  simp [Abs_trace_inject (event_in_trace e1) (event_in_trace e2)]
 
 /- ***********************************************************
                    @ in trace
@@ -570,7 +581,7 @@ theorem Abs_trace_app_dist {s t : List (event α)} :
 theorem appt_head {a : event α} {s : traceType α} :
     Abs_trace [a] ^^^ s = Abs_trace (a :: Rep_trace s) := by
   apply (Rep_trace_inject).mp
-  simp [appt, Abs_trace_inverse, Rep_compo_head_in_trace]
+  simp [appt, Abs_trace_inverse]
 
 /- --------------------------*
  |       append last        |
@@ -636,7 +647,7 @@ theorem appt_assoc {s t u : traceType α} :
       have htsu : Rep_trace s ++ Rep_trace (t ^^^ u) ∈ trace (α := α) :=
         Rep_compo_app_in_trace (Or.inl hs)
       apply (Rep_trace_inject).mp
-      simp [appt, Abs_trace_inverse, hst, htu, hsu, htsu, List.append_assoc]
+      simp [appt, Abs_trace_inverse, hst, htu, List.append_assoc]
     · simp
   · simp
 
@@ -752,13 +763,11 @@ theorem decompo_appt_noTick_only_if {s t : traceType α} :
       apply hst
       rw [sett_appt1 (s := s) (t := t) (Or.inl hs)]
       exact Or.inr hx
-  · simp at hst
-    exact ⟨by simpa using hst, noTick_nil⟩
+  · exact ⟨by simpa using hst, noTick_nil⟩
 
 theorem decompo_appt_noTick_if {s t : traceType α} :
     noTick s → noTick t → noTick (s ^^^ t) := by
-  intro hs ht
-  intro hTick
+  intro hs ht hTick
   rw [sett_appt1 (s := s) (t := t) (Or.inl hs)] at hTick
   rcases hTick with hs' | ht'
   · exact hs hs'
@@ -828,7 +837,7 @@ theorem hdt_appt_tail {s : traceType α} : s ≠ <> → Abs_trace [hdt s] ^^^ tl
 theorem butlast_trace {s : List (event α)} :
     s ∈ trace (α := α) → s ≠ [] → butlast s ∈ trace (α := α) := by
   intro hs hnil
-  simp [trace]
+  change Tick ∉ set (butlast (butlast s))
   exact notin_set_butlast (by simpa [trace] using hs)
 
 theorem butlast_trace_Rep {s : traceType α} :
@@ -847,7 +856,7 @@ theorem lastt_appt {s : traceType α} {e : event α} :
   have hrep : Rep_trace (s ^^^ Abs_trace [e]) = Rep_trace s ++ [e] := by
     simp [appt, Abs_trace_inverse, Rep_compo_last_in_trace hs]
   rw [lastt, hrep]
-  cases hsrep : Rep_trace s <;> simp [hsrep, List.getLast_append_singleton]
+  cases Rep_trace s <;> simp
 
 @[simp]
 theorem lastt_one {a : event α} : lastt (Abs_trace [a] : traceType α) = a := by
@@ -896,7 +905,7 @@ theorem butlastt_appt_lastt {s : traceType α} :
 theorem not_noTick_unnil {s : traceType α} : ¬ noTick s → s ≠ <> := by
   intro hs hnil
   apply hs
-  simpa [hnil] using noTick_nil (α := α)
+  simp [hnil]
 
 theorem noTick_butlast {s : traceType α} : s ≠ <> → noTick (butlastt s) := by
   intro hs
@@ -937,7 +946,7 @@ theorem trace_nil_or_unnil : ∀ t : traceType α,
   intro t
   rcases trace_nil_or_Tick_or_Ev t with rfl | rfl | ⟨a, s, hs⟩
   · exact Or.inl rfl
-  · exact Or.inr ⟨Tick, <>, by simp [appt_head]⟩
+  · exact Or.inr ⟨Tick, <>, by simp⟩
   · exact Or.inr ⟨Ev a, s, hs⟩
 
 theorem trace_last_nil_or_unnil : ∀ t : traceType α,
@@ -987,9 +996,12 @@ theorem trace_last_noTick_or_Tick : ∀ t : traceType α,
 theorem appt_same_head_only_if {a b : α} {s t : traceType α} :
     Abs_trace [Ev a] ^^^ s = Abs_trace [Ev b] ^^^ t → a = b ∧ s = t := by
   intro h
-  have hrep := congrArg Rep_trace h
-  simp [appt, Abs_trace_inverse] at hrep
-  exact ⟨hrep.1, (Rep_trace_inject).mp hrep.2⟩
+  have hrep : Ev a :: Rep_trace s = Ev b :: Rep_trace t := by
+    simpa [appt, Abs_trace_inverse] using congrArg Rep_trace h
+  have habs := List.cons.inj hrep
+  have hab : a = b := by
+    simpa using habs.1
+  exact ⟨hab, (Rep_trace_inject).mp habs.2⟩
 
 @[simp]
 theorem appt_same_head {a b : α} {s t : traceType α} :
@@ -1002,9 +1014,13 @@ theorem appt_same_head {a b : α} {s t : traceType α} :
 theorem appt_same_last_only_if {s t : traceType α} {a b : event α} :
     noTick s → noTick t → s ^^^ Abs_trace [a] = t ^^^ Abs_trace [b] → s = t ∧ a = b := by
   intro hs ht h
-  have hrep := congrArg Rep_trace h
-  simp [appt, Abs_trace_inverse, Rep_compo_last_in_trace hs, Rep_compo_last_in_trace ht] at hrep
-  exact ⟨(Rep_trace_inject).mp hrep.1, hrep.2⟩
+  have hrep : Rep_trace s ++ [a] = Rep_trace t ++ [b] := by
+    simpa [appt, Abs_trace_inverse, Rep_compo_last_in_trace hs, Rep_compo_last_in_trace ht] using
+      congrArg Rep_trace h
+  have hlen : (Rep_trace s).length = (Rep_trace t).length := by
+    simpa using congrArg List.length hrep
+  refine ⟨(Rep_trace_inject).mp (List.append_inj_left hrep hlen), ?_⟩
+  exact List.singleton_injective (List.append_inj_right hrep hlen)
 
 @[simp]
 theorem appt_same_last {s t : traceType α} {a b : event α} :
@@ -1026,7 +1042,9 @@ theorem appt_decompo_one_only_if {s t : traceType α} {a : event α} :
   have hvalid : Rep_trace s ++ Rep_trace t ∈ trace (α := α) := Rep_compo_app_in_trace h
   have hrep : Rep_trace s ++ Rep_trace t = [a] := by
     simpa [appt, Abs_trace_inverse, hvalid] using congrArg Rep_trace hEq
-  rcases (list_app_decompo_one (s := Rep_trace s) (t := Rep_trace t) (a := a)).mp hrep with hst | hst
+  rcases
+      (list_app_decompo_one (s := Rep_trace s) (t := Rep_trace t) (a := a)).mp hrep with
+    hst | hst
   · left
     exact ⟨(Rep_trace_inject).mp (by simpa [Abs_trace_inverse] using hst.1),
       (Rep_trace_inject).mp (by simpa [nilt, Abs_trace_inverse] using hst.2)⟩
@@ -1064,10 +1082,12 @@ theorem appt_decompo_one_sym {s t : traceType α} {a : event α} :
 theorem lengtht_zero {s : traceType α} : (lengtht s = 0) ↔ s = <> := by
   constructor
   · intro hs
+    have hs' : Rep_trace s = [] := by
+      simpa [lengtht] using hs
     apply (Rep_trace_inject).mp
-    simpa [lengtht, nilt, Abs_trace_inverse] using hs
+    simpa [nilt] using hs'
   · intro hs
-    simpa [hs] using lengtht_nil_zero (α := α)
+    simp [hs]
 
 @[simp]
 theorem lengtht_one {s : traceType α} : (lengtht s = 1) ↔ ∃ e, s = Abs_trace [e] := by
@@ -1077,7 +1097,7 @@ theorem lengtht_one {s : traceType α} : (lengtht s = 1) ↔ ∃ e, s = Abs_trac
     rcases list_length_one.mp hlen with ⟨e, he⟩
     refine ⟨e, ?_⟩
     apply (Rep_trace_inject).mp
-    simpa [Abs_trace_inverse, he]
+    simp [Abs_trace_inverse, he]
   · rintro ⟨e, rfl⟩
     simp [lengtht, Abs_trace_inverse]
 
@@ -1138,17 +1158,18 @@ theorem sett_subset_Tick_only_if {u : traceType α} :
       simp [nilt, Abs_trace_inverse, hrep]
   | cons e es =>
       have hemem : e ∈ sett u := by
-        simpa [sett, hrep, _root_.set]
+        simp [sett, hrep, _root_.set]
       have heTick : e = Tick := by
         simpa using hu hemem
       subst heTick
       have huTrace : Tick :: es ∈ trace (α := α) := by
         have huRep : Rep_trace u ∈ trace (α := α) := u.2
-        simpa [hrep] using huRep
+        rw [hrep] at huRep
+        exact huRep
       have hesnil : es = [] := Tick_is_last huTrace
       right
       apply (Rep_trace_inject).mp
-      simpa [Abs_trace_inverse, hrep, hesnil]
+      simp [Abs_trace_inverse, hrep, hesnil]
 
 theorem sett_subset_Tick {u : traceType α} :
     (sett u ⊆ ({Tick} : Set (event α))) ↔ (u = <> ∨ u = Abs_trace [Tick]) := by
@@ -1277,8 +1298,10 @@ theorem appt_decompo_lm :
   intro s1 s2 t1 t2 hs1 hs2 ht1 ht2
   constructor
   · intro hEq
-    have hvalid1 : Rep_trace s1 ++ Rep_trace s2 ∈ trace (α := α) := Rep_compo_app_in_trace (Or.inl hs1)
-    have hvalid2 : Rep_trace t1 ++ Rep_trace t2 ∈ trace (α := α) := Rep_compo_app_in_trace (Or.inl ht1)
+    have hvalid1 : Rep_trace s1 ++ Rep_trace s2 ∈ trace (α := α) :=
+      Rep_compo_app_in_trace (Or.inl hs1)
+    have hvalid2 : Rep_trace t1 ++ Rep_trace t2 ∈ trace (α := α) :=
+      Rep_compo_app_in_trace (Or.inl ht1)
     have hrep : Rep_trace s1 ++ Rep_trace s2 = Rep_trace t1 ++ Rep_trace t2 := by
       simpa [appt, Abs_trace_inverse, hvalid1, hvalid2] using congrArg Rep_trace hEq
     rcases (list_app_app (s1 := Rep_trace s1) (s2 := Rep_trace s2)
@@ -1397,7 +1420,7 @@ theorem appt_decompo {s1 s2 t1 t2 : traceType α} :
         left
         refine ⟨s2, ?_, ?_, ?_⟩
         · simpa [ht2] using hEq
-        · simpa [ht2] using hEq
+        · simp [ht2]
         · exact Or.inr ⟨hs1', ht2⟩
       · rintro (⟨u, hsEq, htEq, hu⟩ | ⟨u, hsEq, htEq, hu⟩)
         · have huEq : s2 = u := by simpa [ht2] using htEq

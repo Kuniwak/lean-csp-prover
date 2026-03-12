@@ -112,7 +112,7 @@ theorem continuous_if_cpo {α : Type _} {β : Type _} [cpo α] [cpo β] {f : α 
       exact (isLUB_to_LUB (X := f '' X) (x := f x) ⟨f x, hfx⟩).mp hfx
     calc
       LUB (f '' X) = f x := hfxEq.symm
-      _ = f (LUB X) := by simpa [hxEq]
+      _ = f (LUB X) := by simp [hxEq]
 
 /- *** iff *** -/
 
@@ -241,7 +241,7 @@ theorem Tarski_directed_lm1 {α : Type _} [cpo_bot α] {f : α → α} :
   intro hmono n
   induction n with
   | zero =>
-      simpa using (bottom_bot (f Bot))
+      simp
   | succ n ih =>
       simpa [Nat.succ_eq_add_one, Nat.add_assoc, Function.iterate_succ_apply'] using hmono ih
 
@@ -326,10 +326,10 @@ theorem Tarski_least_lm {α : Type _} [cpo_bot α] {f : α → α} {y : α} :
   intro hmono hy n
   induction n with
   | zero =>
-      simpa using (bottom_bot y)
+      simp
   | succ n ih =>
       have hfy : f y = y := hy.symm
-      exact le_trans (by simpa [Function.iterate_succ_apply'] using hmono ih) (by simpa [hfy])
+      exact le_trans (by simpa [Function.iterate_succ_apply'] using hmono ih) (by simp [hfy])
 
 theorem Tarski_least {α : Type _} [cpo_bot α] {f : α → α} {x y : α} :
     mono f →
@@ -424,7 +424,7 @@ theorem admissible_Rev_fun {α : Type _} [cpo α] {X : α} :
 /- *** Bot *** -/
 
 theorem Rev_fun_Bot {α : Type _} [bot α] {X : α} : Rev_fun X Bot := by
-  simpa [Rev_fun] using (bottom_bot X)
+  simp [Rev_fun]
 
 /- ************************************************************
          Fixed Point Induction (CPO) for refinement

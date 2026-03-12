@@ -311,7 +311,8 @@ theorem Abs_def :
 
 def Abs_to_AC : AbsName → proc ACName Event
   | AbsName.Abstract =>
-      (proc.Proc_name ACName.TInit) |[Set.range Event.C_SI_Init]| (proc.Proc_name ACName.AcquirerInit)
+      (proc.Proc_name ACName.TInit) |[Set.range Event.C_SI_Init]|
+        (proc.Proc_name ACName.AcquirerInit)
   | AbsName.Loop =>
       (proc.Proc_name ACName.TConfigurationManagement) |[Set.range Event.C_SI_Init]|
         (proc.Proc_name ACName.ConfigurationManagement)

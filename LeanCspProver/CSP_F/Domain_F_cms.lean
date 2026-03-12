@@ -28,8 +28,6 @@ import LeanCspProver.CSP_F.Set_F_cms
 import LeanCspProver.CSP.RS_pair
 import LeanCspProver.CSP.RS_prod
 
-open Classical
-
 noncomputable section
 
 /-
@@ -236,6 +234,7 @@ theorem min_rs_domF (F : domFType α) (m n : Nat) :
 
 theorem diff_rs_domF {F E : domFType α} :
     F ≠ E → ∃ n : Nat, F .|. n ≠ E .|. n := by
+  classical
   intro hneq
   by_contra h
   apply hneq
@@ -373,7 +372,8 @@ theorem normal_domF {Fs : infinite_seq (domFType α)} :
 
 theorem normal_domF_only_if {Fs : infinite_seq (domFType α)} :
     normal Fs → normal (Rep_domF ∘ Fs) := by
-  simpa [normal_domF]
+  intro h
+  rwa [normal_domF] at h
 
 theorem normal_of_domF {Fs : infinite_seq (domFType α)} :
     normal Fs → (normal (fstF ∘ Fs) ∧ normal (sndF ∘ Fs)) := by
@@ -408,7 +408,8 @@ theorem cauchy_domF {Fs : infinite_seq (domFType α)} :
 
 theorem cauchy_domF_only_if {Fs : infinite_seq (domFType α)} :
     cauchy Fs → cauchy (Rep_domF ∘ Fs) := by
-  simpa [cauchy_domF]
+  intro h
+  rwa [cauchy_domF] at h
 
 theorem cauchy_of_domF {Fs : infinite_seq (domFType α)} :
     cauchy Fs → (cauchy (fstF ∘ Fs) ∧ cauchy (sndF ∘ Fs)) := by
@@ -447,7 +448,14 @@ theorem LimitTF_iff {Fs : infinite_seq (domFType α)} :
   intro hnormal
   rw [pair_normal_seq_compo_iff] at hnormal
   rcases hnormal with ⟨hfst, hsnd⟩
-  simp [pair_Limit_def, fstF, sndF, Function.comp, Limit_domT_Limit_eq hfst, Limit_setF_Limit_eq hsnd]
+  simp [
+    pair_Limit_def,
+    fstF,
+    sndF,
+    Function.comp,
+    Limit_domT_Limit_eq hfst,
+    Limit_setF_Limit_eq hsnd
+  ]
 
 /- (*******************************
       LimitTF in domF
@@ -460,7 +468,9 @@ theorem LimitTF_F4 {Fs : infinite_seq (domFType α)} :
   intro hnormal s hs
   rcases normal_of_domF (Fs := Fs) hnormal with ⟨hfst, hsnd⟩
   have hTickBase :
-      memT (s ^^^ (Abs_trace [event.Tick] : traceType α)) ((fstF ∘ Fs) (lengtht (s ^^^ (Abs_trace [event.Tick] : traceType α)))) :=
+      memT
+        (s ^^^ (Abs_trace [event.Tick] : traceType α))
+        ((fstF ∘ Fs) (lengtht (s ^^^ (Abs_trace [event.Tick] : traceType α)))) :=
     (Limit_domT_memT (Ts := fstF ∘ Fs) hfst).1 hs.1
   have hF4Base :
       (s, Evset) :f (sndF ∘ Fs) (lengtht (s ^^^ (Abs_trace [event.Tick] : traceType α))) :=
@@ -479,7 +489,9 @@ theorem LimitTF_T3 {Fs : infinite_seq (domFType α)} :
   intro hnormal s hs X
   rcases normal_of_domF (Fs := Fs) hnormal with ⟨hfst, _hsnd⟩
   have hTickBase :
-      memT (s ^^^ (Abs_trace [event.Tick] : traceType α)) ((fstF ∘ Fs) (lengtht (s ^^^ (Abs_trace [event.Tick] : traceType α)))) :=
+      memT
+        (s ^^^ (Abs_trace [event.Tick] : traceType α))
+        ((fstF ∘ Fs) (lengtht (s ^^^ (Abs_trace [event.Tick] : traceType α)))) :=
     (Limit_domT_memT (Ts := fstF ∘ Fs) hfst).1 hs.1
   have hBase :
       (s ^^^ (Abs_trace [event.Tick] : traceType α), X) :f
@@ -703,7 +715,7 @@ theorem non_expanding_Rep_domF :
   · norm_num
   · intro x y
     rw [← distance_Rep_domF]
-    simpa using (le_rfl : distance x y ≤ distance x y)
+    simp
 
 theorem non_expanding_fstF :
     non_expanding (fstF (α := α)) := by
@@ -741,7 +753,9 @@ theorem alpha_distance_fstF_compo_le {ι : Type _} [Nonempty ι]
     {x y : ι → domFType α} {alpha : ℝ} :
     0 <= alpha → alpha * distance (fstF ∘ x) (fstF ∘ y) <= alpha * distance x y := by
   intro hAlpha
-  exact mul_le_mul_of_nonneg_left (distance_fstF_compo_le (α := α) (ι := ι) (x := x) (y := y)) hAlpha
+  exact mul_le_mul_of_nonneg_left
+    (distance_fstF_compo_le (α := α) (ι := ι) (x := x) (y := y))
+    hAlpha
 
 /- ----------------------------------------------------------*
  |                                                          |

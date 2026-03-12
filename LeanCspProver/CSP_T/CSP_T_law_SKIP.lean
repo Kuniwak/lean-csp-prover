@@ -126,7 +126,8 @@ theorem cspT_SKIP_Parallel_Ext_choice_SKIP_r
     cspT_Parallel_commut
   have h₂ :
       eqT ((((proc.Ext_pre_choice Y Pf) [+] proc.SKIP) |[X]| (proc.SKIP : proc p α))) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.SKIP)) :=
+        (((proc.Ext_pre_choice (Y \ X)
+            (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.SKIP)) :=
     cspT_SKIP_Parallel_Ext_choice_SKIP_l
   have h₃₁ :
       eqT (proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) M M
@@ -135,8 +136,11 @@ theorem cspT_SKIP_Parallel_Ext_choice_SKIP_r
     intro a ha
     exact cspT_Parallel_commut
   have h₃ :
-      eqT (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.SKIP)) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.SKIP)) := by
+      eqT
+        (((proc.Ext_pre_choice (Y \ X)
+            (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.SKIP)) M M
+        (((proc.Ext_pre_choice (Y \ X)
+            (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.SKIP)) := by
     exact cspT_Ext_choice_cong h₃₁ cspT_reflex_eq_SKIP
   exact cspT_trans_left_eq h₁ (cspT_trans_left_eq h₂ h₃)
 
@@ -228,12 +232,18 @@ theorem cspT_Seq_compo_unit_l
     rw [in_traces_Seq_compo] at hu
     rcases hu with ⟨s, rfl, hs⟩ | ⟨s, t, hu, hs, ht, hsNo⟩
     · rw [in_traces_SKIP] at hs
-      rcases hs with rfl | rfl <;> simpa [rmTick_nil, rmTick_Tick] using (nilt_in_T (T := traces P M))
+      rcases hs with rfl | rfl
+      · rw [rmTick_nil]
+        exact nilt_in_T (T := traces P M)
+      · rw [rmTick_Tick]
+        exact nilt_in_T (T := traces P M)
     · rw [in_traces_SKIP] at hs
       rcases hs with hs | hs
       · exact False.elim (event_app_not_nil_right hsNo hs)
       · have hsNil : s = <> := by
-          have hEq : s ^^^ (Abs_trace [Tick] : traceType α) = (<> : traceType α) ^^^ Abs_trace [Tick] := by
+          have hEq :
+              s ^^^ (Abs_trace [Tick] : traceType α) =
+                (<> : traceType α) ^^^ Abs_trace [Tick] := by
             simpa [appt_nil_left] using hs
           exact (appt_same_last hsNo (by simp)).mp hEq |>.1
         subst s

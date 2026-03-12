@@ -46,15 +46,19 @@ theorem cspF_SKIP_DIV_Int_choice
     (hP : P = (proc.SKIP : proc p α) ∨ P = proc.DIV)
     (hQ : Q = (proc.SKIP : proc p α) ∨ Q = proc.DIV) :
     eqF (P |~| Q) M1 M2
-      (if (P = (proc.SKIP : proc p α) ∨ Q = proc.SKIP) then (proc.SKIP : proc q α) else proc.DIV) := by
+      (if (P = (proc.SKIP : proc p α) ∨ Q = proc.SKIP) then
+        (proc.SKIP : proc q α)
+       else proc.DIV) := by
   rcases hP with rfl | rfl <;> rcases hQ with rfl | rfl
-  · simp
+  · rw [if_pos (Or.inl rfl)]
     exact cspF_trans_left_eq cspF_Int_choice_idem cspF_reflex_eq_SKIP
-  · simp
+  · rw [if_pos (Or.inl rfl)]
     exact cspF_trans_left_eq cspF_Int_choice_unit_r cspF_reflex_eq_SKIP
-  · simp
+  · rw [if_pos (Or.inr rfl)]
     exact cspF_trans_left_eq cspF_Int_choice_unit_l cspF_reflex_eq_SKIP
-  · simp
+  · rw [if_neg (by
+      intro h
+      rcases h with h | h <;> cases h)]
     exact cspF_trans_left_eq cspF_Int_choice_idem cspF_reflex_eq_DIV
 
 /- (*** !! ***) -/
@@ -68,12 +72,18 @@ theorem cspF_SKIP_DIV_Rep_int_choice_sum
       (if (∃ c, c ∈ sumset C ∧ Qf c = (proc.SKIP : proc p α)) then (proc.SKIP : proc q α)
        else proc.DIV) := by
   by_cases hSkip : ∃ c, c ∈ sumset C ∧ Qf c = (proc.SKIP : proc p α)
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ c, c ∈ sumset C ∧ Qf c = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = (proc.SKIP : proc q α) := if_pos hSkip
+    rw [hResult]
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_sum
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_sum
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s X hs
@@ -93,7 +103,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_sum
         rw [hSkipC]
         rw [in_failures_SKIP] at hs ⊢
         exact hs
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ c, c ∈ sumset C ∧ Qf c = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = proc.DIV := if_neg hSkip
+    rw [hResult]
     have hDiv : ∀ c, c ∈ sumset C → Qf c = proc.DIV := by
       intro c hc
       rcases hQ c hc with hSkipC | hDivC
@@ -101,9 +115,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_sum
       · exact hDivC
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_sum
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_sum
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s X hs
@@ -124,12 +140,18 @@ theorem cspF_SKIP_DIV_Rep_int_choice_nat
       (if (∃ n, n ∈ N ∧ Qf n = (proc.SKIP : proc p α)) then (proc.SKIP : proc q α)
        else proc.DIV) := by
   by_cases hSkip : ∃ n, n ∈ N ∧ Qf n = (proc.SKIP : proc p α)
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ n, n ∈ N ∧ Qf n = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = (proc.SKIP : proc q α) := if_pos hSkip
+    rw [hResult]
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_nat
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_nat
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s X hs
@@ -149,7 +171,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_nat
         rw [hSkipN]
         rw [in_failures_SKIP] at hs ⊢
         exact hs
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ n, n ∈ N ∧ Qf n = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = proc.DIV := if_neg hSkip
+    rw [hResult]
     have hDiv : ∀ n, n ∈ N → Qf n = proc.DIV := by
       intro n hn
       rcases hQ n hn with hSkipN | hDivN
@@ -157,9 +183,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_nat
       · exact hDivN
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_nat
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_nat
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s X hs
@@ -180,12 +208,18 @@ theorem cspF_SKIP_DIV_Rep_int_choice_set
       (if (∃ X, X ∈ Xs ∧ Qf X = (proc.SKIP : proc p α)) then (proc.SKIP : proc q α)
        else proc.DIV) := by
   by_cases hSkip : ∃ X, X ∈ Xs ∧ Qf X = (proc.SKIP : proc p α)
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ X, X ∈ Xs ∧ Qf X = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = (proc.SKIP : proc q α) := if_pos hSkip
+    rw [hResult]
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_set
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_set
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s Y hs
@@ -205,7 +239,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_set
         rw [hSkipX]
         rw [in_failures_SKIP] at hs ⊢
         exact hs
-  · simp [hSkip]
+  · have hResult :
+        (if (∃ X, X ∈ Xs ∧ Qf X = (proc.SKIP : proc p α)) then
+          (proc.SKIP : proc q α)
+         else proc.DIV) = proc.DIV := if_neg hSkip
+    rw [hResult]
     have hDiv : ∀ X, X ∈ Xs → Qf X = proc.DIV := by
       intro X hX
       rcases hQ X hX with hSkipX | hDivX
@@ -213,9 +251,11 @@ theorem cspF_SKIP_DIV_Rep_int_choice_set
       · exact hDivX
     rw [cspF_cspT_eqF_semantics]
     refine ⟨?_, ?_⟩
-    · simpa [hSkip] using
-        (cspT_SKIP_DIV_Rep_int_choice_set
-          (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ)
+    · have hT :=
+          cspT_SKIP_DIV_Rep_int_choice_set
+            (M1 := fstF ∘ M1) (M2 := fstF ∘ M2) hQ
+      rw [hResult] at hT
+      exact hT
     · apply le_antisymm
       · rw [subsetF_iff]
         intro s Y hs

@@ -81,9 +81,11 @@ axiom EX1_isFailureOf_in_alpha1 {r : Type _} (i j : Nat) :
       Ev '' Alpha_pe (r := r) (i, j) \
         (Ev '' (Set.range (Event.vert (i, j)) ∪ Set.range (Event.hori (i, j)))) ) =
     ((<> : traceType (Event r)),
-      {e | ∃ a, e = Ev a ∧ (∃ x, a = Event.vert (i + 1, j) x ∨ a = Event.hori (i, j + 1) x)})
+      {e | ∃ a, e = Ev a ∧
+        (∃ x, a = Event.vert (i + 1, j) x ∨ a = Event.hori (i, j + 1) x)})
 
-axiom EX1_isFailureOf_in_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
+axiom EX1_isFailureOf_in_alpha2
+    {r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
     ({u : failure (Event r) | ∃ x s Y,
         u = (((Abs_trace [Ev (Event.vert (i, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
           (s, Y) ∈ Faiures_in_hori x (i, j) F} ∪

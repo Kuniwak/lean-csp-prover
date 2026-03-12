@@ -22,7 +22,6 @@ import LeanCspProver.CSP.Trace_op
 import LeanCspProver.CSP.CSP_syntax
 import LeanCspProver.CSP_T.Domain_T_cms
 
-open Classical
 open SumType
 
 noncomputable section
@@ -166,12 +165,18 @@ theorem traces_semTfun (Pf : p → proc p α) (M : p → domTType α) :
     (fun p => traces (Pf p) M) = semTfun Pf M :=
   rfl
 
+section
+
+attribute [local instance] Classical.propDecidable
+
 def semTfix [HasFPmode] (Pf : p → proc p α) : p → domTType α :=
   if FPmode = fpmode.CMSmode then UFP (semTfun Pf) else LFP (semTfun Pf)
 
 theorem semTfix_def [HasFPmode] (Pf : p → proc p α) :
     semTfix Pf = (if FPmode = fpmode.CMSmode then UFP (semTfun Pf) else LFP (semTfun Pf)) :=
   rfl
+
+end
 
 def MT [HasPNfun p α] [HasFPmode] : p → domTType α :=
   semTfix PNfun
@@ -233,11 +238,13 @@ theorem eqT_semT [HasPNfun p α] [HasFPmode] (P1 P2 : proc p α) :
  *------------------*)
 -/
 
-theorem cspT_eqT_semantics {P : proc p α} {Q : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
+theorem cspT_eqT_semantics
+    {P : proc p α} {Q : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
     eqT P M1 M2 Q ↔ traces P M1 = traces Q M2 := by
   rfl
 
-theorem cspT_refT_semantics {P : proc p α} {Q : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
+theorem cspT_refT_semantics
+    {P : proc p α} {Q : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
     refT P M1 M2 Q ↔ traces Q M2 <= traces P M1 := by
   rfl
 
@@ -299,7 +306,9 @@ theorem cspT_reflex_ref_DIV {M1 : p → domTType α} {M2 : q → domTType α} :
 axiom cspT_sym {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
     eqT P1 M1 M2 P2 → eqT P2 M2 M1 P1
 
-axiom cspT_symE {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} {Z : Prop} :
+axiom cspT_symE
+    {P1 : proc p α} {P2 : proc q α}
+    {M1 : p → domTType α} {M2 : q → domTType α} {Z : Prop} :
     eqT P1 M1 M2 P2 → (eqT P2 M2 M1 P1 → Z) → Z
 
 axiom cspT_trans_left_eq

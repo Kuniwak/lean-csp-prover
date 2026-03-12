@@ -15,7 +15,6 @@
 
 import LeanCspProver.DFP.DFP_Block
 
-open Classical
 open event
 
 noncomputable section
@@ -66,7 +65,7 @@ private theorem sUnion_pair_eq
   · intro ha
     rcases Set.mem_sUnion.mp ha with ⟨A, hA, haA⟩
     rcases hA with ⟨k, hk, rfl⟩
-    simp at hk
+    rw [Set.mem_insert_iff, Set.mem_singleton_iff] at hk
     rcases hk with rfl | rfl
     · exact Or.inl haA
     · exact Or.inr haA
@@ -144,7 +143,7 @@ lemma Lemma2_Roscoe_Dathi_1987 [Preorder π]
   have hij : i ≠ j := (in_index_I5 hReq).2.2
   have hPairSubset : ({i, j} : Set ι) ⊆ I := by
     intro k hk
-    simp at hk
+    rw [Set.mem_insert_iff, Set.mem_singleton_iff] at hk
     rcases hk with rfl | rfl
     · exact hiI
     · exact hjI

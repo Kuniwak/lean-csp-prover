@@ -110,28 +110,40 @@ theorem fsfF_Seq_compo_in
   cases hQ1 with
   | inl hQ1 =>
       subst hQ1
-      simp [SP_step_Seq_compo_def]
-      apply fsfF_Timeout_in
-      · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
-        intro a ha
-        exact hSPf a ha
-      · exact hP2
+      have hStep : fsfF_proc (((proc.Ext_pre_choice Y1 SPf) [+] proc.STOP) [>seq P2) := by
+        apply fsfF_Timeout_in
+        · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
+          intro a ha
+          exact hSPf a ha
+        · exact hP2
+      simpa only [SP_step_Seq_compo_def, if_pos rfl] using hStep
   | inr hQ1 =>
       cases hQ1 with
       | inl hQ1 =>
           subst hQ1
-          simp [SP_step_Seq_compo_def]
-          apply fsfF_Timeout_in
-          · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
-            intro a ha
-            exact hSPf a ha
-          · exact fsfF_SDIV_in
+          have hDivNeSkip : (proc.DIV : proc p α) ≠ proc.SKIP := by
+            intro h
+            cases h
+          have hStep : fsfF_proc (((proc.Ext_pre_choice Y1 SPf) [+] proc.STOP) [>seq SDIV) := by
+            apply fsfF_Timeout_in
+            · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
+              intro a ha
+              exact hSPf a ha
+            · exact fsfF_SDIV_in
+          simpa only [SP_step_Seq_compo_def, if_neg hDivNeSkip, if_pos rfl] using hStep
       | inr hQ1 =>
           subst hQ1
-          simp [SP_step_Seq_compo_def]
-          refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
-          intro a ha
-          exact hSPf a ha
+          have hStopNeSkip : (proc.STOP : proc p α) ≠ proc.SKIP := by
+            intro h
+            cases h
+          have hStopNeDiv : (proc.STOP : proc p α) ≠ proc.DIV := by
+            intro h
+            cases h
+          have hStep : fsfF_proc ((proc.Ext_pre_choice Y1 SPf) [+] proc.STOP) := by
+            refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
+            intro a ha
+            exact hSPf a ha
+          simpa only [SP_step_Seq_compo_def, if_neg hStopNeSkip, if_neg hStopNeDiv] using hStep
 
 /- *------------------------------------------------------------*
  |             syntactical transformation to fsfF             |

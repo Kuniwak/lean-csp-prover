@@ -26,7 +26,6 @@
 import LeanCspProver.CSP_F.CSP_F_domain
 import LeanCspProver.CSP_T.CSP_T_contraction
 
-open Classical
 open SumType
 
 noncomputable section
@@ -146,7 +145,9 @@ axiom Ext_pre_choice_Act_prefix_distF_nonempty {p : Type _} {q : Type _} {α : T
       PQs =
         {PQ | ∃ a, a ∈ X ∧ PQ = (failures (a ~> Pf a) M1, failures (a ~> Qf a) M2)} →
           ∃ PQ, PQ ∈ PQs ∧
-            distance (failures (proc.Ext_pre_choice X Pf) M1) (failures (proc.Ext_pre_choice X Qf) M2) <=
+            distance
+                (failures (proc.Ext_pre_choice X Pf) M1)
+                (failures (proc.Ext_pre_choice X Qf) M2) <=
               distance (Prod.fst PQ) (Prod.snd PQ)
 
 /- (*** contraction lemma ***) -/
@@ -157,7 +158,9 @@ axiom contraction_half_failures_Ext_pre_choice_lm {p : Type _} {q : Type _} {α 
     {x1 x2 : setFType α} :
     X ≠ ∅ →
       (∀ a, distance (failures (Pf a) M1) (failures (Qf a) M2) <= distance x1 x2) →
-        distance (failures (proc.Ext_pre_choice X Pf) M1) (failures (proc.Ext_pre_choice X Qf) M2) * 2 <=
+        distance
+            (failures (proc.Ext_pre_choice X Pf) M1)
+            (failures (proc.Ext_pre_choice X Qf) M2) * 2 <=
           distance x1 x2
 
 /- (*** contraction_half ***) -/
@@ -369,7 +372,9 @@ axiom Rep_int_choice_distF_nonempty {p : Type _} {q : Type _} {α : Type _}
     sumset C ≠ ∅ →
       PQs = {PQ | ∃ c, c ∈ sumset C ∧ PQ = (failures (Pf c) M1, failures (Qf c) M2)} →
         ∃ PQ, PQ ∈ PQs ∧
-          distance (failures (proc.Rep_int_choice C Pf) M1) (failures (proc.Rep_int_choice C Qf) M2) <=
+          distance
+              (failures (proc.Rep_int_choice C Pf) M1)
+              (failures (proc.Rep_int_choice C Qf) M2) <=
             distance (Prod.fst PQ) (Prod.snd PQ)
 
 /- (*** map_alpha F lemma ***) -/
@@ -381,7 +386,9 @@ axiom map_alpha_failures_Rep_int_choice_lm {p : Type _} {q : Type _} {α : Type 
     {x1 x2 : β} {alpha : ℝ} :
     sumset C ≠ ∅ →
       (∀ c, distance (failures (Pf c) M1) (failures (Qf c) M2) <= alpha * distance x1 x2) →
-        distance (failures (proc.Rep_int_choice C Pf) M1) (failures (proc.Rep_int_choice C Qf) M2) <=
+        distance
+            (failures (proc.Rep_int_choice C Pf) M1)
+            (failures (proc.Rep_int_choice C Qf) M2) <=
           alpha * distance x1 x2
 
 /- (*** map_alpha ***) -/
@@ -577,7 +584,8 @@ axiom Renaming_rest_setF {p : Type _} {q : Type _} {α : Type _}
 axiom Renaming_distF {p : Type _} {q : Type _} {α : Type _}
     {P : proc p α} {Q : proc q α} {r : Set (α × α)}
     {M1 : p → domFType α} {M2 : q → domFType α} :
-    distance (failures (P [[r]]) M1) (failures (Q [[r]]) M2) <= distance (failures P M1) (failures Q M2)
+    distance (failures (P [[r]]) M1) (failures (Q [[r]]) M2) <=
+      distance (failures P M1) (failures Q M2)
 
 /- (*** map_alphaT lemma ***) -/
 
@@ -756,7 +764,8 @@ axiom Depth_rest_rest_setF {p : Type _} {q : Type _} {α : Type _}
 axiom Depth_rest_distF {p : Type _} {q : Type _} {α : Type _}
     {P : proc p α} {Q : proc q α} {m : Nat}
     {M1 : p → domFType α} {M2 : q → domFType α} :
-    distance (failures (P |. m) M1) (failures (Q |. m) M2) <= distance (failures P M1) (failures Q M2)
+    distance (failures (P |. m) M1) (failures (Q |. m) M2) <=
+      distance (failures P M1) (failures Q M2)
 
 /- (*** map_alphaT lemma ***) -/
 

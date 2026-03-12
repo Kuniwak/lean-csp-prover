@@ -183,7 +183,8 @@ notation:76 P " |[" X "," Y "]| " Q => Alpha_parallel P X Y Q
 
 def Inductive_parallel : List (proc p α × Set α) → proc p α
   | [] => SKIP
-  | PX :: PXs => (Prod.fst PX) |[Prod.snd PX, Set.sUnion (Prod.snd '' set PXs)]| Inductive_parallel PXs
+  | PX :: PXs =>
+      (Prod.fst PX) |[Prod.snd PX, Set.sUnion (Prod.snd '' set PXs)]| Inductive_parallel PXs
 
 def Rep_parallel (I : Set ι) (PXf : ι → proc p α × Set α) : proc p α :=
   Inductive_parallel (List.map PXf (SOME fun Is : List ι => isListOf Is I))

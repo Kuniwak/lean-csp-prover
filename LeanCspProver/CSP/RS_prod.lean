@@ -212,7 +212,7 @@ theorem prod_distance_least {ι : Type _} [Nonempty ι] {α : Type _} [ms0_rs α
       apply rest_to_prod_rest
       intro i
       by_cases hi : xp i = yp i
-      · simpa [hi]
+      · simp [hi]
       · have hiu : distance (xp i) (yp i) <= u := hdist i
         have hlt : distance (xp i) (yp i) < distance xp yp := by
           exact lt_of_le_of_lt hiu (lt_of_not_ge hnot)
@@ -353,8 +353,7 @@ theorem prod_cauchy_seq {ι : Type _} {α : Type _} [ms_rs α]
     {xps : infinite_seq (ι → α)} {i : ι} :
     cauchy xps →
       cauchy (proj_fun i ∘ xps) := by
-  intro hcauchy
-  intro delta hdelta
+  intro hcauchy delta hdelta
   rcases hcauchy delta hdelta with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro m k hmk
@@ -369,8 +368,7 @@ theorem prod_normal_seq {ι : Type _} {α : Type _} [ms_rs α]
     {xps : infinite_seq (ι → α)} {i : ι} :
     normal xps →
       normal (proj_fun i ∘ xps) := by
-  intro hnormal
-  intro n m
+  intro hnormal n m
   have hprod : distance (xps n) (xps m) <= (1 / 2 : ℝ) ^ min n m := hnormal n m
   exact le_trans
     (prod_distance_def_le (xp := xps n) (yp := xps m) (i := i))
@@ -380,8 +378,7 @@ theorem prod_normal_seq_only_if {ι : Type _} [Nonempty ι] {α : Type _} [ms_rs
     {xps : infinite_seq (ι → α)} :
     (∀ i, normal (proj_fun i ∘ xps)) →
       normal xps := by
-  intro h
-  intro n m
+  intro h n m
   apply prod_distance_least (xp := xps n) (yp := xps m)
   intro i
   simpa [proj_fun, Function.comp] using h i n m
@@ -408,8 +405,7 @@ theorem prod_convergeTo_only_if {ι : Type _} {α : Type _} [ms_rs α]
     {xps : infinite_seq (ι → α)} {yp : ι → α} :
     xps convergeTo yp →
       ∀ i, (proj_fun i ∘ xps) convergeTo (yp i) := by
-  intro hconv i
-  intro eps heps
+  intro hconv i eps heps
   rcases hconv eps heps with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro m hm

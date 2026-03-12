@@ -18,8 +18,6 @@
 
 import LeanCspProver.CSP.Prefix
 
-open Classical
-
 noncomputable section
 
 /-
@@ -66,12 +64,18 @@ theorem HC_T1_nilt : HC_T1 ({<>} : Set (traceType α)) := by
   · simp
   · intro s t hst
     rcases hst with ⟨ht, hp⟩
-    simp at ht
-    subst ht
-    simpa [prefix_of_nil.mp hp]
+    have ht' : t = <> := by
+      simpa using ht
+    subst ht'
+    simp [prefix_of_nil.mp hp]
 
-noncomputable def Abs_domT (T : Set (traceType α)) : domTType α :=
-  if h : T ∈ domT (α := α) then ⟨T, h⟩ else ⟨{<>}, by simpa [domT] using HC_T1_nilt (α := α)⟩
+noncomputable def Abs_domT (T : Set (traceType α)) : domTType α := by
+  classical
+  exact
+    if h : T ∈ domT (α := α) then
+      ⟨T, h⟩
+    else
+      ⟨{<>}, by simpa [domT] using HC_T1_nilt (α := α)⟩
 
 @[simp]
 theorem Rep_domT_mk {T : Set (traceType α)} {h : T ∈ domT (α := α)} :
@@ -80,10 +84,12 @@ theorem Rep_domT_mk {T : Set (traceType α)} {h : T ∈ domT (α := α)} :
 @[simp]
 theorem Abs_domT_inverse {T : Set (traceType α)} (hT : T ∈ domT (α := α)) :
     Rep_domT (Abs_domT T) = T := by
+  classical
   simp [Abs_domT, hT]
 
 @[simp]
 theorem Rep_domT_inverse (T : domTType α) : Abs_domT (Rep_domT T) = T := by
+  classical
   cases T with
   | mk T hT =>
       simp [Abs_domT, hT]
@@ -216,7 +222,7 @@ theorem one_t_set_in {a : event α} :
   · intro hEmpty
     have hNil : <> ∈ (({<>} : Set (traceType α)) ∪ ({Abs_trace [a]} : Set (traceType α))) := by
       simp
-    simpa [hEmpty] using hNil
+    simp [hEmpty] at hNil
   · intro s t hst
     rcases hst with ⟨ht, hp⟩
     simp only [Set.mem_union, Set.mem_singleton_iff] at ht ⊢
@@ -229,6 +235,7 @@ theorem one_t_set_in {a : event α} :
 
 theorem nilt_in_all_dom {T : Set (traceType α)} (hT : T ∈ domT (α := α)) :
     <> ∈ T := by
+  classical
   have hne : ∃ t, t ∈ T := by
     by_contra hne
     apply domT_is_non_empty hT
@@ -251,6 +258,7 @@ theorem nilt_in_all_dom {T : Set (traceType α)} (hT : T ∈ domT (α := α)) :
 
 theorem domT_Union_in_domT {Ts : Set (domTType α)} (hTs : Ts ≠ ∅) :
     (⋃₀ (Rep_domT '' Ts) : Set (traceType α)) ∈ domT (α := α) := by
+  classical
   change HC_T1 (⋃₀ (Rep_domT '' Ts))
   constructor
   · intro hEmpty
@@ -266,7 +274,7 @@ theorem domT_Union_in_domT {Ts : Set (domTType α)} (hTs : Ts ≠ ∅) :
     rcases hne with ⟨T, hT⟩
     have hnil : <> ∈ ⋃₀ (Rep_domT '' Ts) := by
       exact Set.mem_sUnion.mpr ⟨Rep_domT T, ⟨T, hT, rfl⟩, nilt_in_all_dom T.2⟩
-    simpa [hEmpty] using hnil
+    simp [hEmpty] at hnil
   · intro s t hst
     rcases Set.mem_sUnion.mp hst.1 with ⟨T', hT'img, ht⟩
     rcases hT'img with ⟨T, hT, rfl⟩
@@ -279,7 +287,7 @@ theorem domT_Un_in_domT {T S : domTType α} :
   have hTs : ({T, S} : Set (domTType α)) ≠ ∅ := by
     intro hEmpty
     have hT : T ∈ ({T, S} : Set (domTType α)) := by simp
-    simpa [hEmpty] using hT
+    simp [hEmpty] at hT
   simpa using domT_Union_in_domT (Ts := ({T, S} : Set (domTType α))) hTs
 
 /- *** Inter *** -/
@@ -294,7 +302,7 @@ theorem domT_Inter_in_domT {Ts : Set (domTType α)} :
       intro A hA
       rcases hA with ⟨T, hT, rfl⟩
       exact nilt_in_all_dom T.2
-    simpa [hEmpty] using hnil
+    simp [hEmpty] at hnil
   · intro s t hst
     rw [Set.mem_sInter] at hst ⊢
     intro A hA
@@ -321,7 +329,8 @@ theorem domT_Int_in_domT {T S : domTType α} :
 
 theorem domT_UnionT_Rep {Ts : Set (domTType α)} (hTs : Ts ≠ ∅) :
     Rep_domT (UnionT Ts) = ⋃₀ (Rep_domT '' Ts) := by
-  simpa [UnionT] using Abs_domT_inverse (T := ⋃₀ (Rep_domT '' Ts)) (domT_Union_in_domT hTs)
+  rw [UnionT]
+  exact Abs_domT_inverse (T := ⋃₀ (Rep_domT '' Ts)) (domT_Union_in_domT hTs)
 
 /- *** UnT *** -/
 
@@ -330,7 +339,7 @@ theorem domT_UnT_Rep {T S : domTType α} :
   have hTs : ({T, S} : Set (domTType α)) ≠ ∅ := by
     intro hEmpty
     have hT : T ∈ ({T, S} : Set (domTType α)) := by simp
-    simpa [hEmpty] using hT
+    simp [hEmpty] at hT
   change Rep_domT (UnionT ({T, S} : Set (domTType α))) = Rep_domT T ∪ Rep_domT S
   rw [domT_UnionT_Rep hTs]
   ext t
@@ -372,13 +381,16 @@ theorem nilt_in_T {T : domTType α} : <> :t T := by
 
 theorem memT_UnionT_only_if {Ts : Set (domTType α)} {t : traceType α}
     (hTs : Ts ≠ ∅) (ht : t :t UnionT Ts) : ∃ T ∈ Ts, t :t T := by
-  simpa [memT, domT_UnionT_Rep hTs] using ht
+  rw [memT, domT_UnionT_Rep hTs] at ht
+  rcases Set.mem_sUnion.mp ht with ⟨A, hA, htA⟩
+  rcases hA with ⟨T, hT, rfl⟩
+  exact ⟨T, hT, htA⟩
 
 theorem memT_UnionT_if {Ts : Set (domTType α)} {T : domTType α} {t : traceType α}
     (hT : T ∈ Ts) (ht : t :t T) : t :t UnionT Ts := by
   have hTs : Ts ≠ ∅ := by
     intro hEmpty
-    exact (by simpa [hEmpty] using hT)
+    simp [hEmpty] at hT
   rw [memT, domT_UnionT_Rep hTs]
   exact Set.mem_sUnion.mpr ⟨Rep_domT T, ⟨T, hT, rfl⟩, ht⟩
 
@@ -417,6 +429,7 @@ theorem memT_InterT {Ts : Set (domTType α)} {t : traceType α} :
 @[simp]
 theorem memT_nilt {t : traceType α} :
     t :t (Abs_domT ({<>} : Set (traceType α))) ↔ t = <> := by
+  classical
   simp [memT, Abs_domT, nilt_set_in]
 
 /- [e]t, <> -/
@@ -428,7 +441,10 @@ theorem memT_nilt_one {t : traceType α} {a : event α} :
   have hPair :
       (({<>} : Set (traceType α)) ∪ ({Abs_trace [a]} : Set (traceType α))) ∈ domT (α := α) :=
     one_t_set_in (a := a)
-  rw [memT, Abs_domT_inverse (T := (({<>} : Set (traceType α)) ∪ ({Abs_trace [a]} : Set (traceType α)))) hPair]
+  rw [memT]
+  rw [Abs_domT_inverse
+    (T := (({<>} : Set (traceType α)) ∪ ({Abs_trace [a]} : Set (traceType α))))
+    hPair]
   simp only [Set.mem_union, Set.mem_singleton_iff]
 
 /-
@@ -501,9 +517,11 @@ theorem UnT_nilt_left {T : domTType α} :
   ext t
   constructor
   · intro ht
-    simp [domT_UnT_Rep] at ht
+    rw [domT_UnT_Rep, Set.mem_union] at ht
     rcases ht with ht | ht
-    · simpa [memT, ht] using (nilt_in_T (T := T))
+    · rw [Abs_domT_inverse nilt_set_in, Set.mem_singleton_iff] at ht
+      subst ht
+      exact nilt_in_T (T := T)
     · exact ht
   · intro ht
     simp [domT_UnT_Rep, ht]
@@ -557,6 +575,7 @@ theorem CollectT_open {T : domTType α} : CollectT (fun u => u :t T) = T := by
 theorem CollectT_open_memT {P : traceType α → Prop} {t : traceType α}
     (hP : {t | P t} ∈ domT (α := α)) :
     t :t CollectT P ↔ P t := by
+  classical
   simp [CollectT, memT, Abs_domT, hP]
 
 /- *** implies {  }t *** -/

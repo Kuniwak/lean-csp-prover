@@ -10,8 +10,6 @@
 
 import LeanCspProver.CSP_F.CSP_F_domain
 
-open Classical
-
 noncomputable section
 
 /- =======================================================*
@@ -50,13 +48,23 @@ theorem traces_to_failures_in_setF {T : domTType α} :
   rcases hs with hs | hs
   · rcases hs with ⟨t, ⟨Z, hEq⟩, htT⟩
     rcases Prod.mk.inj hEq with ⟨hsEq, _⟩
-    exact Or.inl ⟨t, ⟨Y, by simpa [hsEq]⟩, by simpa [hsEq] using htT⟩
+    refine Or.inl ⟨t, ⟨Y, ?_⟩, ?_⟩
+    · cases hsEq
+      rfl
+    · cases hsEq
+      exact htT
   · rcases hs with ⟨t, Z, hEq, htNo, htT, hZ⟩
     rcases Prod.mk.inj hEq with ⟨hsEq, hXEq⟩
     have hX : X ⊆ Evset := by
-      simpa [hXEq] using hZ
-    exact Or.inr ⟨t, Y, by simpa [hsEq], by simpa [hsEq] using htNo,
-      by simpa [hsEq] using htT, Set.Subset.trans hYX hX⟩
+      cases hXEq
+      exact hZ
+    refine Or.inr ⟨t, Y, ?_, ?_, ?_, Set.Subset.trans hYX hX⟩
+    · cases hsEq
+      rfl
+    · cases hsEq
+      exact htNo
+    · cases hsEq
+      exact htT
 
 theorem in_traces_to_failures {T : domTType α} {s : traceType α} {X : Set (event α)} :
     (s, X) :f traces_to_failures T ↔
@@ -86,7 +94,11 @@ theorem in_traces_to_failures {T : domTType α} {s : traceType α} {X : Set (eve
   · intro hsX
     rcases hsX with hsX | hsX
     · rcases hsX with ⟨t, hsEq, htT⟩
-      exact Or.inl ⟨t, ⟨X, by simpa [hsEq]⟩, by simpa [hsEq] using htT⟩
+      refine Or.inl ⟨t, ⟨X, ?_⟩, ?_⟩
+      · cases hsEq
+        rfl
+      · cases hsEq
+        exact htT
     · rcases hsX with ⟨hsNo, hsT, hX⟩
       exact Or.inr ⟨s, X, rfl, hsNo, hsT, hX⟩
 
@@ -135,7 +147,9 @@ theorem traces_to_failures_T3_F4 {T : domTType α} :
     HC_T3_F4 (T, traces_to_failures T) := by
   intro s hs
   constructor
-  · exact (in_traces_to_failures (T := T) (s := s) (X := Evset)).2 (Or.inr ⟨hs.2, hs.1, Set.Subset.rfl⟩)
+  · exact
+      (in_traces_to_failures (T := T) (s := s) (X := Evset)).2
+        (Or.inr ⟨hs.2, hs.1, Set.Subset.rfl⟩)
   · intro X
     exact (in_traces_to_failures (T := T) (s := s ^^^ Tickt (α := α)) (X := X)).2
       (Or.inl ⟨s, rfl, hs.1⟩)
@@ -183,10 +197,14 @@ theorem traces_to_failures_refF {T1 T2 : domTType α} :
       (hSF := traces_to_failures_domF (T := T2))).symm
   · rw [subdomF_decompo]
     simpa
-      [pairF_fstF (S := T1) (F := traces_to_failures T1) (hSF := traces_to_failures_domF (T := T1)),
-        pairF_sndF (S := T1) (F := traces_to_failures T1) (hSF := traces_to_failures_domF (T := T1)),
-        pairF_fstF (S := T2) (F := traces_to_failures T2) (hSF := traces_to_failures_domF (T := T2)),
-        pairF_sndF (S := T2) (F := traces_to_failures T2) (hSF := traces_to_failures_domF (T := T2))]
+      [pairF_fstF
+          (S := T1) (F := traces_to_failures T1) (hSF := traces_to_failures_domF (T := T1)),
+        pairF_sndF
+          (S := T1) (F := traces_to_failures T1) (hSF := traces_to_failures_domF (T := T1)),
+        pairF_fstF
+          (S := T2) (F := traces_to_failures T2) (hSF := traces_to_failures_domF (T := T2)),
+        pairF_sndF
+          (S := T2) (F := traces_to_failures T2) (hSF := traces_to_failures_domF (T := T2))]
       using (show T1 <= T2 ∧ traces_to_failures T1 <= traces_to_failures T2 from
         ⟨hT, traces_to_failures_subset hT⟩)
 

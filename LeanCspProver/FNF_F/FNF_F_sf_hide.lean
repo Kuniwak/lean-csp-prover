@@ -119,7 +119,11 @@ theorem fsfF_Hiding_in [Inhabited α]
   cases hQ1 with
   | inl hQ1 =>
       subst hQ1
-      simp [SP_step_Hiding_def]
+      have hSkipNeStop : (proc.SKIP : proc p α) ≠ proc.STOP := by
+        intro h
+        cases h
+      rw [SP_step_Hiding_def]
+      simp only [hSkipNeStop]
       apply fsfF_Int_choice_in
       · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inl rfl)
         intro a ha
@@ -131,7 +135,11 @@ theorem fsfF_Hiding_in [Inhabited α]
       cases hQ1 with
       | inl hQ1 =>
           subst hQ1
-          simp [SP_step_Hiding_def]
+          have hDivNeStop : (proc.DIV : proc p α) ≠ proc.STOP := by
+            intro h
+            cases h
+          rw [SP_step_Hiding_def]
+          simp only [hDivNeStop]
           apply fsfF_Int_choice_in
           · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inl rfl)
             intro a ha
@@ -142,9 +150,9 @@ theorem fsfF_Hiding_in [Inhabited α]
       | inr hQ1 =>
           subst hQ1
           by_cases hEmpty : A1 ∩ X = ∅
-          · simp [SP_step_Hiding_def, hEmpty]
-            exact fsfF_proc.fsfF_proc_ext hSPf (Or.inr <| Or.inr rfl)
-          · simp [SP_step_Hiding_def, hEmpty]
+          · simpa only [SP_step_Hiding_def, if_pos rfl, if_pos hEmpty] using
+              (fsfF_proc.fsfF_proc_ext hSPf (Or.inr <| Or.inr rfl))
+          · simp only [SP_step_Hiding_def, if_neg hEmpty]
             apply fsfF_Timeout_in
             · refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
               intro a ha
@@ -167,7 +175,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
     (SP_step := SP_step_Hiding X)
     (P1 := P1) ?_ ?_ ?_
   · intro C1 Rf1 hC1
-    simpa [Pfun_Hiding_def] using
+    simpa only [Pfun_Hiding_def] using
       (cspF_Hiding_Dist_sum (C := C1) (Pf := Rf1) (X := X) (M := MF))
   · intro A1 Pf1 Q1 hQ1
     cases hQ1 with
@@ -194,7 +202,10 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
                 (X := A1 ∩ X)
                 (SPf := fun a => proc.Hiding (Pf1 a) X)))
             cspF_fsfF_Int_choice_eqF
-        simpa [SP_step_Hiding_def, Pfun_Hiding_def, Pskip, Rhide, SRhide] using
+        have hSkipNeStop : (proc.SKIP : proc p α) ≠ proc.STOP := by
+          intro h
+          cases h
+        simpa only [SP_step_Hiding_def, Pfun_Hiding_def, Pskip, SRhide, if_neg hSkipNeStop] using
           (cspF_trans_left_eq hHideStep hIntCong)
     | inr hQ1 =>
         cases hQ1 with
@@ -221,7 +232,10 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
                     (X := A1 ∩ X)
                     (SPf := fun a => proc.Hiding (Pf1 a) X)))
                 cspF_fsfF_Int_choice_eqF
-            simpa [SP_step_Hiding_def, Pfun_Hiding_def, Pdiv, Rhide, SRhide] using
+            have hDivNeStop : (proc.DIV : proc p α) ≠ proc.STOP := by
+              intro h
+              cases h
+            simpa only [SP_step_Hiding_def, Pfun_Hiding_def, Pdiv, SRhide, if_neg hDivNeStop] using
               (cspF_trans_left_eq hHideStep hIntCong)
         | inr hQ1 =>
             subst hQ1
@@ -240,7 +254,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
                     ((proc.Ext_pre_choice A1 (fun a => proc.Hiding (Pf1 a) X)) [+]
                       (proc.STOP : proc p α)) :=
                 cspF_sym cspF_Ext_choice_unit_r
-              simpa [SP_step_Hiding_def, hEmpty, Pfun_Hiding_def] using
+              simpa only [SP_step_Hiding_def, if_pos rfl, if_pos hEmpty] using
                 (cspF_trans_left_eq hHideUnit (cspF_trans_left_eq hHideStep hStepUnit))
             · have hHideUnit :
                   eqFfix (proc.Hiding ((proc.Ext_pre_choice A1 Pf1) [+] (proc.STOP : proc p α)) X)
@@ -273,7 +287,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
                         (proc.STOP : proc p α)) [>seq
                       fsfF_Rep_int_choice_com (A1 ∩ X) (fun a => proc.Hiding (Pf1 a) X))) :=
                 cspF_fsfF_Timeout_eqF
-              simpa [SP_step_Hiding_def, hEmpty, Pfun_Hiding_def] using
+              simpa only [SP_step_Hiding_def, if_pos rfl, if_neg hEmpty] using
                 (cspF_trans_left_eq hHideUnit
                   (cspF_trans_left_eq hHideStep
                     (cspF_trans_left_eq hTimeoutCong hTimeoutSeq)))
@@ -288,7 +302,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
           cspF_Ext_choice_cong
             (cspF_Ext_pre_choice_cong rfl (fun a ha => hSPQ a ha))
             cspF_reflex_eq_STOP
-        simpa [SP_step_Hiding_def, hEmpty] using hExt
+        simpa only [SP_step_Hiding_def, if_pos rfl, if_pos hEmpty] using hExt
       · have hExt :
             eqFfix
               (((proc.Ext_pre_choice (A1 \ X) SPf) [+] (proc.STOP : proc p α)))
@@ -333,7 +347,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
               ((((proc.Ext_pre_choice (A1 \ X) SQf) [+] (proc.STOP : proc p α)) [>seq
                 fsfF_Rep_int_choice_com (A1 ∩ X) SQf)) :=
           cspF_fsfF_Timeout_eqF
-        simpa [SP_step_Hiding_def, hEmpty] using
+        simpa only [SP_step_Hiding_def, if_pos rfl, if_neg hEmpty] using
           (cspF_trans_left_eq hSeqL (cspF_trans_left_eq hStd hSeqR))
     · have hExt :
           eqFfix
@@ -381,7 +395,7 @@ theorem cspF_fsfF_Hiding_eqF [Inhabited α]
               (((proc.Ext_pre_choice (A1 \ X) SQf) [+] Q1))
               (fsfF_Rep_int_choice_com (A1 ∩ X) SQf)) :=
         cspF_fsfF_Int_choice_eqF
-      simpa [SP_step_Hiding_def, hStop] using
+      simpa only [SP_step_Hiding_def, if_neg hStop] using
         (cspF_trans_left_eq hSeqL (cspF_trans_left_eq hStd hSeqR))
 
 /- ****************** to add them again ****************** -/

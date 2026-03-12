@@ -18,7 +18,6 @@
 
 import LeanCspProver.CSP.Prefix
 
-open Classical
 open event
 
 /-  The following simplification rules are deleted in this theory file -/

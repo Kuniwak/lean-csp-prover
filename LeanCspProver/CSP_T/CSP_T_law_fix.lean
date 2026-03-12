@@ -63,7 +63,8 @@ theorem traces_prod_Bot {ι κ : Type _} {M : κ → domTType α} :
   apply le_antisymm
   · intro t ht
     have hEq : t = <> := (in_traces_DIV (t := t) (M := M)).1 ht
-    simpa [hEq] using (nilt_in_T (T := (Bot : domTType α)))
+    subst t
+    exact nilt_in_T (T := (Bot : domTType α))
   · exact bottom_bot _
 
 theorem semT_prod_Bot [HasPNfun p α] [HasFPmode] :

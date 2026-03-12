@@ -144,19 +144,21 @@ theorem in_failures_Act_prefix {f : failure α} {a : α} {P : proc p α} {M : p 
 theorem Ext_pre_choice_setF {X : Set α} {Ff : α → setFType α} :
     {f : failure α |
       (∃ Y, f = (<>, Y) ∧ (event.Ev '' X) ∩ Y = ∅) ∨
-        ∃ a s Y, f = (Abs_trace [event.Ev a] ^^^ s, Y) ∧ (s, Y) :f Ff a ∧ a ∈ X} ∈ setF (α := α) := by
+        ∃ a s Y, f = (Abs_trace [event.Ev a] ^^^ s, Y) ∧
+          (s, Y) :f Ff a ∧ a ∈ X} ∈ setF (α := α) := by
   intro s Y Z hs hZY
   rcases hs with hs | hs
   · rcases hs with ⟨Y', hEq, hEmpty⟩
     rcases Prod.mk.inj hEq with ⟨hsEq, hYEq⟩
     subst hsEq
     have hZY' : Z ⊆ Y' := by
-      simpa [hYEq] using hZY
-    refine Or.inl ⟨Z, by simpa [hYEq], ?_⟩
+      simp [hYEq] at hZY
+      exact hZY
+    refine Or.inl ⟨Z, by simp, ?_⟩
     apply Set.eq_empty_iff_forall_notMem.mpr
     intro e he
     have : e ∈ (event.Ev '' X) ∩ Y' := ⟨he.1, hZY' he.2⟩
-    simpa [hEmpty] using this
+    simp [hEmpty] at this
   · rcases hs with ⟨a, t, Y', hEq, htY, haX⟩
     rcases Prod.mk.inj hEq with ⟨hs, hY⟩
     subst hs
@@ -165,7 +167,8 @@ theorem Ext_pre_choice_setF {X : Set α} {Ff : α → setFType α} :
 
 /- (*** Ext_pre_choice ***) -/
 
-theorem in_failures_Ext_pre_choice {f : failure α} {X : Set α} {Pf : α → proc p α} {M : p → domFType α} :
+theorem in_failures_Ext_pre_choice
+    {f : failure α} {X : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     (f :f failures (proc.Ext_pre_choice X Pf) M) ↔
       ((∃ Y, f = (<>, Y) ∧ (event.Ev '' X) ∩ Y = ∅) ∨
         ∃ a s Y, f = (Abs_trace [event.Ev a] ^^^ s, Y) ∧

@@ -38,15 +38,15 @@ noncomputable section
 
 theorem mono_traces_STOP : mono (traces (proc.STOP : proc p α)) := by
   intro x y hxy
-  simpa [traces] using (le_rfl : traces (proc.STOP : proc p α) x <= traces (proc.STOP : proc p α) x)
+  simp [traces]
 
 theorem mono_traces_SKIP : mono (traces (proc.SKIP : proc p α)) := by
   intro x y hxy
-  simpa [traces] using (le_rfl : traces (proc.SKIP : proc p α) x <= traces (proc.SKIP : proc p α) x)
+  simp [traces]
 
 theorem mono_traces_DIV : mono (traces (proc.DIV : proc p α)) := by
   intro x y hxy
-  simpa [traces] using (le_rfl : traces (proc.DIV : proc p α) x <= traces (proc.DIV : proc p α) x)
+  simp [traces]
 
 /-
 (*--------------------------------*

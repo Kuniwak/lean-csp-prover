@@ -71,7 +71,9 @@ theorem continuous_traces_SKIP :
     continuous (traces (proc.SKIP : proc p α)) := by
   simpa [traces] using
     (continuous_Constant
-      (C := Abs_domT ((({<>} : Set (traceType α)) ∪ ({Abs_trace [event.Tick]} : Set (traceType α))))))
+      (C := Abs_domT
+        ((({<>} : Set (traceType α)) ∪
+          ({Abs_trace [event.Tick]} : Set (traceType α))))))
 
 theorem continuous_traces_DIV :
     continuous (traces (proc.DIV : proc p α)) := by
@@ -372,7 +374,10 @@ theorem continuous_traces_Parallel
   have hQxEq : traces Q (LUB Xa) = UnionT (traces Q '' Xa) :=
     (isLUB_UnionT (T := traces Q (LUB Xa)) (Ts := traces Q '' Xa) hImgQ).mp hQx
   refine ⟨LUB Xa, ?_, LUB_is (complete_cpo Xa hXa)⟩
-  apply (isLUB_UnionT (T := traces (P |[X]| Q) (LUB Xa)) (Ts := traces (P |[X]| Q) '' Xa) hImgOut).mpr
+  apply
+    (isLUB_UnionT
+      (T := traces (P |[X]| Q) (LUB Xa))
+      (Ts := traces (P |[X]| Q) '' Xa) hImgOut).mpr
   apply le_antisymm
   · intro u hu
     change u :t traces (P |[X]| Q) (LUB Xa) at hu

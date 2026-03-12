@@ -65,14 +65,17 @@ theorem rmTick_Tick : rmTick (Abs_trace [Tick] : traceType α) = <> := by
 theorem noTick_rmTick {s : traceType α} : noTick (rmTick s) := by
   classical
   by_cases hs : noTick s
-  · simpa [rmTick, hs] using hs
+  · simp [rmTick, hs]
   · have hne : s ≠ <> := not_noTick_unnil hs
-    simpa [rmTick, hs] using noTick_butlast (s := s) hne
+    simp [rmTick, hs, noTick_butlast (s := s) hne]
 
 theorem noTick_rmTickE {s t : traceType α} {R : Prop} :
     t = rmTick s → (noTick t → R) → R := by
   intro ht hR
-  exact hR (by simpa [ht] using (noTick_rmTick (s := s)))
+  have hnoTick : noTick t := by
+    rw [ht]
+    exact noTick_rmTick (s := s)
+  exact hR hnoTick
 
 /- ***********************************************************
                            appt
@@ -123,8 +126,12 @@ theorem rmTick_appt_dist {s t : traceType α} :
         s ^^^ (butlastt t ^^^ (Abs_trace [Tick] : traceType α)) =
           (s ^^^ butlastt t) ^^^ (Abs_trace [Tick] : traceType α) := by
       exact appt_assoc_sym (Or.inl hs) (Or.inl hbut)
-    have hleft : rmTick (s ^^^ t) = rmTick ((s ^^^ butlastt t) ^^^ (Abs_trace [Tick] : traceType α)) := by
-      have hstep1 : rmTick (s ^^^ t) = rmTick (s ^^^ (butlastt t ^^^ (Abs_trace [Tick] : traceType α))) := by
+    have hleft :
+        rmTick (s ^^^ t) =
+          rmTick ((s ^^^ butlastt t) ^^^ (Abs_trace [Tick] : traceType α)) := by
+      have hstep1 :
+          rmTick (s ^^^ t) =
+            rmTick (s ^^^ (butlastt t ^^^ (Abs_trace [Tick] : traceType α))) := by
         exact congrArg rmTick (congrArg (fun x => s ^^^ x) htEq)
       have hstep2 :
           rmTick (s ^^^ (butlastt t ^^^ (Abs_trace [Tick] : traceType α))) =
@@ -184,7 +191,9 @@ theorem rmTick_prefix_if {s t : traceType α} :
   · have htnil : t ≠ <> := not_noTick_unnil ht
     have hbut : noTick (butlastt t) := noTick_butlast (s := t) htnil
     have htEq : t = butlastt t ^^^ (Abs_trace [Tick] : traceType α) := Tick_decompo ht
-    have hu' : u = butlastt t ^^^ (Abs_trace [Tick] : traceType α) ∨ «prefix» u (butlastt t) := by
+    have hu' :
+        u = butlastt t ^^^ (Abs_trace [Tick] : traceType α) ∨
+          «prefix» u (butlastt t) := by
       rw [htEq] at hu
       exact (prefix_last_inv hbut).mp hu
     have hgoal : «prefix» s (butlastt t) := by
@@ -193,7 +202,8 @@ theorem rmTick_prefix_if {s t : traceType α} :
           calc
             s = rmTick (butlastt t ^^^ (Abs_trace [Tick] : traceType α)) := by simpa using hs
             _ = butlastt t := rmTick_last_Tick hbut
-        simpa [hs'] using (prefix_itself : «prefix» (butlastt t) (butlastt t))
+        rw [hs']
+        exact prefix_itself
       · have huNo : noTick u := prefix_noTick hup hbut
         have hs' : s = u := by
           calc
@@ -225,7 +235,8 @@ theorem rmTick_prefix_rev {s t : traceType α} : «prefix» s t → «prefix» (
     have hp0 : «prefix» (butlastt s) s := by
       exact ⟨(Abs_trace [Tick] : traceType α), hsEq, Or.inl hbut⟩
     rcases hp with ⟨u, htEq, hsu⟩
-    have hp1 : «prefix» (butlastt s) (s ^^^ u) := prefix_appt (s := butlastt s) (t := s) (u := u) hsu hp0
+    have hp1 : «prefix» (butlastt s) (s ^^^ u) :=
+      prefix_appt (s := butlastt s) (t := s) (u := u) hsu hp0
     simpa [rmTick, hs, htEq] using hp1
 
 @[simp]

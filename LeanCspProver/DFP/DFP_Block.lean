@@ -18,7 +18,6 @@
 
 import LeanCspProver.DFP.DFP_Deadlock
 
-open Classical
 open event
 
 noncomputable section
@@ -203,7 +202,7 @@ private theorem isDeadlockStateOf_singleton_iff
     isDeadlockStateOf (t, Yf) (({i} : Set ι), FXf) ↔
       isStateOf (t, Yf) (({i} : Set ι), FXf) ∧ Yf i = Ev '' Prod.snd (FXf i) := by
   rw [isDeadlockStateOf_def]
-  simpa [ALP_singleton]
+  simp [ALP_singleton]
 
 theorem BusyNetwork_BusyNetworkP [HasPNfun p α] [HasFPmode]
     {I : Set ι} {FXf : ι → (Set (failure α) × Set α)} {PXf : ι → (proc p α × Set α)}
@@ -212,8 +211,7 @@ theorem BusyNetwork_BusyNetworkP [HasPNfun p α] [HasFPmode]
     (hF : isFailureOf (I, FXf) (I, PXf)) :
     BusyNetwork (I, FXf) ↔ BusyNetworkP (I, PXf) := by
   constructor
-  · intro hBusy
-    intro i hi
+  · intro hBusy i hi
     have hFi : isFailureOf (({i} : Set ι), FXf) (({i} : Set ι), PXf) := by
       exact isFailureOf_subset_index hF (by
         intro j hj
@@ -225,8 +223,7 @@ theorem BusyNetwork_BusyNetworkP [HasPNfun p α] [HasFPmode]
       exact hBusy i hi sigma hSigma
     exact (DeadlockFree_notDeadlockState
       (I := ({i} : Set ι)) (FXf := FXf) (PXf := PXf) (by simp) (by simp) hFi).2 hDead
-  · intro hBusyP
-    intro i hi sigma hSigma
+  · intro hBusyP i hi sigma hSigma
     have hFi : isFailureOf (({i} : Set ι), FXf) (({i} : Set ι), PXf) := by
       exact isFailureOf_subset_index hF (by
         intro j hj
@@ -248,7 +245,8 @@ theorem check_BusyNetwork
     BusyNetwork (I, FXf) := by
   intro i hi sigma hDead
   rcases sigma with ⟨s, Yf⟩
-  have hState : isStateOf (s, Yf) (({i} : Set ι), FXf) := (isDeadlockStateOf_singleton_iff.mp hDead).1
+  have hState : isStateOf (s, Yf) (({i} : Set ι), FXf) :=
+    (isDeadlockStateOf_singleton_iff.mp hDead).1
   have hMem : (s rest-tr Prod.snd (FXf i), Yf i) ∈ Prod.fst (FXf i) := by
     exact (hState.2 i (by simp)).1
   have hNe := hAll i hi (s rest-tr Prod.snd (FXf i)) (Yf i) hMem
@@ -425,7 +423,7 @@ private theorem triple_disjoint_no_common
   have hEmpty := hTD i hi j hj k hk hij hjk hki
   have : a ∈ Prod.snd (VF.2 i) ∩ Prod.snd (VF.2 j) ∩ Prod.snd (VF.2 k) := by
     exact ⟨⟨hai, haj⟩, hak⟩
-  simpa [hEmpty] using this
+  simp [hEmpty] at this
 
 private theorem mem_union_of_deadlock
     {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}

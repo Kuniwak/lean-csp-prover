@@ -160,7 +160,7 @@ theorem rest_setF_eq_iff {F E : setFType α} {n m : Nat} :
     apply (Rep_setF_inject).mp
     ext f
     rcases f with ⟨s, X⟩
-    show (s, X) :f F .|. n ↔ (s, X) :f E .|. m
+    change (s, X) :f F .|. n ↔ (s, X) :f E .|. m
     simpa only [in_rest_setF] using h s X
 
 /- (*** F .|. = E .|. --> F = E ***) -/
@@ -420,7 +420,9 @@ theorem normal_seq_setF_Tick {Fs : infinite_seq (setFType α)}
       restCond (s' ^^^ (tickTrace (α := α))) (lengtht (s' ^^^ (tickTrace (α := α)))) := by
     exact Or.inr ⟨rfl, s', rfl, hno⟩
   have hEq :
-      ((s' ^^^ (tickTrace (α := α)), X) :f Fs (lengtht (s' ^^^ (tickTrace (α := α)))) .|. lengtht (s' ^^^ (tickTrace (α := α)))) ↔
+      ((s' ^^^ (tickTrace (α := α)), X) :f
+          Fs (lengtht (s' ^^^ (tickTrace (α := α)))) .|.
+            lengtht (s' ^^^ (tickTrace (α := α)))) ↔
         ((s' ^^^ (tickTrace (α := α)), X) :f Fs n .|. lengtht (s' ^^^ (tickTrace (α := α)))) := by
     simpa using
       congrArg (fun F => (s' ^^^ (tickTrace (α := α)), X) :f F) hrest
@@ -433,7 +435,10 @@ theorem normal_seq_setF_Tick {Fs : infinite_seq (setFType α)}
 theorem normal_seq_setF_Tick_only_if {Fs : infinite_seq (setFType α)}
     {s' : traceType α} {X : Set (event α)} {n : Nat}
     (hnormal : normal Fs) (hle : lengtht (s' ^^^ (tickTrace (α := α))) <= n)
-    (hs : (s' ^^^ (tickTrace (α := α)), X) :f Fs (lengtht (s' ^^^ (tickTrace (α := α))))) (hno : noTick s') :
+    (hs :
+      (s' ^^^ (tickTrace (α := α)), X) :f
+        Fs (lengtht (s' ^^^ (tickTrace (α := α)))))
+    (hno : noTick s') :
     (s' ^^^ (tickTrace (α := α)), X) :f Fs n := by
   exact (normal_seq_setF_Tick (Fs := Fs) hnormal hle hno).1 hs
 
@@ -479,8 +484,13 @@ theorem Limit_setF_Limit_lm {Fs : infinite_seq (setFType α)} :
     · rcases hcond with hlt | ⟨hlen, s', hsEq, hno⟩
       · exact ⟨normal_seq_setF_less_only_if (Fs := Fs) hnormal hlt hsSucc, Or.inl hlt⟩
       · subst hsEq
-        have hsBase : (s' ^^^ (tickTrace (α := α)), X) :f Fs (lengtht (s' ^^^ (tickTrace (α := α)))) :=
-          (normal_seq_setF_Tick (Fs := Fs) (n := Nat.succ (lengtht (s' ^^^ (tickTrace (α := α))))) hnormal
+        have hsBase :
+            (s' ^^^ (tickTrace (α := α)), X) :f
+              Fs (lengtht (s' ^^^ (tickTrace (α := α)))) :=
+          (normal_seq_setF_Tick
+            (Fs := Fs)
+            (n := Nat.succ (lengtht (s' ^^^ (tickTrace (α := α)))))
+            hnormal
             (Nat.le_succ _) hno).2 hsSucc
         exact ⟨by simpa [hlen] using hsBase, Or.inr ⟨hlen, s', rfl, hno⟩⟩
     · rcases hcond with hlt | ⟨hlen, s', hsEq, hno⟩

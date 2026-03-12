@@ -90,14 +90,16 @@ abbrev Network_alp (V : Set ι × (ι → (β × Set α))) (i : ι) : Set α :=
 def isFailureOf [HasPNfun p α] [HasFPmode] (VF : NetworkF ι α) (V : Network ι p α) : Prop :=
   V.1 = VF.1 ∧
     ∀ i ∈ VF.1,
-      Prod.fst (VF.2 i) <=EX restRefusal (failures (Prod.fst (V.2 i)) MF) (Ev '' Prod.snd (VF.2 i)) ∧
+      Prod.fst (VF.2 i) <=EX
+          restRefusal (failures (Prod.fst (V.2 i)) MF) (Ev '' Prod.snd (VF.2 i)) ∧
         Prod.snd (V.2 i) = Prod.snd (VF.2 i)
 
 theorem isFailureOf_def [HasPNfun p α] [HasFPmode] (VF : NetworkF ι α) (V : Network ι p α) :
     isFailureOf VF V ↔
       V.1 = VF.1 ∧
         ∀ i ∈ VF.1,
-          Prod.fst (VF.2 i) <=EX restRefusal (failures (Prod.fst (V.2 i)) MF) (Ev '' Prod.snd (VF.2 i)) ∧
+          Prod.fst (VF.2 i) <=EX
+              restRefusal (failures (Prod.fst (V.2 i)) MF) (Ev '' Prod.snd (VF.2 i)) ∧
             Prod.snd (V.2 i) = Prod.snd (VF.2 i) :=
   Iff.rfl
 
@@ -233,7 +235,8 @@ theorem isStateOf_each_element
     (hi : i ∈ I) :
     isStateOf (t rest-tr Prod.snd (FXf i), Yf) ({i}, FXf) := by
   constructor
-  · have hSubsetTick : sett (t rest-tr Prod.snd (FXf i)) ⊆ Set.insert Tick (Ev '' Prod.snd (FXf i)) :=
+  · have hSubsetTick :
+        sett (t rest-tr Prod.snd (FXf i)) ⊆ Set.insert Tick (Ev '' Prod.snd (FXf i)) :=
       rest_tr_subset_event
     have hNoTickT : noTick t := by
       intro hTick
@@ -337,7 +340,9 @@ theorem failures_PAR_flattening
     (hJ : J.Finite)
     (hV : ∀ j ∈ J, ((V j).1).Finite) :
     failures (PAR ({j | j ∈ J}, fun j => (PAR (V j), ALP (V j)))) M =
-      failures (PAR ({ij : ι × κ | ij.2 ∈ J ∧ ij.1 ∈ (V ij.2).1}, fun ij => (V ij.2).2 ij.1)) M := by
+      failures
+        (PAR ({ij : ι × κ | ij.2 ∈ J ∧ ij.1 ∈ (V ij.2).1}, fun ij => (V ij.2).2 ij.1))
+        M := by
   exact
     (cspF_eqF_semantics
       (P := PAR ({j | j ∈ J}, fun j => (PAR (V j), ALP (V j))))

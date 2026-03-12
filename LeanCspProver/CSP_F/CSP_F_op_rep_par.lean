@@ -56,7 +56,10 @@ axiom in_failures_Inductive_parallel_lm4
     {zs : List ((proc p α × Set α) × Set (event α))} :
     Set.sUnion {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))} ∩
         Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (Prod.fst '' _root_.set zs)))) =
-      Set.sUnion {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set zs ∧ S = Set.inter Y (Set.insert Tick (Ev '' X))}
+      Set.sUnion
+        {S | ∃ P X Y,
+          ((P, X), Y) ∈ _root_.set zs ∧
+            S = Set.inter Y (Set.insert Tick (Ev '' X))}
 
 axiom in_failures_Inductive_parallel_lm
     {PXs : List (proc p α × Set α)} {f : failure α} {M : p → domFType α} :
@@ -174,7 +177,8 @@ private def rep_parallel_lm1_left
       (S = Set.inter (nth Ys i) (Set.insert Tick (Ev '' (Prod.snd (nth (List.map PXf Is) i)))))
 
 private def rep_parallel_lm1_right
-    [Inhabited ι] (I : Set ι) (Is : List ι) (Ys : List (Set (event α))) (PXf : ι → proc p α × Set α) :
+    [Inhabited ι] (I : Set ι) (Is : List ι) (Ys : List (Set (event α)))
+    (PXf : ι → proc p α × Set α) :
     Set (Set (event α)) :=
   fun S => ∃ i : ι,
     And
@@ -202,7 +206,8 @@ private def rep_parallel_lm2_right
           (Set.insert Tick (Ev '' (Prod.snd (nth (List.map PXf Is) i)))))
 
 axiom in_failures_Rep_parallel_lm1
-    [Inhabited ι] {I : Set ι} {Is : List ι} {Ys : List (Set (event α))} {PXf : ι → proc p α × Set α} :
+    [Inhabited ι] {I : Set ι} {Is : List ι} {Ys : List (Set (event α))}
+    {PXf : ι → proc p α × Set α} :
     isListOf Is I → Ys.length = Is.length →
       Set.sUnion (rep_parallel_lm1_left Is Ys PXf) =
       Set.sUnion (rep_parallel_lm1_right I Is Ys PXf)
@@ -225,7 +230,8 @@ axiom in_failures_Rep_parallel
                   Z ∩ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) =
                     Set.sUnion {S | ∃ i : ι, i ∈ I ∧
                       S = Set.inter (Yf i) (Set.insert Tick (Ev '' (Prod.snd (PXf i))))} ∧
-                  ∀ i : ι, i ∈ I → ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M
+                  ∀ i : ι, i ∈ I →
+                    ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M
 
 /- The Isabelle theorem bundle `in_failures_par` is represented by
    `in_failures_Alpha_parallel`, `in_failures_Inductive_parallel`, and
@@ -254,7 +260,8 @@ axiom failures_Rep_parallel
  ************************************-/
 
 axiom sett_in_failures_Rep_parallel
-    {I : Set ι} {PXf : ι → proc p α × Set α} {t : traceType α} {X : Set (event α)} {M : p → domFType α} :
+    {I : Set ι} {PXf : ι → proc p α × Set α} {t : traceType α}
+    {X : Set (event α)} {M : p → domFType α} :
     I ≠ ∅ → I.Finite → (t, X) :f failures (Rep_parallel I PXf) M →
       sett t ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I))))
 

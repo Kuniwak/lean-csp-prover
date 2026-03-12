@@ -68,7 +68,7 @@ theorem cspT_SKIP_Alpha_parallel
       change e = event.Tick ∨ e ∈ (∅ : Set (event α)) at hem
       rcases hem with he' | he'
       · exact he'
-      · simpa using he'
+      · simp at he'
     rw [in_traces_SKIP]
     exact sett_subset_Tick.mp huTick'
   · rw [subdomT_iff]

@@ -281,7 +281,9 @@ theorem distance_rs_nat_lm {α : Type u} [rs α] {x y : α} {n : Nat} {r : ℝ} 
 theorem distance_iff1 {α : Type u} [rs α] {x y : α} :
     x ≠ y → distance_rs x y = (1 / 2 : ℝ) ^ distance_nat x y := by
   intro hxy
-  exact distance_rs_nat_lm (x := x) (y := y) (n := distance_nat x y) (r := distance_rs x y) hxy rfl rfl
+  exact distance_rs_nat_lm
+    (x := x) (y := y) (n := distance_nat x y) (r := distance_rs x y)
+    hxy rfl rfl
 
 theorem distance_iff2 {α : Type u} [rs α] {x y : α} :
     y ≠ x → distance_rs x y = (1 / 2 : ℝ) ^ distance_nat x y := by
@@ -493,10 +495,10 @@ theorem triangle_inequality_max {α : Type u} [rs α] (x y z : α) :
     distance_rs x z ≤ max (distance_rs x y) (distance_rs y z) := by
   by_cases hxy : x = y
   · subst hxy
-    simpa [distance_rs_zero] using (le_max_right (distance_rs y y) (distance_rs y z))
+    simp [distance_rs_zero]
   by_cases hyz : y = z
   · subst hyz
-    simpa [distance_rs_zero] using (le_max_left (distance_rs x y) (distance_rs y y))
+    simp [distance_rs_zero]
   by_cases hxz : x = z
   · subst hxz
     have hnonneg : (0 : ℝ) ≤ max (distance_rs x y) (distance_rs y x) :=
@@ -568,7 +570,9 @@ theorem distance_nat_le_2 {α : Type u} [rs α] {x y : α} {n : Nat} :
   · intro hneq
     exact lt_of_not_ge (fun hle => hneq (distance_nat_le_1_if hxy hle))
   · intro hlt
-    exact rest_nonequal_preserve (distance_nat_rest_Suc (x := x) (y := y) hxy rfl) (Nat.succ_le_of_lt hlt)
+    exact rest_nonequal_preserve
+      (distance_nat_rest_Suc (x := x) (y := y) hxy rfl)
+      (Nat.succ_le_of_lt hlt)
 
 /- ---------------------------*
  |    distance_nat_less      |
@@ -598,7 +602,9 @@ theorem distance_nat_less_2 {α : Type u} [rs α] {x y : α} {n : Nat} :
   · intro hneq
     exact le_of_not_gt (fun hlt => hneq (distance_nat_less_1_if hxy hlt))
   · intro hle
-    exact rest_nonequal_preserve (distance_nat_rest_Suc (x := x) (y := y) hxy rfl) (Nat.succ_le_succ hle)
+    exact rest_nonequal_preserve
+      (distance_nat_rest_Suc (x := x) (y := y) hxy rfl)
+      (Nat.succ_le_succ hle)
 
 /- (**********************************************************
                    .|. <--> distance
@@ -657,7 +663,9 @@ theorem distance_rs_less_1_only_if {α : Type u} [rs α] {x y : α} {n : Nat} :
   · have hle : distance_rs x y ≤ (1 / 2 : ℝ) ^ Nat.succ n := distance_rs_le_1_only_if heq
     have hlt : (1 / 2 : ℝ) ^ Nat.succ n < (1 / 2 : ℝ) ^ n := by
       simpa [pow_succ] using
-        (mul_lt_mul_of_pos_left (by norm_num : (1 / 2 : ℝ) < 1) (show (0 : ℝ) < (1 / 2 : ℝ) ^ n by positivity))
+        (mul_lt_mul_of_pos_left
+          (by norm_num : (1 / 2 : ℝ) < 1)
+          (show (0 : ℝ) < (1 / 2 : ℝ) ^ n by positivity))
     exact lt_of_le_of_lt hle hlt
 
 theorem distance_rs_less_1_if {α : Type u} [rs α] {x y : α} {n : Nat} :
@@ -730,8 +738,7 @@ theorem rest_Suc_dist_half {α : Type u} [rs α] {x1 x2 y1 y2 : α} :
     have hle2 : distance_nat y1 y2 ≤ Nat.succ (distance_nat x1 x2) := by
       rcases nat_zero_or_Suc (distance_nat y1 y2) with hzero | ⟨m, hm⟩
       · exfalso
-        have : Nat.succ (distance_nat x1 x2) ≤ 0 := by simpa [hzero] using hle1
-        exact Nat.not_succ_le_zero _ this
+        simp [hzero] at hle1
       · have hyEq : y1 .|. Nat.succ m = y2 .|. Nat.succ m := by
           simpa [hm] using (distance_nat_rest (x := y1) (y := y2) hy hm)
         have hEq : x1 .|. m = x2 .|. m := by
@@ -739,7 +746,8 @@ theorem rest_Suc_dist_half {α : Type u} [rs α] {x1 x2 y1 y2 : α} :
         simpa [hm] using Nat.succ_le_succ (distance_nat_le_1_only_if (x := x1) (y := x2) hx hEq)
     have hNat : distance_nat y1 y2 = Nat.succ (distance_nat x1 x2) :=
       le_antisymm hle2 hle1
-    simp [hNat, pow_succ, mul_assoc, mul_left_comm, mul_comm]
+    simpa [hNat, pow_succ] using
+      (mul_comm ((1 / 2 : ℝ)) ((1 / 2 : ℝ) ^ distance_nat x1 x2))
 
 /- (*********************************************************************
                   rest_to_dist_pair (fun and pair)
@@ -760,7 +768,10 @@ theorem rest_to_dist_pair {α β : Type _} [rs α] [rs β]
     simpa [distance_rs_zero] using (positive_rs x.1 x.2)
   · have hyNeq : y1 .|. Nat.succ (distance_nat y1 y2) ≠ y2 .|. Nat.succ (distance_nat y1 y2) :=
       distance_nat_rest_Suc (x := y1) (y := y2) hy rfl
-    have hnotAll : ¬ ∀ x ∈ xps, x.1 .|. Nat.succ (distance_nat y1 y2) = x.2 .|. Nat.succ (distance_nat y1 y2) := by
+    have hnotAll :
+        ¬ ∀ x ∈ xps,
+          x.1 .|. Nat.succ (distance_nat y1 y2) =
+            x.2 .|. Nat.succ (distance_nat y1 y2) := by
       intro hall
       exact hyNeq (hrest (Nat.succ (distance_nat y1 y2)) hall)
     push_neg at hnotAll
@@ -788,13 +799,22 @@ theorem rest_to_dist_pair_two {α β γ : Type _} [rs α] [rs β] [rs γ]
     simpa [distance_rs_zero] using (positive_rs x.1 x.2)
   · have hzNeq : z1 .|. Nat.succ (distance_nat z1 z2) ≠ z2 .|. Nat.succ (distance_nat z1 z2) :=
       distance_nat_rest_Suc (x := z1) (y := z2) hz rfl
-    have hnot : ¬ ((∀ x ∈ xps, x.1 .|. Nat.succ (distance_nat z1 z2) = x.2 .|. Nat.succ (distance_nat z1 z2)) ∧
-        (∀ y ∈ yps, y.1 .|. Nat.succ (distance_nat z1 z2) = y.2 .|. Nat.succ (distance_nat z1 z2))) := by
+    have hnot :
+        ¬ ((∀ x ∈ xps,
+              x.1 .|. Nat.succ (distance_nat z1 z2) =
+                x.2 .|. Nat.succ (distance_nat z1 z2)) ∧
+            ∀ y ∈ yps,
+              y.1 .|. Nat.succ (distance_nat z1 z2) =
+                y.2 .|. Nat.succ (distance_nat z1 z2)) := by
       intro hall
       exact hzNeq (hrest (Nat.succ (distance_nat z1 z2)) hall)
     have hsplit :
-        (¬ ∀ x ∈ xps, x.1 .|. Nat.succ (distance_nat z1 z2) = x.2 .|. Nat.succ (distance_nat z1 z2)) ∨
-        (¬ ∀ y ∈ yps, y.1 .|. Nat.succ (distance_nat z1 z2) = y.2 .|. Nat.succ (distance_nat z1 z2)) := by
+        (¬ ∀ x ∈ xps,
+            x.1 .|. Nat.succ (distance_nat z1 z2) =
+              x.2 .|. Nat.succ (distance_nat z1 z2)) ∨
+          ¬ ∀ y ∈ yps,
+            y.1 .|. Nat.succ (distance_nat z1 z2) =
+              y.2 .|. Nat.succ (distance_nat z1 z2) := by
       exact not_and_or.mp hnot
     rcases hsplit with hx | hy'
     · left
@@ -825,7 +845,7 @@ theorem rest_distance_subset {α β : Type _} [rs α] [rs β] {x y : α} {X Y : 
   by_cases hxy : x = y
   · have hall : ∀ n, X .|. n = Y .|. n := by
       intro n
-      exact hsub n (by simpa [hxy])
+      exact hsub n (by simp [hxy])
     exact False.elim (hXY (contra_diff_rs hall))
   · have hEq : X .|. distance_nat x y = Y .|. distance_nat x y :=
       hsub _ (distance_nat_rest (x := x) (y := y) hxy rfl)
@@ -922,10 +942,12 @@ theorem contst_to_contra_alpha {α β : Type _} [ms_rs α] [ms_rs β]
   · intro x y
     by_cases hxy : x = y
     · subst hxy
-      simp [hdistA, hdistB, distance_rs_zero]
+      simp
     · by_cases hfx : f x = f y
       · calc
-          distance (f x) (f y) = 0 := by simpa [hfx] using same_pnt_zero (f x)
+          distance (f x) (f y) = 0 := by
+            rw [hfx]
+            exact same_pnt_zero (f y)
           _ ≤ (1 / 2 : ℝ) * distance x y := by
             have hpos : 0 ≤ distance x y := ms.positive_ms x y
             nlinarith

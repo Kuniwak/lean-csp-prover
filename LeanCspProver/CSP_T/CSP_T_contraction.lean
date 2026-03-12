@@ -158,7 +158,9 @@ axiom Ext_pre_choice_Act_prefix_distT_nonempty {p : Type _} {q : Type _} {α : T
       PQs =
         {PQ | ∃ a, a ∈ X ∧ PQ = (traces (a ~> Pf a) M1, traces (a ~> Qf a) M2)} →
           ∃ PQ, PQ ∈ PQs ∧
-            distance (traces (proc.Ext_pre_choice X Pf) M1) (traces (proc.Ext_pre_choice X Qf) M2) <=
+            distance
+                (traces (proc.Ext_pre_choice X Pf) M1)
+                (traces (proc.Ext_pre_choice X Qf) M2) <=
               distance (Prod.fst PQ) (Prod.snd PQ)
 
 /- (*** contraction lemma ***) -/
@@ -169,7 +171,9 @@ axiom contraction_half_traces_Ext_pre_choice_lm {p : Type _} {q : Type _} {α : 
     {x1 x2 : domTType α} :
     X ≠ ∅ →
       (∀ a, distance (traces (Pf a) M1) (traces (Qf a) M2) <= distance x1 x2) →
-        distance (traces (proc.Ext_pre_choice X Pf) M1) (traces (proc.Ext_pre_choice X Qf) M2) * 2 <=
+        distance
+            (traces (proc.Ext_pre_choice X Pf) M1)
+            (traces (proc.Ext_pre_choice X Qf) M2) * 2 <=
           distance x1 x2
 
 /- (*** contraction_half ***) -/
@@ -321,7 +325,9 @@ axiom Rep_int_choice_distT_nonempty {p : Type _} {q : Type _} {α : Type _}
       PQs =
         {PQ | ∃ c, c ∈ sumset C ∧ PQ = (traces (Pf c) M1, traces (Qf c) M2)} →
           ∃ PQ, PQ ∈ PQs ∧
-            distance (traces (proc.Rep_int_choice C Pf) M1) (traces (proc.Rep_int_choice C Qf) M2) <=
+            distance
+                (traces (proc.Rep_int_choice C Pf) M1)
+                (traces (proc.Rep_int_choice C Qf) M2) <=
               distance (Prod.fst PQ) (Prod.snd PQ)
 
 /- (*** map_alpha T lemma ***) -/

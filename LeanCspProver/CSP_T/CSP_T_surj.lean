@@ -14,10 +14,10 @@
 
 import LeanCspProver.CSP_T.CSP_T_traces
 
-open Classical
 open SumType
 
 noncomputable section
+attribute [local instance] Classical.propDecidable
 
 /-  The following simplification rules are deleted in this theory file -/
 /-  because they unexpectedly rewrite `UnionT` and `InterT`.          -/
@@ -55,8 +55,13 @@ def Proc_T_rec : Nat → domTType α → proc p α
   | 0 => fun _ => proc.DIV
   | Nat.succ n =>
       fun T =>
-        (((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+] proc.DIV)
-          |~| (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN proc.SKIP ELSE proc.DIV))
+        (((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+]
+            proc.DIV)
+          |~|
+            (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN
+              proc.SKIP
+            ELSE
+              proc.DIV))
 
 def Proc_T (T : domTType α) : proc p α :=
   Rep_int_choice_nat Set.univ fun n => Proc_T_rec n T
@@ -142,7 +147,8 @@ theorem semT_Proc_T_only_if_lm {M : p → domTType α} :
       have hdiv : t :t traces proc.DIV M := by
         simpa [Proc_T_rec] using ht
       rw [in_traces_DIV] at hdiv
-      simpa [hdiv] using (nilt_in_T (T := T))
+      cases hdiv
+      exact nilt_in_T
   | succ n ih =>
       intro T t ht
       have hstep :
@@ -178,17 +184,21 @@ theorem semT_Proc_T_only_if_lm {M : p → domTType α} :
           · exact nilt_in_T
           · exact head_tail_traces_if ha (ih (tail_traces T a) s hs)
         · rw [in_traces_DIV] at hdiv
-          simpa [hdiv] using (nilt_in_T (T := T))
+          cases hdiv
+          exact nilt_in_T
       · by_cases hTick : (Abs_trace [event.Tick] : traceType α) :t T
-        · rw [in_traces_IF] at hright
-          simp [hTick] at hright
-          rcases (in_traces_SKIP (t := t) (M := M)).1 hright with rfl | rfl
+        · have hskip : t :t traces proc.SKIP M := by
+            rw [in_traces_IF] at hright
+            simpa [hTick] using hright
+          rcases (in_traces_SKIP (t := t) (M := M)).1 hskip with rfl | rfl
           · exact nilt_in_T
           · exact hTick
-        · rw [in_traces_IF] at hright
-          simp [hTick] at hright
-          rw [in_traces_DIV] at hright
-          simpa [hright] using (nilt_in_T (T := T))
+        · have hdiv : t :t traces proc.DIV M := by
+            rw [in_traces_IF] at hright
+            simpa [hTick] using hright
+          rw [in_traces_DIV] at hdiv
+          cases hdiv
+          exact nilt_in_T
 
 theorem semT_Proc_T_only_if {M : p → domTType α} {T : domTType α} {t : traceType α} :
     (∃ n, t :t traces (Proc_T_rec n T) M) → t :t T := by
@@ -209,8 +219,7 @@ theorem semT_Proc_T_if_lm {M : p → domTType α} :
       ?_
       ?_)
   · intro T _ht
-    have hdiv : ((<> : traceType α) :t traces proc.DIV M) := (in_traces_DIV (M := M)).2 rfl
-    simpa [Proc_T_rec] using hdiv
+    simp [Proc_T_rec, in_traces_DIV]
   · intro T ht
     have hif :
         (Abs_trace [event.Tick] : traceType α) :t

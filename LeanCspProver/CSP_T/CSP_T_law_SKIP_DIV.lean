@@ -156,14 +156,16 @@ axiom cspT_SKIP_Parallel_Ext_choice_DIV_l
 theorem cspT_SKIP_Parallel_Ext_choice_DIV_r
     {Y X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] proc.DIV))) M M
-      (((proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.DIV)) := by
+      (((proc.Ext_pre_choice (Y \ X) fun x => ((proc.SKIP : proc p α) |[X]| Pf x)) [+]
+          proc.DIV)) := by
   have h₁ :
       eqT (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] proc.DIV))) M M
         ((((proc.Ext_pre_choice Y Pf) [+] proc.DIV) |[X]| (proc.SKIP : proc p α))) :=
     cspT_Parallel_commut
   have h₂ :
       eqT ((((proc.Ext_pre_choice Y Pf) [+] proc.DIV) |[X]| (proc.SKIP : proc p α))) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.DIV)) :=
+        (((proc.Ext_pre_choice (Y \ X) fun x => (Pf x |[X]| (proc.SKIP : proc p α))) [+]
+            proc.DIV)) :=
     cspT_SKIP_Parallel_Ext_choice_DIV_l
   have h₃₁ :
       eqT (proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) M M
@@ -172,8 +174,11 @@ theorem cspT_SKIP_Parallel_Ext_choice_DIV_r
     intro a ha
     exact cspT_Parallel_commut
   have h₃ :
-      eqT (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.DIV)) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Pf x))) [+] proc.DIV)) := by
+      eqT
+        (((proc.Ext_pre_choice (Y \ X) fun x => (Pf x |[X]| (proc.SKIP : proc p α))) [+]
+            proc.DIV)) M M
+        (((proc.Ext_pre_choice (Y \ X) fun x => ((proc.SKIP : proc p α) |[X]| Pf x)) [+]
+            proc.DIV)) := by
     exact cspT_Ext_choice_cong h₃₁ cspT_reflex_eq_DIV
   exact cspT_trans_left_eq h₁ (cspT_trans_left_eq h₂ h₃)
 
@@ -273,16 +278,14 @@ theorem cspT_SKIP_or_DIV_Ext_choice
     (hP : P = (proc.SKIP : proc p α) ∨ P = proc.DIV)
     (hQ : Q = (proc.SKIP : proc p α) ∨ Q = proc.DIV) :
     eqT (P [+] Q) M1 M2
-      (if (P = (proc.SKIP : proc p α) ∨ Q = proc.SKIP) then (proc.SKIP : proc q α) else proc.DIV) := by
+      (if (P = (proc.SKIP : proc p α) ∨ Q = proc.SKIP) then
+        (proc.SKIP : proc q α)
+      else proc.DIV) := by
   rcases hP with rfl | rfl <;> rcases hQ with rfl | rfl
-  · simp
-    exact cspT_trans_left_eq cspT_Ext_choice_idem cspT_reflex_eq_SKIP
-  · simp
-    exact cspT_SKIP_DIV_Ext_choice1
-  · simp
-    exact cspT_SKIP_DIV_Ext_choice2
-  · simp
-    exact cspT_trans_left_eq cspT_Ext_choice_idem cspT_reflex_eq_DIV
+  · simpa using cspT_trans_left_eq cspT_Ext_choice_idem cspT_reflex_eq_SKIP
+  · simpa using cspT_SKIP_DIV_Ext_choice1 (M1 := M1) (M2 := M2)
+  · simpa using cspT_SKIP_DIV_Ext_choice2 (M1 := M1) (M2 := M2)
+  · simpa using cspT_trans_left_eq cspT_Ext_choice_idem cspT_reflex_eq_DIV
 
 /-
 (*********************************************************
@@ -296,16 +299,15 @@ theorem cspT_SKIP_or_DIV_Parallel
     (hP : P = (proc.SKIP : proc p α) ∨ P = proc.DIV)
     (hQ : Q = (proc.SKIP : proc p α) ∨ Q = proc.DIV) :
     eqT (P |[X]| Q) M1 M2
-      (if (P = (proc.SKIP : proc p α) ∧ Q = proc.SKIP) then (proc.SKIP : proc q α) else proc.DIV) := by
+      (if P = (proc.SKIP : proc p α) ∧ Q = proc.SKIP then
+        (proc.SKIP : proc q α)
+      else
+        proc.DIV) := by
   rcases hP with rfl | rfl <;> rcases hQ with rfl | rfl
-  · simp
-    exact cspT_Parallel_term
-  · simp
-    exact cspT_SKIP_DIV_Parallel1
-  · simp
-    exact cspT_SKIP_DIV_Parallel2
-  · simp
-    exact cspT_DIV_Parallel
+  · simpa using cspT_Parallel_term
+  · simpa using cspT_SKIP_DIV_Parallel1
+  · simpa using cspT_SKIP_DIV_Parallel2
+  · simpa using cspT_DIV_Parallel
 
 /-
 (*********************************************************

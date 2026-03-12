@@ -258,26 +258,22 @@ theorem cspT_Int_choice_Ext_choice_SKIP_or_DIV
     (hQ2 : Q2 = proc.SKIP ∨ Q2 = proc.DIV) :
     eqT ((P1 [+] P2) |~| (Q1 [+] Q2)) M M (P1 [+] Q1 [+] (P2 |~| Q2)) := by
   rcases hP2 with rfl | rfl <;> rcases hQ2 with rfl | rfl
-  ·
-    have hTail : eqT (proc.SKIP : proc p α) M M (proc.SKIP |~| proc.SKIP) := by
+  · have hTail : eqT (proc.SKIP : proc p α) M M (proc.SKIP |~| proc.SKIP) := by
       exact cspT_sym (cspT_trans_left_eq cspT_Int_choice_idem cspT_reflex_eq_SKIP)
     exact cspT_trans_left_eq
       cspT_Int_choice_Ext_choice_SKIP
       (cspT_Ext_choice_cong cspT_reflex_eq_P hTail)
-  ·
-    have hTail : eqT (proc.SKIP : proc p α) M M (proc.SKIP |~| proc.DIV) := by
+  · have hTail : eqT (proc.SKIP : proc p α) M M (proc.SKIP |~| proc.DIV) := by
       exact cspT_sym cspT_Int_choice_unit_r
     exact cspT_trans_left_eq
       cspT_Int_choice_Ext_choice_SKIP_DIV
       (cspT_Ext_choice_cong cspT_reflex_eq_P hTail)
-  ·
-    have hTail : eqT (proc.SKIP : proc p α) M M (proc.DIV |~| proc.SKIP) := by
+  · have hTail : eqT (proc.SKIP : proc p α) M M (proc.DIV |~| proc.SKIP) := by
       exact cspT_sym cspT_Int_choice_unit_l
     exact cspT_trans_left_eq
       cspT_Int_choice_Ext_choice_DIV_SKIP
       (cspT_Ext_choice_cong cspT_reflex_eq_P hTail)
-  ·
-    have hTail : eqT (proc.DIV : proc p α) M M (proc.DIV |~| proc.DIV) := by
+  · have hTail : eqT (proc.DIV : proc p α) M M (proc.DIV |~| proc.DIV) := by
       exact cspT_sym (cspT_trans_left_eq cspT_Int_choice_idem cspT_reflex_eq_DIV)
     exact cspT_trans_left_eq
       cspT_Int_choice_Ext_choice_DIV

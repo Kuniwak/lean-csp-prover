@@ -77,7 +77,7 @@ theorem cspF_Parallel_preterm_l_set1
     have hNotDisj : Ev a ∉ Z := by
       intro haZ
       have hInter : Ev a ∈ Ev '' Y ∩ Z := ⟨⟨a, haY, rfl⟩, haZ⟩
-      simpa [hDisj] using hInter
+      simp [hDisj] at hInter
     rcases heUnion with haYa | haZ
     · have hDiff : Ev a ∈ Ya \ insert Tick (Ev '' X) := ⟨haYa, hNotMem⟩
       exact hNotDisj ((hEq ▸ hDiff).1)

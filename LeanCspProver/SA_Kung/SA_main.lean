@@ -54,7 +54,7 @@ theorem Example1_ring {r : Type _} [Ring r] :
     have hPos : 0 < N := Nat.pos_of_ne_zero hN
     have hMem : ((0, 0) : index_type) ∈ Array_Index N := by
       simp [Array_Index_def, hPos]
-    simpa [hEmpty] using hMem
+    simp [hEmpty] at hMem
   · exact Example1_finite N
   · simpa [Systolic_ArrayF_def] using Example1_triple_disjoint (r := r) N
   · simpa [Systolic_ArrayF_def] using Example1_BusyNetwork (r := r) N

@@ -208,7 +208,8 @@ axiom ALL_fnfF_procE {X : Set ι} {NPf : ι → proc p α} {S : Prop} :
               (fun x =>
                 if x ∈ X then
                   ((((proc.Ext_pre_choice (Af x) (Pff x)) [+] (Qf x)) |~|
-                    Rep_int_choice_set (Ysf x) (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+                    Rep_int_choice_set (Ysf x)
+                      (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
                 else
                   NPf x)) ∧
             (∀ x ∈ X, ∀ a, (if a ∈ Af x then fnfF_proc (Pff x a) else Pff x a = proc.DIV)) ∧
@@ -326,7 +327,8 @@ axiom cspF_fnfF_Depth_rest_dist [HasPNfun p α] [HasFPmode]
     (Q = proc.SKIP ∨ Q = proc.DIV) →
       eqFfix
         (((((proc.Ext_pre_choice A Pf) [+] Q) |~|
-            Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) |. Nat.succ n))
+            Rep_int_choice_set Ys
+              (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) |. Nat.succ n))
         ((((proc.Ext_pre_choice A (fun a => Pf a |. n)) [+] Q) |~|
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
 

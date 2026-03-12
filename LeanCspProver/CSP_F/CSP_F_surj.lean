@@ -13,7 +13,6 @@
 import LeanCspProver.CSP_F.CSP_F_domain
 import LeanCspProver.CSP_T.CSP_T_surj
 
-open Classical
 open SumType
 
 noncomputable section
@@ -39,7 +38,8 @@ def tail_failures (F : setFType α) : α → setFType α :=
   fun a => CollectF fun f => (Abs_trace [event.Ev a] ^^^ f.1, f.2) :f F
 
 theorem tail_failures_def (F : setFType α) :
-    tail_failures F = fun a => CollectF fun f => (Abs_trace [event.Ev a] ^^^ f.1, f.2) :f F :=
+    tail_failures F =
+      fun a => CollectF fun f => (Abs_trace [event.Ev a] ^^^ f.1, f.2) :f F :=
   rfl
 
 def Proc_F_rec : Nat → domFType α → proc p α
@@ -63,7 +63,8 @@ def Proc_F (SF : domFType α) : proc p α :=
   Proc_T (fstF SF) |~| Rep_int_choice_nat Set.univ fun n => Proc_F_rec n SF
 
 theorem Proc_F_def {p : Type _} {α : Type _} (SF : domFType α) :
-    Proc_F (p := p) SF = Proc_T (fstF SF) |~| Rep_int_choice_nat Set.univ (fun n => Proc_F_rec n SF) :=
+    Proc_F (p := p) SF =
+      Proc_T (fstF SF) |~| Rep_int_choice_nat Set.univ (fun n => Proc_F_rec n SF) :=
   rfl
 
 /-
@@ -313,7 +314,9 @@ theorem surj_domF [HasPNfun p α] [HasFPmode] :
 
 theorem failures_Proc_F {SF : domFType α} {M : p → domFType α} :
     failures (Proc_F SF) M = sndF SF := by
-  exact (semFf_decompo (P := Proc_F SF) (M := M) (SF := SF)).1 (semF_Proc_F (SF := SF) (M := M)) |>.2
+  exact
+    (semFf_decompo (P := Proc_F SF) (M := M) (SF := SF)).1
+      (semF_Proc_F (SF := SF) (M := M)) |>.2
 
 /- ----------------------------*
  |    traces and Proc_F SF    |

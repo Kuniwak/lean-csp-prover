@@ -275,24 +275,34 @@ theorem Example1_BusyNetwork_out_lm {r : Type _} [Ring r]
     (hAll : ∀ s Y, (s, Y) ∈ peF_rec (r := r) n (i, j) → Y ≠ Ev '' Alpha_pe (r := r) (i, j))
     (hMem : (s, Y) ∈ Faiures_out x y (i, j) (peF_rec (r := r) n (i, j))) :
     Y ≠ Ev '' Alpha_pe (r := r) (i, j) := by
-  simp [Faiures_out_def] at hMem
+  rw [Faiures_out_def] at hMem
+  dsimp at hMem
+  simp only [Set.mem_union, Set.mem_insert_iff, Set.mem_setOf_eq] at hMem
   rcases hMem with hMem | hMem
   · rcases hMem with hMem | hMem
-    · rcases hMem with ⟨_, rfl⟩
+    · cases hMem
       exact Example1_out_base_ne (i := i) (j := j) (x := x) (y := y)
-    · rcases hMem with ⟨_, _, _, hInner⟩
-      simp [Faiures_out_hori_def] at hInner
+    · rcases hMem with ⟨s', Y', hEq, hInner⟩
+      cases hEq
+      rw [Faiures_out_hori_def] at hInner
+      dsimp at hInner
+      simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hInner
       rcases hInner with hBase | hRec
-      · rcases hBase with ⟨_, rfl⟩
+      · cases hBase
         exact Example1_out_hori_base_ne (i := i) (j := j) (y := y)
-      · rcases hRec with ⟨_, _, _, hRec⟩
+      · rcases hRec with ⟨s'', Y'', hEq, hRec⟩
+        cases hEq
         exact hAll _ _ hRec
-  · rcases hMem with ⟨_, _, _, hInner⟩
-    simp [Faiures_out_vert_def] at hInner
+  · rcases hMem with ⟨s', Y', hEq, hInner⟩
+    cases hEq
+    rw [Faiures_out_vert_def] at hInner
+    dsimp at hInner
+    simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hInner
     rcases hInner with hBase | hRec
-    · rcases hBase with ⟨_, rfl⟩
+    · cases hBase
       exact Example1_out_vert_base_ne (i := i) (j := j) (x := x)
-    · rcases hRec with ⟨_, _, _, hRec⟩
+    · rcases hRec with ⟨s'', Y'', hEq, hRec⟩
+      cases hEq
       exact hAll _ _ hRec
 
 set_option maxHeartbeats 1000000 in
@@ -303,46 +313,39 @@ theorem Example1_BusyNetwork_lm {r : Type _} [Ring r]
   induction n with
   | zero =>
       intro s Y hMem
-      simpa [peF_rec] using hMem
+      rw [peF_rec] at hMem
+      cases hMem
   | succ n ih =>
       intro s Y hMem
-      simp [peF_rec, Faiures_in_def] at hMem
+      rw [peF_rec, Faiures_in_def] at hMem
+      dsimp at hMem
+      simp only [Set.mem_union, Set.mem_insert_iff, Set.mem_setOf_eq] at hMem
       rcases hMem with hMem | hMem
       · rcases hMem with hMem | hMem
-        · rcases hMem with ⟨_, rfl⟩
+        · cases hMem
           exact Example1_in_base_ne (i := i) (j := j)
-        · rcases hMem with ⟨_, _, _, hInner⟩
-          dsimp [Faiures_in_hori] at hInner
-          rw [Set.mem_insert_iff] at hInner
-          have hInner' := hInner.2
-          exact
-            match hInner' with
-            | Or.inl hBase =>
-                by
-                  simp at hBase
-                  rcases hBase with ⟨_, rfl⟩
-                  exact Example1_in_hori_base_ne (i := i) (j := j)
-            | Or.inr hRec =>
-                by
-                  simp at hRec
-                  rcases hRec with ⟨_, _, _, _, hRec⟩
-                  exact Example1_BusyNetwork_out_lm (hAll := ih) hRec
-      · rcases hMem with ⟨_, _, _, _, hInner⟩
-        dsimp [Faiures_in_vert] at hInner
-        rw [Set.mem_insert_iff] at hInner
-        have hInner' := hInner
-        exact
-          match hInner' with
-          | Or.inl hBase =>
-              by
-                simp at hBase
-                rcases hBase with ⟨_, rfl⟩
-                exact Example1_in_vert_base_ne (i := i) (j := j)
-          | Or.inr hRec =>
-              by
-                simp at hRec
-                rcases hRec with ⟨_, _, _, _, hRec⟩
-                exact Example1_BusyNetwork_out_lm (hAll := ih) hRec
+        · rcases hMem with ⟨x, s', Y', hEq, hInner⟩
+          cases hEq
+          rw [Faiures_in_hori_def] at hInner
+          dsimp at hInner
+          simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hInner
+          rcases hInner with hBase | hRec
+          · cases hBase
+            exact Example1_in_hori_base_ne (i := i) (j := j)
+          · rcases hRec with ⟨y, s'', Y'', hEq, hRec⟩
+            cases hEq
+            exact Example1_BusyNetwork_out_lm (hAll := ih) hRec
+      · rcases hMem with ⟨y, s', Y', hEq, hInner⟩
+        cases hEq
+        rw [Faiures_in_vert_def] at hInner
+        dsimp at hInner
+        simp only [Set.mem_insert_iff, Set.mem_setOf_eq] at hInner
+        rcases hInner with hBase | hRec
+        · cases hBase
+          exact Example1_in_vert_base_ne (i := i) (j := j)
+        · rcases hRec with ⟨x, s'', Y'', hEq, hRec⟩
+          cases hEq
+          exact Example1_BusyNetwork_out_lm (hAll := ih) hRec
 
 theorem Example1_BusyNetwork {r : Type _} [Ring r] (N : Nat) :
     BusyNetwork (Systolic_ArrayF (r := r) N) := by

@@ -61,7 +61,7 @@ theorem cspF_SKIP_Alpha_parallel
     {M1 : p → domFType α} {M2 : q → domFType α} :
     eqF (((proc.SKIP : proc p α) |[(∅ : Set α), (∅ : Set α)]| (proc.SKIP : proc p α))) M1 M2
       (proc.SKIP : proc q α) := by
-  simp [Alpha_parallel_def]
+  rw [Alpha_parallel_def, Set.compl_empty, Set.empty_inter]
   have h₁ :
       eqF
         (((proc.SKIP : proc p α) |[(Set.univ : Set α)]| (proc.SKIP : proc p α)) |[(∅ : Set α)]|

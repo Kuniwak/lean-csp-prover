@@ -22,8 +22,6 @@ import LeanCspProver.CSP.RS
 
 noncomputable section
 
-open Classical
-
 /- 
 (*****************************************************************
 
@@ -228,6 +226,7 @@ theorem contra_diff_rs_domT {T S : domTType α} :
 
 theorem diff_rs_domT {T S : domTType α} :
     T ≠ S → ∃ n, T .|. n ≠ S .|. n := by
+  classical
   intro hneq
   by_contra hnot
   apply hneq

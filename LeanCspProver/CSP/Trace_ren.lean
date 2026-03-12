@@ -18,7 +18,6 @@
 
 import LeanCspProver.CSP.Prefix
 
-open Classical
 open Function
 open event
 

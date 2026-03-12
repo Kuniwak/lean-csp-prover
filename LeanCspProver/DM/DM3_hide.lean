@@ -98,7 +98,9 @@ axiom EAT0_VAR_Back1_HIDE (n : Int) :
     EVEN n →
       eqF (Hide (Par1 (Par0 (EAT0P n) (VARP n)) (Pref Event.Back1 TH1P))) MF MF
         ((Pref Event.End0
-            (Hide (Par1 (Par0 (Pref (Event.WR0 (n / 2)) TH0P) (VARP n)) (Pref Event.Back1 TH1P)))) [+]
+            (Hide (Par1
+              (Par0 (Pref (Event.WR0 (n / 2)) TH0P) (VARP n))
+              (Pref Event.Back1 TH1P)))) [+]
           (Pref Event.Back1 (Hide (Par1 (Par0 (EAT0P n) (VARP n)) TH1P))))
 
 abbrev EAT0_VAR_Back1_HIDE_simp := EAT0_VAR_Back1_HIDE
@@ -240,7 +242,9 @@ abbrev TH0_VAR_TH1_HIDE_simp := TH0_VAR_TH1_HIDE
 
 axiom WR0_VAR_Back1_HIDE (n : Int) :
     EVEN n →
-      eqF (Hide (Par1 (Par0 (Pref (Event.WR0 (n / 2)) TH0P) (VARP n)) (Pref Event.Back1 TH1P))) MF MF
+      eqF (Hide (Par1
+        (Par0 (Pref (Event.WR0 (n / 2)) TH0P) (VARP n))
+        (Pref Event.Back1 TH1P))) MF MF
         (Timeout
           (Pref Event.Back1
             (Hide (Par1 (Par0 (Pref (Event.WR0 (n / 2)) TH0P) (VARP n)) TH1P)))
@@ -256,7 +260,9 @@ abbrev WR0_VAR_Back1_HIDE_simp := WR0_VAR_Back1_HIDE
 
 axiom Back0_VAR_WR1_HIDE (n : Int) :
     ODD n →
-      eqF (Hide (Par1 (Par0 (Pref Event.Back0 TH0P) (VARP n)) (Pref (Event.WR1 (3 * n + 1)) TH1P))) MF MF
+      eqF (Hide (Par1
+        (Par0 (Pref Event.Back0 TH0P) (VARP n))
+        (Pref (Event.WR1 (3 * n + 1)) TH1P))) MF MF
         (Timeout
           (Pref Event.Back0
             (Hide (Par1 (Par0 TH0P (VARP n)) (Pref (Event.WR1 (3 * n + 1)) TH1P))))

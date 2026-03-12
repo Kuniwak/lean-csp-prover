@@ -256,7 +256,7 @@ theorem pair_distance_max {α β : Type _} [ms_rs α] [ms_rs β] {xc yc : α × 
         distance xc yc = distance_rs xc yc := ms0_rs.to_distance_rs _ _
         _ <= distance_rs (Prod.snd xc) (Prod.snd yc) := by
           exact rest_distance_subset (x := Prod.snd xc) (y := Prod.snd yc) (X := xc) (Y := yc)
-            (fun n hs => rest_to_pair_rest (by simpa [hfst]) hs)
+            (fun n hs => rest_to_pair_rest (by simp [hfst]) hs)
         _ = distance (Prod.snd xc) (Prod.snd yc) := by
           symm
           exact ms0_rs.to_distance_rs _ _
@@ -271,7 +271,7 @@ theorem pair_distance_max {α β : Type _} [ms_rs α] [ms_rs β] {xc yc : α × 
           distance xc yc = distance_rs xc yc := ms0_rs.to_distance_rs _ _
           _ <= distance_rs (Prod.fst xc) (Prod.fst yc) := by
             exact rest_distance_subset (x := Prod.fst xc) (y := Prod.fst yc) (X := xc) (Y := yc)
-              (fun n hf => rest_to_pair_rest hf (by simpa [hsnd]))
+              (fun n hf => rest_to_pair_rest hf (by simp [hsnd]))
           _ = distance (Prod.fst xc) (Prod.fst yc) := by
             symm
             exact ms0_rs.to_distance_rs _ _
@@ -386,7 +386,9 @@ theorem pair_map_alpha_only_if {α β γ : Type _} [ms_rs α] [ms_rs β] [ms_rs 
     map_alpha fc alpha →
       (map_alpha (Prod.fst ∘ fc) alpha ∧ map_alpha (Prod.snd ∘ fc) alpha) := by
   intro hfc
-  exact ⟨compo_non_expand_map_alpha fst_non_expand hfc, compo_non_expand_map_alpha snd_non_expand hfc⟩
+  exact
+    ⟨compo_non_expand_map_alpha fst_non_expand hfc,
+      compo_non_expand_map_alpha snd_non_expand hfc⟩
 
 /- if -/
 
@@ -400,7 +402,9 @@ theorem pair_map_alpha_if {α β γ : Type _} [ms_rs α] [ms_rs β] [ms_rs γ]
   · exact hfst.1
   · intro x y
     rw [pair_distance_max]
-    exact max_le (by simpa [Function.comp] using hfst.2 x y) (by simpa [Function.comp] using hsnd.2 x y)
+    exact max_le
+      (by simpa [Function.comp] using hfst.2 x y)
+      (by simpa [Function.comp] using hsnd.2 x y)
 
 /- iff -/
 
@@ -470,8 +474,7 @@ theorem pair_contra_alpha_compo {α β γ : Type _} [ms_rs α] [ms_rs β] [ms_rs
 theorem pair_cauchy_seq_fst {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} :
     cauchy xcs → cauchy (Prod.fst ∘ xcs) := by
-  intro hcauchy
-  intro delta hdelta
+  intro hcauchy delta hdelta
   rcases hcauchy delta hdelta with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro i j hij
@@ -486,8 +489,7 @@ theorem pair_cauchy_seq_fst {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_cauchy_seq_snd {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} :
     cauchy xcs → cauchy (Prod.snd ∘ xcs) := by
-  intro hcauchy
-  intro delta hdelta
+  intro hcauchy delta hdelta
   rcases hcauchy delta hdelta with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro i j hij
@@ -516,8 +518,7 @@ theorem pair_cauchy_seq_snd_compo {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_normal_seq_fst {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} :
     normal xcs → normal (Prod.fst ∘ xcs) := by
-  intro hnormal
-  intro n m
+  intro hnormal n m
   have hpair : distance (xcs n) (xcs m) <= (1 / 2 : ℝ) ^ min n m := hnormal n m
   have hmax :
       max (distance ((Prod.fst ∘ xcs) n) ((Prod.fst ∘ xcs) m))
@@ -530,8 +531,7 @@ theorem pair_normal_seq_fst {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_normal_seq_snd {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} :
     normal xcs → normal (Prod.snd ∘ xcs) := by
-  intro hnormal
-  intro n m
+  intro hnormal n m
   have hpair : distance (xcs n) (xcs m) <= (1 / 2 : ℝ) ^ min n m := hnormal n m
   have hmax :
       max (distance ((Prod.fst ∘ xcs) n) ((Prod.fst ∘ xcs) m))
@@ -556,8 +556,7 @@ theorem pair_normal_seq_snd_compo {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_normal_seq_compo_only_if {α β : Type _} [ms_rs α] [ms_rs β]
     {xc : infinite_seq α} {yc : infinite_seq β} :
     normal xc → normal yc → normal (xc ** yc) := by
-  intro hxc hyc
-  intro n m
+  intro hxc hyc n m
   rw [pair_distance_max]
   refine max_le ?_ ?_
   · simpa [pair_fun] using hxc n m
@@ -585,8 +584,7 @@ theorem pair_normal_seq_compo_iff {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_convergeTo_fst_only_if {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} {yc : α × β} :
     xcs convergeTo yc → (Prod.fst ∘ xcs) convergeTo (Prod.fst yc) := by
-  intro hconv
-  intro eps heps
+  intro hconv eps heps
   rcases hconv eps heps with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro m hm
@@ -601,8 +599,7 @@ theorem pair_convergeTo_fst_only_if {α β : Type _} [ms_rs α] [ms_rs β]
 theorem pair_convergeTo_snd_only_if {α β : Type _} [ms_rs α] [ms_rs β]
     {xcs : infinite_seq (α × β)} {yc : α × β} :
     xcs convergeTo yc → (Prod.snd ∘ xcs) convergeTo (Prod.snd yc) := by
-  intro hconv
-  intro eps heps
+  intro hconv eps heps
   rcases hconv eps heps with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   intro m hm
@@ -621,8 +618,7 @@ theorem pair_convergeTo_if {α β : Type _} [ms_rs α] [ms_rs β]
     (Prod.fst ∘ xcs) convergeTo (Prod.fst yc) →
       (Prod.snd ∘ xcs) convergeTo (Prod.snd yc) →
       xcs convergeTo yc := by
-  intro hfst hsnd
-  intro eps heps
+  intro hfst hsnd eps heps
   rcases hfst eps heps with ⟨N1, hN1⟩
   rcases hsnd eps heps with ⟨N2, hN2⟩
   refine ⟨max N1 N2, ?_⟩

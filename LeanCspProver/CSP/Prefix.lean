@@ -145,7 +145,7 @@ theorem prefix_same_head_if {a : α} {v u : traceType α} :
   · rcases hv with hv | rfl
     · simpa [hu'] using appt_assoc_sym (s := Abs_trace [Ev a]) (t := v) (u := ua)
         (Or.inl (noTick_Ev a)) (Or.inl hv)
-    · simpa [hu']
+    · simp [hu']
   · rcases hv with hv | rfl
     · exact Or.inl (decompo_appt_noTick_if (noTick_Ev a) hv)
     · exact Or.inr rfl
@@ -168,10 +168,10 @@ theorem prefix_same_head_inv_only_if {a : α} {v u : traceType α} :
   · exact Or.inl rfl
   · rcases hpre with hvNo | huaNil
     · exfalso
-      simpa [hvTick] using hvNo
+      simp [hvTick] at hvNo
     · exfalso
       have hEq' : Abs_trace [Ev a] ^^^ u = Abs_trace [Tick] := by
-        simpa [hvTick, huaNil] using hEq
+        simp [hvTick, huaNil] at hEq
       have hrep := congrArg Rep_trace hEq'
       simp [appt, Abs_trace_inverse] at hrep
   · rcases hpre with hvNo | huaNil
@@ -188,15 +188,15 @@ theorem prefix_same_head_inv_only_if {a : α} {v u : traceType α} :
       have hab : a = b ∧ u = v' ^^^ ua := (appt_same_head.mp hHead)
       refine Or.inr ?_
       refine ⟨v', ?_, ?_⟩
-      · simpa [hv, hab.1]
+      · simp [hv, hab.1]
       · exact ⟨ua, hab.2, Or.inl hv'⟩
     · have hHead : Abs_trace [Ev a] ^^^ u = Abs_trace [Ev b] ^^^ v' := by
         simpa [hv, huaNil] using hEq
       have hab : a = b ∧ u = v' := (appt_same_head.mp hHead)
       refine Or.inr ?_
       refine ⟨v', ?_, ?_⟩
-      · simpa [hv, hab.1]
-      · simpa [hab.2] using (prefix_itself : «prefix» v' v')
+      · simp [hv, hab.1]
+      · simp [hab.2]
 
 theorem prefix_same_head_inv_if {a : α} {v u : traceType α} :
     (v = <> ∨ ∃ v', v = Abs_trace [Ev a] ^^^ v' ∧ «prefix» v' u) →

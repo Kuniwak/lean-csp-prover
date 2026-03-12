@@ -299,6 +299,7 @@ theorem cspT_Renaming_step [Inhabited α]
  *------------------*) -/
 
 set_option maxHeartbeats 1000000 in
+-- The trace-append case split in this proof times out under the default heartbeat limit.
 theorem cspT_Seq_compo_step
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf) ;; Q) M M
@@ -312,13 +313,14 @@ theorem cspT_Seq_compo_step
     rcases hu with ⟨s, rfl, hs⟩ | ⟨s, t, huEq, hsTick, ht, hsNo⟩
     · rw [in_traces_Ext_pre_choice] at hs
       rcases hs with rfl | ⟨a, sa, rfl, hsa, haX⟩
-      · simpa [rmTick_nil] using (Or.inl rfl : (<> = <> ∨ ∃ a s, <> = Abs_trace [Ev a] ^^^ s ∧ s :t traces (Pf a) M ∧ a ∈ X))
+      · left
+        simp
       · have hrm : rmTick (Abs_trace [Ev a] ^^^ sa) = Abs_trace [Ev a] ^^^ rmTick sa := by
           exact rmTick_appt_dist (s := Abs_trace [Ev a]) (t := sa) (noTick_Ev a)
         have hseq : rmTick sa :t traces (Pf a ;; Q) M := by
           rw [in_traces_Seq_compo]
           exact Or.inl ⟨sa, rfl, hsa⟩
-        exact Or.inr ⟨a, rmTick sa, by simpa [hrm], hseq, haX⟩
+        exact Or.inr ⟨a, rmTick sa, by simp [hrm], hseq, haX⟩
     · rw [in_traces_Ext_pre_choice] at hsTick
       rcases hsTick with hsTick | ⟨a, sa, hEq, hsa, haX⟩
       · exact False.elim (event_app_not_nil_right hsNo hsTick)
@@ -352,7 +354,8 @@ theorem cspT_Seq_compo_step
           have huEq' : u = Abs_trace [Ev a] ^^^ (sb ^^^ t) := by
             calc
               u = (Abs_trace [Ev a] ^^^ sb) ^^^ t := huEq
-              _ = Abs_trace [Ev a] ^^^ (sb ^^^ t) := appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hsbNo)
+              _ = Abs_trace [Ev a] ^^^ (sb ^^^ t) :=
+                appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hsbNo)
           exact Or.inr ⟨a, sb ^^^ t, huEq', hseq, haX⟩
   · rw [subdomT_iff]
     intro u hu
@@ -415,12 +418,15 @@ theorem cspT_Depth_rest_step
     rw [in_traces_Ext_pre_choice] at ht
     rw [in_traces_Depth_rest]
     rcases ht with rfl | ⟨a, s, rfl, hs, haX⟩
-    · exact ⟨(in_traces_Ext_pre_choice (t := <>) (X := X) (Pf := Pf) (M := M)).2 (Or.inl rfl), by simp⟩
+    · exact
+        ⟨(in_traces_Ext_pre_choice (t := <>) (X := X) (Pf := Pf) (M := M)).2
+            (Or.inl rfl), by simp⟩
     · have hs' : s :t traces (Pf a) M ∧ lengtht s ≤ n := by
         rw [in_traces_Depth_rest] at hs
         exact hs
-      refine ⟨(in_traces_Ext_pre_choice (t := Abs_trace [Ev a] ^^^ s) (X := X) (Pf := Pf) (M := M)).2
-        (Or.inr ⟨a, s, rfl, hs'.1, haX⟩), ?_⟩
+      refine
+        ⟨(in_traces_Ext_pre_choice (t := Abs_trace [Ev a] ^^^ s) (X := X) (Pf := Pf)
+            (M := M)).2 (Or.inr ⟨a, s, rfl, hs'.1, haX⟩), ?_⟩
       have hlen : lengtht (Abs_trace [Ev a] ^^^ s) = Nat.succ (lengtht s) :=
         lengtht_app_event_Suc_head
       simpa [hlen] using Nat.succ_le_succ hs'.2

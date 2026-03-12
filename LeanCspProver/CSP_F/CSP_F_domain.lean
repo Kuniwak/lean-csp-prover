@@ -15,7 +15,6 @@
 
 import LeanCspProver.CSP_F.CSP_F_failures
 
-open Classical
 open SumType
 
 noncomputable section

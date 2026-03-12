@@ -441,7 +441,7 @@ theorem cspF_Int_Ext_pre_choice_subset [Inhabited α]
       refine Or.inl ⟨Z, rfl, ?_⟩
       intro hEv
       have : event.Ev a ∈ (event.Ev '' Y) ∩ Z := ⟨⟨a, haY, rfl⟩, hEv⟩
-      simpa [hEmpty] using this
+      simp [hEmpty] at this
     · rcases hs with ⟨a, t, Z', hEq, htY, haY⟩
       rcases Prod.mk.inj hEq with ⟨hsEq, hZEq⟩
       subst hsEq

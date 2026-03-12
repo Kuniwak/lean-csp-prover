@@ -62,7 +62,7 @@ deriving DecidableEq, Inhabited
 theorem expand_Event_fun (Ef Eg : Int → Event) : (Ef = Eg) ↔ ∀ n, Ef n = Eg n := by
   constructor
   · intro h n
-    simpa [h]
+    simp [h]
   · intro h
     exact funext h
 

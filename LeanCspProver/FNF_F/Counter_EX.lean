@@ -100,28 +100,28 @@ theorem NPA_fnfF_proc {NPA : proc nopn event} :
     proc.DIV, rfl, ?_, ?_, ?_, ?_⟩
   · intro a
     by_cases ha : a ∈ ({event.event_a} : Set event)
-    · have ha' : a = event.event_a := by simpa using ha
+    · have ha' : a = event.event_a := Set.mem_singleton_iff.mp ha
       subst ha'
       simp [ha, hNPA]
     · exfalso
-      exact ha (by cases a <;> simp)
+      exact ha (by cases a; simp)
   · intro Y hY
     rcases hY with ⟨⟨Y0, hY0, hY0subY⟩, hYsub⟩
     rcases Set.mem_singleton_iff.mp hY0 with rfl
     apply Set.mem_singleton_iff.mpr
     ext a
     constructor
-    · intro ha
+    · intro _ha
       have haSingleton : a ∈ ({event.event_a} : Set event) := by
-        have hSub := hYsub ha
-        simpa using hSub
-      simpa using haSingleton
+        cases a
+        simp
+      exact haSingleton
     · intro ha
       exact hY0subY ha
   · intro a ha
     rcases ha with ⟨Y, hY, haY⟩
     rcases Set.mem_singleton_iff.mp hY with rfl
-    simpa using haY
+    exact haY
   · exact Or.inr rfl
 
 theorem PA_not_fnfF_proc_lm {NPA : proc nopn event} :
@@ -142,7 +142,9 @@ theorem PA_not_fnfF_proc_lm {NPA : proc nopn event} :
           (fun a => if a = event.event_a then NPA else proc.DIV)) := by
     apply cspF_Ext_pre_choice_cong rfl
     intro a ha
-    have ha' : a = event.event_a := by simpa using ha
+    have ha' : a = event.event_a := by
+      cases a
+      rfl
     subst ha'
     simpa using hPA
   have hTargetCong : eqFfix (CounterTarget PA) (CounterTarget NPA) := by
@@ -165,7 +167,7 @@ private theorem CounterTarget_not_self :
       injection hLeft with hExt _hQ
       injection hExt with hA hPfEq
       have hEventA : event.event_a ∈ A := by
-        simpa [hA]
+        simp [hA]
       have hPfSelf :
           Pf event.event_a =
             ((((proc.Ext_pre_choice A Pf) [+] Q) |~|

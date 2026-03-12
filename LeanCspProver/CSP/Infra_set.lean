@@ -279,14 +279,15 @@ private theorem card_set_le_length {s : List α} : card (_root_.set s) <= s.leng
   classical
   have htoFinset : (List.finite_toSet s).toFinset = s.toFinset := by
     ext x
-    simp [_root_.set]
+    simp
   calc
     card (_root_.set s) = (List.finite_toSet s).toFinset.card := by
       simpa [card] using (Set.ncard_eq_toFinset_card (_root_.set s) (List.finite_toSet s))
-    _ = s.toFinset.card := by simpa [htoFinset]
+    _ = s.toFinset.card := by simp [htoFinset]
     _ <= s.length := List.toFinset_card_le s
 
-private theorem card_set_eq_length_iff_nodup {s : List α} : card (_root_.set s) = s.length ↔ s.Nodup := by
+private theorem card_set_eq_length_iff_nodup {s : List α} :
+    card (_root_.set s) = s.length ↔ s.Nodup := by
   classical
   induction s with
   | nil =>
@@ -298,7 +299,9 @@ private theorem card_set_eq_length_iff_nodup {s : List α} : card (_root_.set s)
           have hEq' : Set.ncard (Set.insert a (_root_.set s)) = s.length + 1 := by
             simpa [set_cons, card] using hEq
           have hInsert : Set.ncard (Set.insert a (_root_.set s)) = card (_root_.set s) := by
-            simpa [card] using (Set.ncard_insert_of_mem ha : Set.ncard (Set.insert a (_root_.set s)) = Set.ncard (_root_.set s))
+            simpa [card] using
+              (Set.ncard_insert_of_mem ha :
+                Set.ncard (Set.insert a (_root_.set s)) = Set.ncard (_root_.set s))
           rw [hInsert] at hEq'
           have hle : card (_root_.set s) <= s.length := card_set_le_length
           omega
@@ -323,7 +326,7 @@ private theorem card_set_eq_length_iff_nodup {s : List α} : card (_root_.set s)
               simpa [card] using
                 (Set.ncard_insert_of_notMem ha (List.finite_toSet s) :
                   Set.ncard (Set.insert a (_root_.set s)) = Set.ncard (_root_.set s) + 1)
-            simpa [hInsert, hs]
+            simp [hInsert, hs]
           simpa [set_cons, card] using this
 
 private theorem nodup_iff_injective_nth [Inhabited α] {s : List α} :
@@ -448,7 +451,7 @@ theorem isListOf_oneset_to_onelist_ALL : ∀ t a, isListOf t ({a} : Set α) → 
     have : a ∈ ({a} : Set α) := by simp
     simpa [ht.1] using this
   have hab : a = b := by simpa [_root_.set] using ha
-  simpa [hab]
+  simp [hab]
 
 @[simp]
 theorem isListOf_oneset_to_onelist {t : List α} {a : α} :
@@ -601,7 +604,7 @@ theorem channel_Int_channel_neq_range {a : α → γ} {b : β → γ} :
                         Un
  * -------------------------------------------- -/
 
-theorem channel_Un_channel {c : α → β} {X Y : Set α} (hc : Injective c) :
+theorem channel_Un_channel {c : α → β} {X Y : Set α} (_ : Injective c) :
     (c '' X) ∪ (c '' Y) = c '' (X ∪ Y) := by
   ext x
   constructor
@@ -866,14 +869,14 @@ theorem insert_diff_dist_left_eq_map {c : α → β} {X : Set α} {v : α} {A : 
     have hxA : x ∉ A := by
       intro hxA
       exact hxIns (Or.inr hxA)
-    exact ⟨⟨hxX, by simpa [hxNe]⟩, hxX, hxA⟩
+    exact ⟨⟨hxX, by simp [hxNe]⟩, hxX, hxA⟩
   · intro hx
     rcases hx with ⟨hxDiff, hxX, hxA⟩
     refine ⟨hxX, ?_⟩
     intro hxIns
     cases hxIns with
     | inl hxEq =>
-        exact hxDiff.2 (by simpa [hxEq])
+        exact hxDiff.2 (by simp [hxEq])
     | inr hxInA =>
         exact hxA hxInA
 
@@ -891,7 +894,7 @@ theorem insert_diff_dist_left_eq_range {c : α → β} {v : α} {A : Set β} :
     have hxA : c y ∉ A := by
       intro hxA
       exact hxIns (Or.inr hxA)
-    exact ⟨⟨y, ⟨by trivial, by simpa [hyNe]⟩, rfl⟩, ⟨⟨y, rfl⟩, hxA⟩⟩
+    exact ⟨⟨y, ⟨by trivial, by simp [hyNe]⟩, rfl⟩, ⟨⟨y, rfl⟩, hxA⟩⟩
   · rintro ⟨⟨y, ⟨_, hyNe⟩, rfl⟩, ⟨hyRange, hxA⟩⟩
     refine ⟨⟨y, rfl⟩, ?_⟩
     intro hxIns

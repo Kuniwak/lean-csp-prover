@@ -26,7 +26,6 @@ import LeanCspProver.CSP.CPO_pair
 import LeanCspProver.CSP.CPO_prod
 import LeanCspProver.CSP_T.CSP_T_continuous
 
-open Classical
 open Function
 
 noncomputable section
@@ -57,7 +56,7 @@ private theorem image_ne_empty_of_ne_empty {β : Type _} {γ : Type _}
   rcases Set.nonempty_iff_ne_empty.mpr hX with ⟨x, hx⟩
   intro hImg
   have : f x ∈ f '' X := ⟨x, hx, rfl⟩
-  simpa [hImg] using this
+  simp [hImg] at this
 
 /-
 (*********************************************************
@@ -180,8 +179,7 @@ theorem LUB_TF_in_T3_F4 {TFs : Set (domTsetF α)} :
     TFs ≠ ∅ →
       (∀ TF ∈ TFs, TF ∈ domF (α := α)) →
         HC_T3_F4 (LUB_TF TFs) := by
-  intro hTFs hTFsIn
-  intro s hs
+  intro hTFs hTFsIn s hs
   rcases (memT_UnionT
     (Ts := Prod.fst '' TFs)
     (t := s ^^^ Tickt (α := α))
@@ -203,8 +201,7 @@ theorem LUB_TF_in_F3 {TFs : Set (domTsetF α)} :
     TFs ≠ ∅ →
       (∀ TF ∈ TFs, TF ∈ domF (α := α)) →
         HC_F3 (LUB_TF TFs) := by
-  intro hTFs hTFsIn
-  intro s X Y hsX hNo hY
+  intro hTFs hTFsIn s X Y hsX hNo hY
   change (s, X) :f UnionF (Prod.snd '' TFs) at hsX
   rcases memF_UnionF_only_if hsX with ⟨F, hF, hsXF⟩
   rcases hF with ⟨TF, hTF, hEq⟩
@@ -229,8 +226,7 @@ theorem LUB_TF_in_T2 {TFs : Set (domTsetF α)} :
     TFs ≠ ∅ →
       (∀ TF ∈ TFs, TF ∈ domF (α := α)) →
         HC_T2 (LUB_TF TFs) := by
-  intro hTFs hTFsIn
-  intro s X hsX
+  intro hTFs hTFsIn s X hsX
   change (s, X) :f UnionF (Prod.snd '' TFs) at hsX
   rcases memF_UnionF_only_if hsX with ⟨F, hF, hsXF⟩
   rcases hF with ⟨TF, hTF, hEq⟩

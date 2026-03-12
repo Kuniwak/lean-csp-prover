@@ -15,7 +15,6 @@
 
 import LeanCspProver.DFP.DFP_Network
 
-open Classical
 open event
 
 noncomputable section
@@ -184,9 +183,9 @@ private theorem image_eq_of_pointwise {I : Set ι} {F G : ι → β}
   ext x
   constructor
   · rintro ⟨i, hi, rfl⟩
-    exact ⟨i, hi, by simpa [hFG i hi]⟩
+    exact ⟨i, hi, by simp [hFG i hi]⟩
   · rintro ⟨i, hi, rfl⟩
-    exact ⟨i, hi, by simpa [hFG i hi]⟩
+    exact ⟨i, hi, by simp [hFG i hi]⟩
 
 /- (*** Existency ***) -/
 
@@ -246,6 +245,8 @@ theorem DeadlockState_notDeadlockFree_only_if [HasPNfun p α] [HasFPmode]
     (hNotDF : ¬ DeadlockFreeNetwork (I, PXf)) :
     ∃ sigma, isDeadlockStateOf sigma (I, FXf) := by
   classical
+  let _ := hI
+  let _ := hFin
   have hCounter :
       ∃ s, Tick ∉ sett s ∧ ((s, Ev '' ALP (I, PXf)) :f failures (PAR (I, PXf)) MF) := by
     simpa [DeadlockFreeNetwork_def, DeadlockFree_def] using hNotDF
@@ -253,12 +254,15 @@ theorem DeadlockState_notDeadlockFree_only_if [HasPNfun p α] [HasFPmode]
   have hsFailRep :
       ((s, Ev '' ALP (I, PXf)) :f failures (Rep_parallel I PXf) MF) := by
     simpa [PAR_def] using hsFail
+  have hRep :
+      I ≠ ∅ → I.Finite →
+        ((s, Ev '' ALP (I, PXf)) :f failures (Rep_parallel I PXf) MF) := by
+    intro _ _
+    exact hsFailRep
   have hRepIff :=
     in_failures_Rep_parallel
       (I := I) (PXf := PXf) (f := (s, Ev '' ALP (I, PXf))) (M := MF)
-  rcases hRepIff.1 (by
-      intro _ _
-      exact hsFailRep) with
+  rcases hRepIff.1 hRep with
       ⟨u, huSubset, Z, hPair, Yf, hUnion, hAll⟩
   rcases Prod.mk.inj hPair with ⟨rfl, rfl⟩
   rcases DeadlockState_notDeadlockFree_only_if_lmEX hF hAll with ⟨Zf, hZf⟩
@@ -340,7 +344,8 @@ theorem DeadlockState_notDeadlockFree_if [HasPNfun p α] [HasFPmode]
   have hYSubsetPX : ∀ i ∈ I, Yf i ⊆ Ev '' Prod.snd (PXf i) := by
     intro i hi
     simpa [isFailureOf_same_alpha hF i hi] using hYSubsetFX i hi
-  have hLocalFail : ∀ i ∈ I, (t rest-tr Prod.snd (PXf i), Yf i) :f failures (Prod.fst (PXf i)) MF := by
+  have hLocalFail :
+      ∀ i ∈ I, (t rest-tr Prod.snd (PXf i), Yf i) :f failures (Prod.fst (PXf i)) MF := by
     intro i hi
     have hRest :
         (t rest-tr Prod.snd (FXf i), Yf i) ∈
@@ -367,7 +372,11 @@ theorem DeadlockState_notDeadlockFree_if [HasPNfun p α] [HasFPmode]
     have hRepIff :=
       in_failures_Rep_parallel
         (I := I) (PXf := PXf) (f := (t, Ev '' ALP (I, PXf))) (M := MF)
-    exact (hRepIff.2 (by
+    have hRep :
+        I ≠ ∅ → I.Finite →
+          ((t, Ev '' ALP (I, PXf)) :f failures (Rep_parallel I PXf) MF) :=
+      hRepIff.2
+        (by
       refine ⟨t, ?_, Ev '' ALP (I, PXf), rfl, Yf, ?_, hLocalFail⟩
       · intro e he
         have heFX : e ∈ Ev '' ALP (I, FXf) := hState.1 he
@@ -388,7 +397,8 @@ theorem DeadlockState_notDeadlockFree_if [HasPNfun p α] [HasFPmode]
           _ =
               Set.sUnion {S | ∃ i : ι, i ∈ I ∧
                 S = Yf i ∩ Set.insert Tick (Ev '' Prod.snd (PXf i))} := by
-            rw [family_set_eq_image])) hI hFin
+            rw [family_set_eq_image])
+    exact hRep hI hFin
   have hFailPAR :
       ((t, Ev '' ALP (I, PXf)) :f failures (PAR (I, PXf)) MF) := by
     simpa [PAR_def] using hFailRep

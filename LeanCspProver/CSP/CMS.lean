@@ -117,7 +117,7 @@ theorem diff_pnt_pos_only_if {α : Type u} [ms α] {x y : α} :
     0 < distance x y → x ≠ y := by
   intro hxy hEq
   subst hEq
-  simpa using hxy
+  simp at hxy
 
 theorem diff_pnt_pos_if {α : Type u} [ms α] {x y : α} :
     x ≠ y → 0 < distance x y := by
@@ -252,8 +252,7 @@ theorem unique_convergence {α : Type u} [ms α] {xs : infinite_seq α} {x y : �
 
 theorem convergece_cauchy {α : Type u} [ms α] {xs : infinite_seq α} {x : α} :
     xs convergeTo x → cauchy xs := by
-  intro hx
-  intro delta hdelta
+  intro hx delta hdelta
   obtain ⟨n, hn⟩ := hx (delta / 2) (by linarith)
   refine ⟨n, ?_⟩
   intro i j hij
@@ -384,8 +383,7 @@ theorem Banach_lm_geo_prog_sum {α : Type u} [cms α]
     ∀ n r,
       prog_sum0 n (fun m => distance (xs (r + m - 1)) (xs (r + m))) ≤
         prog_sum r (r + n) (geo_prop (distance (xs 0) (xs 1)) alpha) := by
-  intro hcontr hxs
-  intro n
+  intro hcontr hxs n
   induction n with
   | zero =>
       intro r
@@ -404,18 +402,17 @@ theorem Banach_lm_geo_prog_sum {α : Type u} [cms α]
               = distance (xs (r + n)) (f (xs (r + n))) := by rw [hrec]
           _ ≤ alpha ^ (r + n) * distance (xs 0) (f (xs 0)) := hcontr'
           _ = geo_prop (distance (xs 0) (xs 1)) alpha (r + Nat.succ n) := by
-            simp [geo_prop, hxs 0, Nat.add_assoc]
+            simp [geo_prop, hxs 0]
       calc
         prog_sum0 (Nat.succ n) (fun m => distance (xs (r + m - 1)) (xs (r + m)))
             = prog_sum0 n (fun m => distance (xs (r + m - 1)) (xs (r + m))) +
                 distance (xs (r + n)) (xs (r + Nat.succ n)) := by
-                  simp [prog_sum0, Nat.add_assoc]
+                  simp [prog_sum0]
         _ ≤ prog_sum r (r + n) (geo_prop (distance (xs 0) (xs 1)) alpha) +
               geo_prop (distance (xs 0) (xs 1)) alpha (r + Nat.succ n) := by
           exact add_le_add ih' hstep
         _ = prog_sum r (r + Nat.succ n) (geo_prop (distance (xs 0) (xs 1)) alpha) := by
-          simp [prog_sum, prog_sum0, Nat.add_assoc, sub_eq_add_neg, add_assoc, add_left_comm,
-            add_comm]
+          simp [prog_sum, prog_sum0, sub_eq_add_neg, add_assoc, add_left_comm, add_comm]
 
 theorem Banach_lm_ineq {α : Type u} [cms α]
     {f : α → α} {alpha : ℝ} {xs : infinite_seq α} :
@@ -494,8 +491,7 @@ theorem Banach_lm_cauchy {α : Type u} [cms α]
     contraction_alpha f alpha →
     (∀ i, xs (Nat.succ i) = f (xs i)) →
     cauchy xs := by
-  intro hcontr hxs
-  intro delta hdelta
+  intro hcontr hxs delta hdelta
   obtain ⟨n, hn⟩ := Banach_lm_cauchy_lm (f := f) (alpha := alpha) (xs := xs) (delta := delta / 2)
     hcontr hxs (by linarith)
   refine ⟨n, ?_⟩

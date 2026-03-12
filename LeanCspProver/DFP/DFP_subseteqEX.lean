@@ -15,8 +15,6 @@
 
 import LeanCspProver.CSP_F.CSP_F_Main
 
-open Classical
-
 noncomputable section
 
 inductive Event where
@@ -173,11 +171,20 @@ theorem subseteqEX_Int_choice {p α : Type _} [HasPNfun p α] [HasFPmode]
   · intro s Y hs
     rcases hs with hs | hs
     · have hRest := h1.1 s Y hs
-      exact ⟨(in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).2 (Or.inl hRest.1), hRest.2⟩
+      exact ⟨
+        (in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).2
+          (Or.inl hRest.1),
+        hRest.2
+      ⟩
     · have hRest := h2.1 s Y hs
-      exact ⟨(in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).2 (Or.inr hRest.1), hRest.2⟩
+      exact ⟨
+        (in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).2
+          (Or.inr hRest.1),
+        hRest.2
+      ⟩
   · intro s Y hs
-    rcases (in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).1 hs with hsP1 | hsP2
+    rcases (in_failures_Int_choice (f := (s, Y)) (P := P1) (Q := P2) (M := MF)).1 hs with
+      hsP1 | hsP2
     · rcases h1.2 s Y hsP1 with ⟨Z, hZF, hYZ⟩
       refine ⟨Z, Or.inl hZF, hYZ⟩
     · rcases h2.2 s Y hsP2 with ⟨Z, hZF, hYZ⟩
@@ -215,9 +222,14 @@ theorem subseteqEX_Rep_int_choice_nat {p α : Type _} [HasPNfun p α] [HasFPmode
     rcases Set.mem_sUnion.mp hs with ⟨G, hG, hsG⟩
     rcases hG with ⟨n, hnN, rfl⟩
     have hRest := (hAll n hnN).1 hsG
-    exact ⟨(in_failures_Rep_int_choice_nat (f := (s, Y)) (N := N) (Pf := Pf) (M := MF)).2 ⟨n, hnN, hRest.1⟩, hRest.2⟩
+    exact ⟨
+      (in_failures_Rep_int_choice_nat (f := (s, Y)) (N := N) (Pf := Pf) (M := MF)).2
+        ⟨n, hnN, hRest.1⟩,
+      hRest.2
+    ⟩
   · intro s Y hs
-    rcases (in_failures_Rep_int_choice_nat (f := (s, Y)) (N := N) (Pf := Pf) (M := MF)).1 hs with ⟨n, hnN, hsN⟩
+    rcases (in_failures_Rep_int_choice_nat (f := (s, Y)) (N := N) (Pf := Pf) (M := MF)).1 hs with
+      ⟨n, hnN, hsN⟩
     rcases (subseteqEX_restRefusal_iff.mp (hAll n hnN)).2 s Y hsN with ⟨Z, hZF, hYZ⟩
     refine ⟨Z, Set.mem_sUnion.mpr ⟨Ff n, ⟨n, hnN, rfl⟩, hZF⟩, hYZ⟩
 
@@ -235,7 +247,8 @@ theorem cspF_subseteqEX_Rep_int_choice_nat {p α : Type _} [HasPNfun p α] [HasF
   have hFail : failures P MF = failures (Rep_int_choice_nat N Pf) MF :=
     (cspF_eqF_semantics (P := P) (Q := Rep_int_choice_nat N Pf) (M1 := MF) (M2 := MF)).1 hP |>.2
   simpa [hF, hFail] using
-    (subseteqEX_Rep_int_choice_nat (p := p) (α := α) (N := N) (Pf := Pf) (Ff := Ff) (A := A) hAll)
+    (subseteqEX_Rep_int_choice_nat
+      (p := p) (α := α) (N := N) (Pf := Pf) (Ff := Ff) (A := A) hAll)
 
 /- ------------------------*
  |   Rep_int_choice_set   |
@@ -253,9 +266,15 @@ theorem subseteqEX_Rep_int_choice_set {p α : Type _} [HasPNfun p α] [HasFPmode
     rcases Set.mem_sUnion.mp hs with ⟨G, hG, hsG⟩
     rcases hG with ⟨X, hXXs, rfl⟩
     have hRest := (hAll X hXXs).1 hsG
-    exact ⟨(in_failures_Rep_int_choice_set (f := (s, Y)) (Xs := Xs) (Pf := Pf) (M := MF)).2 ⟨X, hXXs, hRest.1⟩, hRest.2⟩
+    have hMem :=
+      (in_failures_Rep_int_choice_set
+        (f := (s, Y)) (Xs := Xs) (Pf := Pf) (M := MF)).2
+        ⟨X, hXXs, hRest.1⟩
+    exact ⟨hMem, hRest.2⟩
   · intro s Y hs
-    rcases (in_failures_Rep_int_choice_set (f := (s, Y)) (Xs := Xs) (Pf := Pf) (M := MF)).1 hs with ⟨X, hXXs, hsX⟩
+    rcases (in_failures_Rep_int_choice_set
+      (f := (s, Y)) (Xs := Xs) (Pf := Pf) (M := MF)).1 hs with
+      ⟨X, hXXs, hsX⟩
     rcases (subseteqEX_restRefusal_iff.mp (hAll X hXXs)).2 s Y hsX with ⟨Z, hZF, hYZ⟩
     refine ⟨Z, Set.mem_sUnion.mpr ⟨Ff X, ⟨X, hXXs, rfl⟩, hZF⟩, hYZ⟩
 
@@ -273,7 +292,8 @@ theorem cspF_subseteqEX_Rep_int_choice_set {p α : Type _} [HasPNfun p α] [HasF
   have hFail : failures P MF = failures (Rep_int_choice_set Xs Pf) MF :=
     (cspF_eqF_semantics (P := P) (Q := Rep_int_choice_set Xs Pf) (M1 := MF) (M2 := MF)).1 hP |>.2
   simpa [hF, hFail] using
-    (subseteqEX_Rep_int_choice_set (p := p) (α := α) (Xs := Xs) (Pf := Pf) (Ff := Ff) (A := A) hAll)
+    (subseteqEX_Rep_int_choice_set
+      (p := p) (α := α) (Xs := Xs) (Pf := Pf) (Ff := Ff) (A := A) hAll)
 
 /- com -/
 
@@ -291,9 +311,15 @@ theorem cspF_subseteqEX_Rep_int_choice_com {p α : Type _} [Inhabited α] [HasPN
       rcases Set.mem_sUnion.mp hs with ⟨G, hG, hsG⟩
       rcases hG with ⟨a, haX, rfl⟩
       have hRest := (hAll a haX).1 hsG
-      exact ⟨(in_failures_Rep_int_choice_com (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).2 ⟨a, haX, hRest.1⟩, hRest.2⟩
+      have hMem :=
+        (in_failures_Rep_int_choice_com
+          (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).2
+          ⟨a, haX, hRest.1⟩
+      exact ⟨hMem, hRest.2⟩
     · intro s Y hs
-      rcases (in_failures_Rep_int_choice_com (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).1 hs with ⟨a, haX, hsA⟩
+      rcases (in_failures_Rep_int_choice_com
+        (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).1 hs with
+        ⟨a, haX, hsA⟩
       rcases (subseteqEX_restRefusal_iff.mp (hAll a haX)).2 s Y hsA with ⟨Z, hZF, hYZ⟩
       refine ⟨Z, Set.mem_sUnion.mpr ⟨Ff a, ⟨a, haX, rfl⟩, hZF⟩, hYZ⟩
   have hFail : failures P MF = failures (Rep_int_choice_com X Pf) MF :=
@@ -318,9 +344,15 @@ theorem cspF_subseteqEX_Rep_int_choice_f {p α β : Type _} [Inhabited α] [Inha
       rcases Set.mem_sUnion.mp hs with ⟨G, hG, hsG⟩
       rcases hG with ⟨a, haX, rfl⟩
       have hRest := (hAll a haX).1 hsG
-      exact ⟨(in_failures_Rep_int_choice_f (f := (s, Y)) (g := f) hf (X := X) (Pf := Pf) (M := MF)).2 ⟨a, haX, hRest.1⟩, hRest.2⟩
+      have hMem :=
+        (in_failures_Rep_int_choice_f
+          (f := (s, Y)) (g := f) hf (X := X) (Pf := Pf) (M := MF)).2
+          ⟨a, haX, hRest.1⟩
+      exact ⟨hMem, hRest.2⟩
     · intro s Y hs
-      rcases (in_failures_Rep_int_choice_f (f := (s, Y)) (g := f) hf (X := X) (Pf := Pf) (M := MF)).1 hs with ⟨a, haX, hsA⟩
+      rcases (in_failures_Rep_int_choice_f
+        (f := (s, Y)) (g := f) hf (X := X) (Pf := Pf) (M := MF)).1 hs with
+        ⟨a, haX, hsA⟩
       rcases (subseteqEX_restRefusal_iff.mp (hAll a haX)).2 s Y hsA with ⟨Z, hZF, hYZ⟩
       refine ⟨Z, Set.mem_sUnion.mpr ⟨Ff a, ⟨a, haX, rfl⟩, hZF⟩, hYZ⟩
   have hFail : failures P MF = failures (Rep_int_choice_f f X Pf) MF :=
@@ -340,7 +372,8 @@ theorem cspF_subseteqEX_Rep_int_choice_nat_UNIV {p α : Type _} [HasPNfun p α] 
     (hF : F = ⋃₀ (Ff '' (Set.univ : Set Nat)))
     (hAll : ∀ a, Ff a <=EX restRefusal (failures (Pf a) MF) A) :
     F <=EX restRefusal (failures P MF) A := by
-  apply cspF_subseteqEX_Rep_int_choice_nat (P := P) (N := Set.univ) (Pf := Pf) (F := F) (Ff := Ff) (A := A)
+  apply cspF_subseteqEX_Rep_int_choice_nat
+    (P := P) (N := Set.univ) (Pf := Pf) (F := F) (Ff := Ff) (A := A)
   · exact hP
   · exact hF
   · intro a _ha
@@ -388,7 +421,9 @@ theorem subseteqEX_Ext_pre_choice {p α : Type _} [HasPNfun p α] [HasFPmode]
         exact ⟨a, t, Y, rfl, hRest.1, haX⟩
       exact ⟨hMem, hRest.2⟩
   · intro s Y hs
-    rcases (in_failures_Ext_pre_choice (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).1 hs with hInit | hStep
+    rcases (in_failures_Ext_pre_choice
+      (f := (s, Y)) (X := X) (Pf := Pf) (M := MF)).1 hs with
+      hInit | hStep
     · rcases hInit with ⟨Z, hEq, hEmpty⟩
       rcases Prod.mk.inj hEq with ⟨hsEq, hYEq⟩
       subst hsEq
