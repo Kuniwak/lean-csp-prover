@@ -1,0 +1,56 @@
+Notice of modification
+======================
+
+This repository (lean-csp-prover) is a derivative work of CSP-Prover.
+
+Original software
+-----------------
+
+  Name:      CSP-Prover (version 5-1-2020)
+  Authors:   Yoshinao Isobe (National Institute of Advanced Industrial
+             Science and Technology, AIST, Japan) and
+             Markus Roggenbach (Swansea University, formerly University of
+             Wales Swansea, UK)
+  Providers: National Institute of Advanced Industrial Science and
+             Technology (AIST) and University of Wales Swansea (UWS)
+  Source:    https://github.com/yoshinao-isobe/CSP-Prover
+             https://staff.aist.go.jp/y-isobe/CSP-Prover/CSP-Prover.html
+  Licence:   the CSP-Prover licence agreement, reproduced verbatim in the
+             file LICENSE of this repository
+
+Modification
+------------
+
+  Modified by: Yuki Kokubun (Kuniwak)
+  Date:        March 2026 (initial translation; the work is ongoing, see the
+               Git history of this repository for the date of each change)
+  Repository:  https://github.com/cc-kuniwak/lean-csp-prover
+
+  Nature of the modification:
+
+    The Isabelle/HOL theories of CSP-Prover (directories CSP, CSP_T, CSP_F,
+    FNF_F, DFP and the example directories ep2, DM, Test, SA_Kung, NBuff,
+    UCD) have been translated into the Lean 4 language, on top of Mathlib.
+    Each Isabelle theory file X.thy corresponds to a Lean file
+    LeanCspProver/<dir>/X.lean.
+
+    The translation preserves the statements of the original definitions,
+    lemmas and theorems as far as the two logics allow; proofs have been
+    rewritten in Lean's tactic language. Isabelle-specific machinery
+    (heap files, ROOT files, Isabelle proof methods, X-symbol declarations)
+    has been replaced with Lean/Lake equivalents, and some auxiliary
+    definitions and lemmas have been added where Isabelle's libraries and
+    Mathlib differ.
+
+    In addition, the following files are new and are not derived from
+    CSP-Prover: lakefile.toml, lean-toolchain, lake-manifest.json,
+    LeanCspProver.lean, LeanCspProver/Basic.lean,
+    LeanCspProver/CSP/Compat.lean, scripts/, .github/, AGENTS.md, README.md
+    and this NOTICE file.
+
+Licence of the modification
+---------------------------
+
+  In accordance with section 3 (3) of the CSP-Prover licence agreement, any
+  copyright arising from the above modification is placed under the terms of
+  that same licence agreement (see LICENSE).
