@@ -13,6 +13,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_T.CSP_T_law_basic
+import LeanCspProver.CSP_T.CSP_T_simp
 
 open Function
 open SumType
@@ -75,10 +76,11 @@ theorem cspT_Parallel_term
  *********************************************************)
 -/
 
-axiom cspT_Parallel_preterm_l
+theorem cspT_Parallel_preterm_l
     {X Y : Set α} {Qf : α → proc p α} {M : p → domTType α} :
     eqT (((proc.SKIP : proc p α) |[X]| proc.Ext_pre_choice Y Qf)) M M
-      (proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Qf x)))
+      (proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Qf x))) := by
+  cspT_auto_step
 
 theorem cspT_Parallel_preterm_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
@@ -111,10 +113,12 @@ theorem cspT_Parallel_preterm_r
 
 /- p.288 -/
 
-axiom cspT_SKIP_Parallel_Ext_choice_SKIP_l
+theorem cspT_SKIP_Parallel_Ext_choice_SKIP_l
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT ((((proc.Ext_pre_choice Y Pf) [+] proc.SKIP) |[X]| (proc.SKIP : proc p α))) M M
-      (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.SKIP))
+      (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α))))
+        [+] proc.SKIP)) := by
+  cspT_auto_step
 
 theorem cspT_SKIP_Parallel_Ext_choice_SKIP_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
@@ -182,11 +186,12 @@ theorem cspT_SKIP_Hiding_Id
  *********************************************************)
 -/
 
-axiom cspT_SKIP_Hiding_step [Inhabited α]
+theorem cspT_SKIP_Hiding_step [Inhabited α]
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] (proc.SKIP : proc p α)) X) M M
       ((((proc.Ext_pre_choice (Y \ X) (fun x => proc.Hiding (Pf x) X)) [+] proc.SKIP) |~|
-        Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X)))
+        Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X))) := by
+  cspT_auto_step
 
 /-
 (*********************************************************

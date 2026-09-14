@@ -41,15 +41,24 @@ theorem FIX_def (Pf : p → proc p α) :
  *-----------*)
 -/
 
-axiom noPNfun_FIXn {n : Nat} {Pf : p → proc p α} :
-    noPNfun (FIXn n Pf)
+theorem noPNfun_FIXn {n : Nat} {Pf : p → proc p α} :
+    noPNfun (FIXn n Pf) := by
+  induction n with
+  | zero => intro p0; trivial
+  | succ n ih =>
+      intro p0
+      rw [FIXn_def, Function.iterate_succ_apply']
+      exact noPN_Subst_Pf (Pf p0) (FIXn n Pf) ih
 
 theorem noPN_FIXn {n : Nat} {Pf : p → proc p α} {p0 : p} :
     noPN (FIXn n Pf p0) :=
   noPNfun_FIXn (n := n) (Pf := Pf) p0
 
-axiom noPN_FIX {Pf : p → proc p α} {p0 : p} :
-    noPN (FIX Pf p0)
+theorem noPN_FIX {Pf : p → proc p α} {p0 : p} :
+    noPN (FIX Pf p0) := by
+  rw [FIX_def, noPN_Rep_int_choice_nat]
+  intro n
+  exact noPN_FIXn
 
 /-
 (*-----------*
@@ -228,8 +237,24 @@ def rmPN [HasPNfun p α] : proc p α → proc p α
   | .Depth_rest P n => .Depth_rest (rmPN P) n
   | .Proc_name p0 => FIX PNfun p0
 
-axiom noPN_rmPN [HasPNfun p α] {P : proc p α} :
-    noPN (rmPN P)
+theorem noPN_rmPN [HasPNfun p α] {P : proc p α} :
+    noPN (rmPN P) := by
+  induction P with
+  | STOP => trivial
+  | SKIP => trivial
+  | DIV => trivial
+  | Act_prefix a P ih => exact ih
+  | Ext_pre_choice X Qf ih => exact fun a => ih a
+  | Ext_choice P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Int_choice P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Rep_int_choice C Qf ih => exact fun c => ih c
+  | «IF» b P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Parallel P X Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Hiding P X ih => exact ih
+  | Renaming P r ih => exact ih
+  | Seq_compo P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Depth_rest P n ih => exact ih
+  | Proc_name p0 => exact noPN_FIX
 
 axiom cspT_rmPN_eqT [HasPNfun p α] [HasFPmode]
     {P : proc p α} :

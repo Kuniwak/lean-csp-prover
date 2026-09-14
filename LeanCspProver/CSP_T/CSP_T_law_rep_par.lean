@@ -16,6 +16,7 @@
 
 import LeanCspProver.CSP_T.CSP_T_law_alpha_par
 import LeanCspProver.CSP_T.CSP_T_op_rep_par
+import LeanCspProver.CSP_T.CSP_T_simp
 
 open event
 

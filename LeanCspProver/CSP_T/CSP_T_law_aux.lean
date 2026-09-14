@@ -101,30 +101,38 @@ theorem cspT_Rep_int_choice_f_singleton [Inhabited α] [Inhabited β]
    `cspT_Rep_int_choice_com_singleton`, and
    `cspT_Rep_int_choice_f_singleton`. -/
 
-axiom cspT_Rep_int_choice_const_sum_rule
+theorem cspT_Rep_int_choice_const_sum_rule
     {C : sets_nats α} {P : proc p α} {M : p → domTType α} :
     eqT (proc.Rep_int_choice C (fun _ => P)) M M
-      (procIte (sumset C = ∅) (proc.DIV : proc p α) P)
+      (procIte (sumset C = ∅) (proc.DIV : proc p α) P) := by
+  cspT_auto
 
-axiom cspT_Rep_int_choice_const_nat_rule
+theorem cspT_Rep_int_choice_const_nat_rule
     {N : Set Nat} {P : proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_nat N (fun _ => P)) M M
-      (procIte (N = ∅) (proc.DIV : proc p α) P)
+      (procIte (N = ∅) (proc.DIV : proc p α) P) := by
+  cspT_auto
 
-axiom cspT_Rep_int_choice_const_set_rule
+theorem cspT_Rep_int_choice_const_set_rule
     {Xs : Set (Set α)} {P : proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_set Xs (fun _ => P)) M M
-      (procIte (Xs = ∅) (proc.DIV : proc p α) P)
+      (procIte (Xs = ∅) (proc.DIV : proc p α) P) := by
+  cspT_auto
 
-axiom cspT_Rep_int_choice_const_com_rule [Inhabited α]
+theorem cspT_Rep_int_choice_const_com_rule [Inhabited α]
     {X : Set α} {P : proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_com X (fun _ => P)) M M
-      (procIte (X = ∅) (proc.DIV : proc p α) P)
+      (procIte (X = ∅) (proc.DIV : proc p α) P) := by
+  cspT_auto
 
-axiom cspT_Rep_int_choice_const_f_rule [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_const_f_rule [Inhabited α] [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_f f X (fun _ => P)) M M
-      (procIte (X = ∅) (proc.DIV : proc p α) P)
+      (procIte (X = ∅) (proc.DIV : proc p α) P) := by
+  -- `in_traces_Rep_int_choice_f` needs `Injective f`, which this rule does not
+  -- assume, so go through the `Rep_int_choice_com` form instead
+  rw [Rep_int_choice_f_def]
+  cspT_auto
 
 /- The Isabelle theorem bundle `cspT_Rep_int_choice_const_rule` is represented by
    `cspT_Rep_int_choice_const_sum_rule`,
@@ -276,12 +284,36 @@ private def cspT_Parallel_Timeout_input_resolve_r_rhs
             ((proc.Ext_pre_choice Y Pf |[X]| Qf x)))))
     ((proc.Ext_pre_choice Y Pf |[X]| Q))
 
-axiom cspT_Parallel_Timeout_split_resolve_SKIP_or_DIV
+-- Algebraic proof following the Isabelle original (CSP_T_law_aux.thy):
+-- resolve `[+]` into `[>` on both sides, apply `cspT_Parallel_Timeout_split`,
+-- then rewrite `[>` back to `[+]` inside the branches by congruence.
+theorem cspT_Parallel_Timeout_split_resolve_SKIP_or_DIV
     {P Q : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
     (P = proc.SKIP ∨ P = proc.DIV) →
       (Q = proc.SKIP ∨ Q = proc.DIV) →
         eqT (((proc.Ext_pre_choice Y Pf) [+] P) |[X]| ((proc.Ext_pre_choice Z Qf) [+] Q)) M M
-          (cspT_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf P Q)
+          (cspT_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf P Q) := by
+  intro hP hQ
+  rw [cspT_Parallel_Timeout_split_resolve_rhs]
+  have hresP := cspT_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Y Pf) (M := M) hP
+  have hresQ := cspT_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Z Qf) (M := M) hQ
+  refine cspT_rw_left_eq (cspT_Parallel_cong rfl hresP hresQ) ?_
+  refine cspT_rw_left_eq cspT_Parallel_Timeout_split ?_
+  refine cspT_Timeout_cong
+    (cspT_Ext_pre_choice_cong rfl fun a _ => ?_)
+    (cspT_Int_choice_cong
+      (cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym hresQ))
+      (cspT_Parallel_cong rfl (cspT_sym hresP) cspT_reflex_eq_P))
+  exact cspT_procIte_cong cspT_reflex_eq_P
+    (cspT_procIte_cong
+      (cspT_Int_choice_cong
+        (cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym hresQ))
+        (cspT_Parallel_cong rfl (cspT_sym hresP) cspT_reflex_eq_P))
+      (cspT_procIte_cong
+        (cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym hresQ))
+        (cspT_Parallel_cong rfl (cspT_sym hresP) cspT_reflex_eq_P)))
 
 theorem cspT_Parallel_Timeout_split_resolve_SKIP_SKIP
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
@@ -321,17 +353,49 @@ theorem cspT_Parallel_Timeout_split_resolve_DIV_SKIP
 (* input + resolve *)
 -/
 
-axiom cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV_l
+-- Algebraic proof; see `cspT_Parallel_Timeout_split_resolve_SKIP_or_DIV`.
+theorem cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV_l
     {P : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
     (P = proc.SKIP ∨ P = proc.DIV) →
       eqT (((proc.Ext_pre_choice Y Pf) [+] P) |[X]| proc.Ext_pre_choice Z Qf) M M
-        (cspT_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf P)
+        (cspT_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf P) := by
+  intro hP
+  rw [cspT_Parallel_Timeout_input_resolve_l_rhs]
+  have hresP := cspT_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Y Pf) (M := M) hP
+  refine cspT_rw_left_eq (cspT_Parallel_cong rfl hresP cspT_reflex_eq_P) ?_
+  refine cspT_rw_left_eq cspT_Parallel_Timeout_input_l ?_
+  refine cspT_Timeout_cong
+    (cspT_Ext_pre_choice_cong rfl fun a _ => ?_) cspT_reflex_eq_P
+  exact cspT_procIte_cong cspT_reflex_eq_P
+    (cspT_procIte_cong
+      (cspT_Int_choice_cong cspT_reflex_eq_P
+        (cspT_Parallel_cong rfl (cspT_sym hresP) cspT_reflex_eq_P))
+      (cspT_procIte_cong cspT_reflex_eq_P
+        (cspT_Parallel_cong rfl (cspT_sym hresP) cspT_reflex_eq_P)))
 
-axiom cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV_r
+-- Algebraic proof; see `cspT_Parallel_Timeout_split_resolve_SKIP_or_DIV`.
+theorem cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV_r
     {Q : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
     (Q = proc.SKIP ∨ Q = proc.DIV) →
       eqT (proc.Ext_pre_choice Y Pf |[X]| ((proc.Ext_pre_choice Z Qf) [+] Q)) M M
-        (cspT_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf Q)
+        (cspT_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf Q) := by
+  intro hQ
+  rw [cspT_Parallel_Timeout_input_resolve_r_rhs]
+  have hresQ := cspT_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Z Qf) (M := M) hQ
+  refine cspT_rw_left_eq (cspT_Parallel_cong rfl cspT_reflex_eq_P hresQ) ?_
+  refine cspT_rw_left_eq cspT_Parallel_Timeout_input_r ?_
+  refine cspT_Timeout_cong
+    (cspT_Ext_pre_choice_cong rfl fun a _ => ?_) cspT_reflex_eq_P
+  exact cspT_procIte_cong cspT_reflex_eq_P
+    (cspT_procIte_cong
+      (cspT_Int_choice_cong
+        (cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym hresQ))
+        cspT_reflex_eq_P)
+      (cspT_procIte_cong
+        (cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym hresQ))
+        cspT_reflex_eq_P))
 
 /- The Isabelle theorem bundle `cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV` is represented by
    `cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV_l` and
@@ -423,13 +487,47 @@ theorem cspT_DIV_Seq_compo_step_resolve
  *********************************************************)
 -/
 
-axiom cspT_Alpha_Parallel_step
+-- Algebraic proof following the Isabelle original (CSP_T_law_aux.thy):
+-- unfold `|[X,Y]|`, absorb the `SKIP` components with `cspT_Parallel_preterm_r`,
+-- apply `cspT_Parallel_step`, then align the index set and the `procIte`
+-- branches case by case.
+theorem cspT_Alpha_Parallel_step
     {A B X Y : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice A Pf) |[X,Y]| proc.Ext_pre_choice B Qf) M M
       (proc.Ext_pre_choice ((A ∩ (X \ Y)) ∪ (B ∩ (Y \ X)) ∪ (A ∩ B ∩ X ∩ Y)) fun x =>
         procIte (x ∈ X ∧ x ∈ Y) (Pf x |[X,Y]| Qf x)
           (procIte (x ∈ X) (Pf x |[X,Y]| proc.Ext_pre_choice B Qf)
-            (proc.Ext_pre_choice A Pf |[X,Y]| Qf x)))
+            (proc.Ext_pre_choice A Pf |[X,Y]| Qf x))) := by
+  simp only [Alpha_parallel_def]
+  refine cspT_rw_left_eq
+    (cspT_Parallel_cong rfl cspT_Parallel_preterm_r cspT_Parallel_preterm_r) ?_
+  refine cspT_rw_left_eq cspT_Parallel_step ?_
+  have hS : (((X ∩ Y) ∩ (A \ Xᶜ) ∩ (B \ Yᶜ)) ∪ ((A \ Xᶜ) \ (X ∩ Y)) ∪ ((B \ Yᶜ) \ (X ∩ Y)))
+      = ((A ∩ (X \ Y)) ∪ (B ∩ (Y \ X)) ∪ (A ∩ B ∩ X ∩ Y)) := by
+    ext x
+    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff, Set.mem_compl_iff, not_not,
+      not_and]
+    tauto
+  refine cspT_Ext_pre_choice_cong hS fun a ha => ?_
+  simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff] at ha
+  by_cases hx : a ∈ X <;> by_cases hy : a ∈ Y
+  · rw [procIte_pos (Set.mem_inter hx hy), procIte_pos ⟨hx, hy⟩]
+    exact cspT_reflex_eq_P
+  · have hB' : a ∉ B \ Yᶜ := by simp [hy]
+    rw [procIte_neg (by simp [Set.mem_inter_iff, hy] : a ∉ X ∩ Y),
+        procIte_neg (fun h => hB' h.2),
+        procIte_pos (show a ∈ A \ Xᶜ by
+          have hA : a ∈ A := by tauto
+          simp [hA, hx]),
+        procIte_neg (fun h => hy h.2), procIte_pos hx]
+    exact cspT_Parallel_cong rfl cspT_reflex_eq_P (cspT_sym cspT_Parallel_preterm_r)
+  · have hA' : a ∉ A \ Xᶜ := by simp [hx]
+    rw [procIte_neg (by simp [Set.mem_inter_iff, hx] : a ∉ X ∩ Y),
+        procIte_neg (fun h => hA' h.1),
+        procIte_neg hA',
+        procIte_neg (fun h => hx h.1), procIte_neg hx]
+    exact cspT_Parallel_cong rfl (cspT_sym cspT_Parallel_preterm_r) cspT_reflex_eq_P
+  · exact absurd ha (by tauto)
 
 /-
 (*==============================================================*

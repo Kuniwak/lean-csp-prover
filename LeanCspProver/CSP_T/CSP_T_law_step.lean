@@ -11,6 +11,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_T.CSP_T_law_basic
+import LeanCspProver.CSP_T.CSP_T_simp
 
 open Function
 open SumType
@@ -203,7 +204,7 @@ theorem cspT_Ext_choice_step
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_Parallel_step
+theorem cspT_Parallel_step
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice Y Pf) |[X]| (proc.Ext_pre_choice Z Qf)) M M
       (proc.Ext_pre_choice (((X ∩ Y ∩ Z) ∪ (Y \ X) ∪ (Z \ X))) fun x =>
@@ -213,7 +214,8 @@ axiom cspT_Parallel_step
               (proc.Ext_pre_choice Y Pf |[X]| Qf x)))
             (procIte (x ∈ Y)
               (Pf x |[X]| proc.Ext_pre_choice Z Qf)
-              (proc.Ext_pre_choice Y Pf |[X]| Qf x))))
+              (proc.Ext_pre_choice Y Pf |[X]| Qf x)))) := by
+  cspT_auto_step
 
 /-
 (*********************************************************
@@ -225,13 +227,14 @@ axiom cspT_Parallel_step
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_Hiding_step [Inhabited α]
+theorem cspT_Hiding_step [Inhabited α]
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Hiding (proc.Ext_pre_choice Y Pf) X) M M
       (procIte (Y ∩ X = ∅)
         (proc.Ext_pre_choice Y (fun x => proc.Hiding (Pf x) X))
         ((proc.Ext_pre_choice (Y \ X) (fun x => proc.Hiding (Pf x) X))
-          [> Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X)))
+          [> Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X))) := by
+  cspT_auto_step
 
 /-
 (*********************************************************
@@ -298,8 +301,6 @@ theorem cspT_Renaming_step [Inhabited α]
  |      csp law     |
  *------------------*) -/
 
-set_option maxHeartbeats 1000000 in
--- The trace-append case split in this proof times out under the default heartbeat limit.
 theorem cspT_Seq_compo_step
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf) ;; Q) M M
