@@ -24,14 +24,15 @@ noncomputable section
  *------------------------*)
 -/
 
-axiom cspF_Int_choice_to_Rep
+theorem cspF_Int_choice_to_Rep
     {P Q : proc p α} {M : p → domFType α} :
     eqF (P |~| Q) M M
-      (Rep_int_choice_nat ({0, 1} : Set Nat) fun n => IF n = 0 THEN P ELSE Q)
+      (Rep_int_choice_nat ({0, 1} : Set Nat) fun n => IF n = 0 THEN P ELSE Q) := by
+  cspF_auto_step_dist
 
 /- (*** cspF_Rep_int_choice_set_input ***) -/
 
-axiom cspF_Rep_int_choice_sum_set_input
+theorem cspF_Rep_int_choice_sum_set_input
     {C : sets_nats α} {Xsf : aset_anat α → Set (Set α)} {Pff : aset_anat α → α → proc p α}
     {M : p → domFType α} :
     eqF
@@ -41,11 +42,12 @@ axiom cspF_Rep_int_choice_sum_set_input
       (Rep_int_choice_set (Set.sUnion {Xs | ∃ c, c ∈ sumset C ∧ Xs = Xsf c}) fun X =>
         proc.Ext_pre_choice X fun a =>
           proc.Rep_int_choice (sub_sumset C fun c => ∃ X, X ∈ Xsf c ∧ a ∈ X) fun c =>
-            Pff c a)
+            Pff c a) := by
+  cspF_auto_step_dist
 
 /- (*** cspF_Rep_int_choice_set_input ***) -/
 
-axiom cspF_Rep_int_choice_set_input
+theorem cspF_Rep_int_choice_set_input
     {N : Set Nat} {Xsf : Nat → Set (Set α)} {Pff : Nat → α → proc p α}
     {M : p → domFType α} :
     eqF
@@ -55,11 +57,12 @@ axiom cspF_Rep_int_choice_set_input
       (Rep_int_choice_set (Set.sUnion {Xs | ∃ n, n ∈ N ∧ Xs = Xsf n}) fun X =>
         proc.Ext_pre_choice X fun a =>
           Rep_int_choice_nat {n | n ∈ N ∧ ∃ X, X ∈ Xsf n ∧ a ∈ X} fun n =>
-            Pff n a)
+            Pff n a) := by
+  cspF_auto_step_dist
 
 /- (*** cspF_Rep_int_choice_set_set_DIV ***) -/
 
-axiom cspF_Rep_int_choice_set_set_DIV
+theorem cspF_Rep_int_choice_set_set_DIV
     {Xs Ys : Set (Set α)} {M : p → domFType α} :
     Xs ≠ ∅ →
       Ys ≠ ∅ →
@@ -69,7 +72,8 @@ axiom cspF_Rep_int_choice_set_set_DIV
             proc.Ext_pre_choice (X ∪ Y) fun _ => (proc.DIV : proc p α))
         M M
         (Rep_int_choice_set {Z | ∃ X, X ∈ Xs ∧ ∃ Y, Y ∈ Ys ∧ Z = X ∪ Y} fun Z =>
-          proc.Ext_pre_choice Z fun _ => (proc.DIV : proc p α))
+          proc.Ext_pre_choice Z fun _ => (proc.DIV : proc p α)) := by
+  cspF_auto_step_dist
 
 /-
 (*********************************************************
@@ -79,9 +83,10 @@ axiom cspF_Rep_int_choice_set_set_DIV
 (* p.289 *)
 -/
 
-axiom cspF_Int_choice_Ext_choice_SKIP
+theorem cspF_Int_choice_Ext_choice_SKIP
     {P Q : proc p α} {M : p → domFType α} :
-    eqF ((P [+] proc.SKIP) |~| (Q [+] proc.SKIP)) M M (P [+] Q [+] proc.SKIP)
+    eqF ((P [+] proc.SKIP) |~| (Q [+] proc.SKIP)) M M (P [+] Q [+] proc.SKIP) := by
+  cspF_auto_step_dist
 
 /-
 (*********************************************************
@@ -89,9 +94,10 @@ axiom cspF_Int_choice_Ext_choice_SKIP
  *********************************************************)
 -/
 
-axiom cspF_Int_choice_Ext_choice_DIV
+theorem cspF_Int_choice_Ext_choice_DIV
     {P Q : proc p α} {M : p → domFType α} :
-    eqF ((P [+] proc.DIV) |~| (Q [+] proc.DIV)) M M (P [+] Q [+] proc.DIV)
+    eqF ((P [+] proc.DIV) |~| (Q [+] proc.DIV)) M M (P [+] Q [+] proc.DIV) := by
+  cspF_auto_step_dist
 
 /-
 (*********************************************************
@@ -99,9 +105,10 @@ axiom cspF_Int_choice_Ext_choice_DIV
  *********************************************************)
 -/
 
-axiom cspF_Int_choice_Ext_choice_SKIP_DIV
+theorem cspF_Int_choice_Ext_choice_SKIP_DIV
     {P Q : proc p α} {M : p → domFType α} :
-    eqF ((P [+] proc.SKIP) |~| (Q [+] proc.DIV)) M M (P [+] Q [+] proc.SKIP)
+    eqF ((P [+] proc.SKIP) |~| (Q [+] proc.DIV)) M M (P [+] Q [+] proc.SKIP) := by
+  cspF_auto_step_dist
 
 /-
 (*********************************************************
@@ -109,9 +116,10 @@ axiom cspF_Int_choice_Ext_choice_SKIP_DIV
  *********************************************************)
 -/
 
-axiom cspF_Int_choice_Ext_choice_DIV_SKIP
+theorem cspF_Int_choice_Ext_choice_DIV_SKIP
     {P Q : proc p α} {M : p → domFType α} :
-    eqF ((P [+] proc.DIV) |~| (Q [+] proc.SKIP)) M M (P [+] Q [+] proc.SKIP)
+    eqF ((P [+] proc.DIV) |~| (Q [+] proc.SKIP)) M M (P [+] Q [+] proc.SKIP) := by
+  cspF_auto_step_dist
 
 /-
 (*********************************************************
@@ -131,9 +139,10 @@ axiom cspF_Int_choice_Ext_choice_SKIP_or_DIV
  *********************************************************)
 -/
 
-axiom cspF_Ext_choice_DIV_Int_choice_Id
+theorem cspF_Ext_choice_DIV_Int_choice_Id
     {P : proc p α} {M : p → domFType α} :
-    eqF ((P [+] proc.DIV) |~| P) M M P
+    eqF ((P [+] proc.DIV) |~| P) M M P := by
+  cspF_auto_step_dist
 
 /-
 (* =================================================== *
@@ -149,60 +158,69 @@ axiom cspF_Ext_pre_choice_Renaming_fun_step [Inhabited α]
         Rep_int_choice_com {x | x ∈ X ∧ y = f x} fun x =>
           (Pf x)[[fun_to_rel f]])
 
-axiom cspF_Act_prefix_Renaming_fun_step
+theorem cspF_Act_prefix_Renaming_fun_step
     {a : α} {P : proc p α} {f : α → α} {M : p → domFType α} :
-    eqF (((a ~> P)[[fun_to_rel f]]) ) M M (f a ~> P[[fun_to_rel f]])
+    eqF (((a ~> P)[[fun_to_rel f]]) ) M M (f a ~> P[[fun_to_rel f]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Renaming_fun_step` is represented by
    `cspF_Ext_pre_choice_Renaming_fun_step` and
    `cspF_Act_prefix_Renaming_fun_step`. -/
 
-axiom cspF_Act_prefix_Renaming1_event1_step_in
+theorem cspF_Act_prefix_Renaming1_event1_step_in
     {a b : α} {P : proc p α} {M : p → domFType α} :
-    eqF (((a ~> P)[[a <--> b]]) ) M M (b ~> P[[a <--> b]])
+    eqF (((a ~> P)[[a <--> b]]) ) M M (b ~> P[[a <--> b]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming1_event2_step_in
+theorem cspF_Act_prefix_Renaming1_event2_step_in
     {a b : α} {P : proc p α} {M : p → domFType α} :
-    eqF (((a ~> P)[[b <--> a]]) ) M M (b ~> P[[b <--> a]])
+    eqF (((a ~> P)[[b <--> a]]) ) M M (b ~> P[[b <--> a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming1_event_step_notin
+theorem cspF_Act_prefix_Renaming1_event_step_notin
     {a b c : α} {P : proc p α} {M : p → domFType α} :
     a ≠ c →
       b ≠ c →
-      eqF (((c ~> P)[[a <--> b]]) ) M M (c ~> P[[a <--> b]])
+      eqF (((c ~> P)[[a <--> b]]) ) M M (c ~> P[[a <--> b]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Act_prefix_Renaming1_event_step` is
    represented by `cspF_Act_prefix_Renaming1_event1_step_in`,
    `cspF_Act_prefix_Renaming1_event2_step_in`, and
    `cspF_Act_prefix_Renaming1_event_step_notin`. -/
 
-axiom cspF_Act_prefix_Renaming2_set_event_step_in
+theorem cspF_Act_prefix_Renaming2_set_event_step_in
     {a b : α} {A : Set α} {P : proc p α} {M : p → domFType α} :
     a ∈ A →
-      eqF (((a ~> P)[[A <<- b]]) ) M M (b ~> P[[A <<- b]])
+      eqF (((a ~> P)[[A <<- b]]) ) M M (b ~> P[[A <<- b]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming2_set_event_step_notin
+theorem cspF_Act_prefix_Renaming2_set_event_step_notin
     {b c : α} {A : Set α} {P : proc p α} {M : p → domFType α} :
     c ∉ A →
-      eqF (((c ~> P)[[A <<- b]]) ) M M (c ~> P[[A <<- b]])
+      eqF (((c ~> P)[[A <<- b]]) ) M M (c ~> P[[A <<- b]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming2_set_event_step
+theorem cspF_Act_prefix_Renaming2_set_event_step
     {a b : α} {A : Set α} {P : proc p α} {M : p → domFType α} :
     eqF (((a ~> P)[[A <<- b]]) ) M M
-      (procIte (a ∈ A) (b ~> P[[A <<- b]]) (a ~> P[[A <<- b]]))
+      (procIte (a ∈ A) (b ~> P[[A <<- b]]) (a ~> P[[A <<- b]])) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Act_prefix_Renaming2_set_event_steps` is
    represented by `cspF_Act_prefix_Renaming2_set_event_step_in` and
    `cspF_Act_prefix_Renaming2_set_event_step_notin`. -/
 
-axiom cspF_Act_prefix_Renaming2_event_step_in
+theorem cspF_Act_prefix_Renaming2_event_step_in
     {a b : α} {P : proc p α} {M : p → domFType α} :
-    eqF (((a ~> P)[[a <-- b]]) ) M M (b ~> P[[a <-- b]])
+    eqF (((a ~> P)[[a <-- b]]) ) M M (b ~> P[[a <-- b]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming2_event_step_notin
+theorem cspF_Act_prefix_Renaming2_event_step_notin
     {a b c : α} {P : proc p α} {M : p → domFType α} :
     c ≠ a →
-      eqF (((c ~> P)[[a <-- b]]) ) M M (c ~> P[[a <-- b]])
+      eqF (((c ~> P)[[a <-- b]]) ) M M (c ~> P[[a <-- b]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Act_prefix_Renaming2_event_step` is
    represented by `cspF_Act_prefix_Renaming2_event_step_in` and
@@ -212,40 +230,45 @@ axiom cspF_Act_prefix_Renaming2_event_step_notin
    represented by `cspF_Act_prefix_Renaming1_event_step` and
    `cspF_Act_prefix_Renaming2_event_step`. -/
 
-axiom cspF_Act_prefix_Renaming1_channel1_step_in
+theorem cspF_Act_prefix_Renaming1_channel1_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((((f v) ~> P)[[f <==> g]]) ) M M (g v ~> P[[f <==> g]])
+      eqF ((((f v) ~> P)[[f <==> g]]) ) M M (g v ~> P[[f <==> g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming1_channel2_step_in
+theorem cspF_Act_prefix_Renaming1_channel2_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((((f v) ~> P)[[g <==> f]]) ) M M (g v ~> P[[g <==> f]])
+      eqF ((((f v) ~> P)[[g <==> f]]) ) M M (g v ~> P[[g <==> f]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming1_channel_step_notin
+theorem cspF_Act_prefix_Renaming1_channel_step_notin
     {x y : Type _} {f g : x → α} {h : y → α} {v : y} {P : proc p α} {M : p → domFType α} :
     ((∀ x, h v ≠ f x) ∨ h v ∉ Set.range f) →
       ((∀ x, h v ≠ g x) ∨ h v ∉ Set.range g) →
-      eqF ((((h v) ~> P)[[f <==> g]]) ) M M ((h v) ~> P[[f <==> g]])
+      eqF ((((h v) ~> P)[[f <==> g]]) ) M M ((h v) ~> P[[f <==> g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Act_prefix_Renaming1_channel_step` is
    represented by `cspF_Act_prefix_Renaming1_channel1_step_in`,
    `cspF_Act_prefix_Renaming1_channel2_step_in`, and
    `cspF_Act_prefix_Renaming1_channel_step_notin`. -/
 
-axiom cspF_Act_prefix_Renaming2_channel_step_in
+theorem cspF_Act_prefix_Renaming2_channel_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((((f v) ~> P)[[f <== g]]) ) M M (g v ~> P[[f <== g]])
+      eqF ((((f v) ~> P)[[f <== g]]) ) M M (g v ~> P[[f <== g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Act_prefix_Renaming2_channel_step_notin
+theorem cspF_Act_prefix_Renaming2_channel_step_notin
     {x y : Type _} {f : x → α} {g : x → α} {h : y → α} {v : y}
     {P : proc p α} {M : p → domFType α} :
     ((∀ x, h v ≠ f x) ∨ h v ∉ Set.range f) →
-      eqF ((((h v) ~> P)[[f <== g]]) ) M M ((h v) ~> P[[f <== g]])
+      eqF ((((h v) ~> P)[[f <== g]]) ) M M ((h v) ~> P[[f <== g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Act_prefix_Renaming2_channel_step` is
    represented by `cspF_Act_prefix_Renaming2_channel_step_in` and
@@ -316,56 +339,64 @@ axiom cspF_Ext_pre_choice_Renaming2_event_step [Inhabited α]
    `cspF_Ext_pre_choice_Renaming2_set_event_step`, and
    `cspF_Ext_pre_choice_Renaming2_event_step`. -/
 
-axiom cspF_Send_prefix_Renaming1_event1_step_in
+theorem cspF_Send_prefix_Renaming1_event1_step_in
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {a : α} {M : p → domFType α} :
     Injective f →
-      eqF ((Send_prefix f v P)[[a <--> f v]]) M M (a ~> P[[a <--> f v]])
+      eqF ((Send_prefix f v P)[[a <--> f v]]) M M (a ~> P[[a <--> f v]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming1_event2_step_in
+theorem cspF_Send_prefix_Renaming1_event2_step_in
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {a : α} {M : p → domFType α} :
     Injective f →
-      eqF ((Send_prefix f v P)[[f v <--> a]]) M M (a ~> P[[f v <--> a]])
+      eqF ((Send_prefix f v P)[[f v <--> a]]) M M (a ~> P[[f v <--> a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming1_event_step_notin
+theorem cspF_Send_prefix_Renaming1_event_step_notin
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {a b : α} {M : p → domFType α} :
     a ≠ f v →
       b ≠ f v →
       eqF ((Send_prefix f v P)[[a <--> b]]) M M
-        (Send_prefix f v (P[[a <--> b]]))
+        (Send_prefix f v (P[[a <--> b]])) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Send_prefix_Renaming1_event_step` is
    represented by `cspF_Send_prefix_Renaming1_event1_step_in`,
    `cspF_Send_prefix_Renaming1_event2_step_in`, and
    `cspF_Send_prefix_Renaming1_event_step_notin`. -/
 
-axiom cspF_Send_prefix_Renaming2_set_event_step_in
+theorem cspF_Send_prefix_Renaming2_set_event_step_in
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {A : Set α} {a : α}
     {M : p → domFType α} :
     f v ∈ A →
-      eqF ((Send_prefix f v P)[[A <<- a]]) M M (a ~> P[[A <<- a]])
+      eqF ((Send_prefix f v P)[[A <<- a]]) M M (a ~> P[[A <<- a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming2_set_event_step_notin
+theorem cspF_Send_prefix_Renaming2_set_event_step_notin
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {A : Set α} {b : α}
     {M : p → domFType α} :
     f v ∉ A →
       eqF ((Send_prefix f v P)[[A <<- b]]) M M
-        (Send_prefix f v (P[[A <<- b]]))
+        (Send_prefix f v (P[[A <<- b]])) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming2_set_event_step
+theorem cspF_Send_prefix_Renaming2_set_event_step
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {A : Set α} {a : α}
     {M : p → domFType α} :
     eqF ((Send_prefix f v P)[[A <<- a]]) M M
-      (procIte (f v ∈ A) (a ~> P[[A <<- a]]) (Send_prefix f v (P[[A <<- a]])))
+      (procIte (f v ∈ A) (a ~> P[[A <<- a]]) (Send_prefix f v (P[[A <<- a]]))) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming2_event_step_in
+theorem cspF_Send_prefix_Renaming2_event_step_in
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {a : α} {M : p → domFType α} :
-    eqF ((Send_prefix f v P)[[f v <-- a]]) M M (a ~> P[[f v <-- a]])
+    eqF ((Send_prefix f v P)[[f v <-- a]]) M M (a ~> P[[f v <-- a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming2_event_step_notin
+theorem cspF_Send_prefix_Renaming2_event_step_notin
     {x : Type _} {f : x → α} {v : x} {P : proc p α} {a b : α} {M : p → domFType α} :
     a ≠ f v →
       eqF ((Send_prefix f v P)[[a <-- b]]) M M
-        (Send_prefix f v (P[[a <-- b]]))
+        (Send_prefix f v (P[[a <-- b]])) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Send_prefix_Renaming2_event_step` is
    represented by `cspF_Send_prefix_Renaming2_event_step_in` and
@@ -375,43 +406,48 @@ axiom cspF_Send_prefix_Renaming2_event_step_notin
    represented by `cspF_Send_prefix_Renaming1_event_step` and
    `cspF_Send_prefix_Renaming2_event_step`. -/
 
-axiom cspF_Send_prefix_Renaming1_channel1_step_in
+theorem cspF_Send_prefix_Renaming1_channel1_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((Send_prefix f v P)[[f <==> g]]) M M (Send_prefix g v (P[[f <==> g]]))
+      eqF ((Send_prefix f v P)[[f <==> g]]) M M (Send_prefix g v (P[[f <==> g]])) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming1_channel2_step_in
+theorem cspF_Send_prefix_Renaming1_channel2_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((Send_prefix f v P)[[g <==> f]]) M M (Send_prefix g v (P[[g <==> f]]))
+      eqF ((Send_prefix f v P)[[g <==> f]]) M M (Send_prefix g v (P[[g <==> f]])) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming1_channel_step_notin
+theorem cspF_Send_prefix_Renaming1_channel_step_notin
     {x y : Type _} {f g : x → α} {h : y → α} {v : y} {P : proc p α}
     {M : p → domFType α} :
     ((∀ x, h v ≠ f x) ∨ h v ∉ Set.range f) →
       ((∀ x, h v ≠ g x) ∨ h v ∉ Set.range g) →
       eqF ((Send_prefix h v P)[[f <==> g]]) M M
-        (Send_prefix h v (P[[f <==> g]]))
+        (Send_prefix h v (P[[f <==> g]])) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Send_prefix_Renaming1_channel_step` is
    represented by `cspF_Send_prefix_Renaming1_channel1_step_in`,
    `cspF_Send_prefix_Renaming1_channel2_step_in`, and
    `cspF_Send_prefix_Renaming1_channel_step_notin`. -/
 
-axiom cspF_Send_prefix_Renaming2_channel_step_in
+theorem cspF_Send_prefix_Renaming2_channel_step_in
     {x : Type _} {f g : x → α} {v : x} {P : proc p α} {M : p → domFType α} :
     Injective f →
       (∀ x y, f x ≠ g y) →
-      eqF ((Send_prefix f v P)[[f <== g]]) M M (Send_prefix g v (P[[f <== g]]))
+      eqF ((Send_prefix f v P)[[f <== g]]) M M (Send_prefix g v (P[[f <== g]])) := by
+  cspF_auto_step_dist
 
-axiom cspF_Send_prefix_Renaming2_channel_step_notin
+theorem cspF_Send_prefix_Renaming2_channel_step_notin
     {x y : Type _} {f g : x → α} {h : y → α} {v : y} {P : proc p α}
     {M : p → domFType α} :
     ((∀ x, h v ≠ f x) ∨ h v ∉ Set.range f) →
       eqF ((Send_prefix h v P)[[f <== g]]) M M
-        (Send_prefix h v (P[[f <== g]]))
+        (Send_prefix h v (P[[f <== g]])) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Send_prefix_Renaming2_channel_step` is
    represented by `cspF_Send_prefix_Renaming2_channel_step_in` and
@@ -425,7 +461,7 @@ axiom cspF_Send_prefix_Renaming2_channel_step_notin
    represented by `cspF_Send_prefix_Renaming_event_step` and
    `cspF_Send_prefix_Renaming_channel_step`. -/
 
-axiom cspF_Rec_prefix_Renaming1_event1_step_in
+theorem cspF_Rec_prefix_Renaming1_event1_step_in
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
     {v : x} {a : α} {M : p → domFType α} :
     Injective f →
@@ -433,9 +469,10 @@ axiom cspF_Rec_prefix_Renaming1_event1_step_in
       (∀ x, x ∈ X → a ≠ f x) →
       eqF ((Rec_prefix f X Pf)[[a <--> f v]]) M M
         ((a ~> (Pf v)[[a <--> f v]]) [+]
-          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[a <--> f v]])
+          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[a <--> f v]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Rec_prefix_Renaming1_event2_step_in
+theorem cspF_Rec_prefix_Renaming1_event2_step_in
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
     {v : x} {a : α} {M : p → domFType α} :
     Injective f →
@@ -443,7 +480,8 @@ axiom cspF_Rec_prefix_Renaming1_event2_step_in
       (∀ x, x ∈ X → a ≠ f x) →
       eqF ((Rec_prefix f X Pf)[[f v <--> a]]) M M
         ((a ~> (Pf v)[[f v <--> a]]) [+]
-          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <--> a]])
+          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <--> a]]) := by
+  cspF_auto_step_dist
 
 axiom cspF_Rec_prefix_Renaming1_event_step_notin
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
@@ -484,14 +522,15 @@ axiom cspF_Rec_prefix_Renaming2_set_event_step
             Rec_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
           (Rec_prefix f X fun x => (Pf x)[[A <<- a]]))
 
-axiom cspF_Rec_prefix_Renaming2_event_step_in
+theorem cspF_Rec_prefix_Renaming2_event_step_in
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
     {v : x} {a : α} {M : p → domFType α} :
     Injective f →
       v ∈ X →
       eqF ((Rec_prefix f X Pf)[[f v <-- a]]) M M
         ((a ~> (Pf v)[[f v <-- a]]) [+]
-          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <-- a]])
+          Rec_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <-- a]]) := by
+  cspF_auto_step_dist
 
 axiom cspF_Rec_prefix_Renaming2_event_step_notin
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
@@ -508,29 +547,31 @@ axiom cspF_Rec_prefix_Renaming2_event_step_notin
    represented by `cspF_Rec_prefix_Renaming1_event_step` and
    `cspF_Rec_prefix_Renaming2_event_step`. -/
 
-axiom cspF_Rec_prefix_Renaming1_channel1_step_in
+theorem cspF_Rec_prefix_Renaming1_channel1_step_in
     {x : Type _} [Inhabited x] {f g : x → α} {X : Set x} {Pf : x → proc p α}
     {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Rec_prefix f X Pf)[[f <==> g]]) M M
-        (Rec_prefix g X fun x => (Pf x)[[f <==> g]])
+        (Rec_prefix g X fun x => (Pf x)[[f <==> g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Rec_prefix_Renaming1_channel2_step_in
+theorem cspF_Rec_prefix_Renaming1_channel2_step_in
     {x : Type _} [Inhabited x] {f g : x → α} {X : Set x} {Pf : x → proc p α}
     {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Rec_prefix f X Pf)[[g <==> f]]) M M
-        (Rec_prefix g X fun x => (Pf x)[[g <==> f]])
+        (Rec_prefix g X fun x => (Pf x)[[g <==> f]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle lemmas `Renaming_channel_fun_h` and
    `Renaming_channel_fun_map_h` are already represented in
    `LeanCspProver.CSP.Infra_ren`. -/
 
-axiom cspF_Rec_prefix_Renaming1_channel_step_notin
+theorem cspF_Rec_prefix_Renaming1_channel_step_notin
     {x y : Type _} [Inhabited y] {f g : x → α} {h : y → α} {X : Set y}
     {Pf : y → proc p α} {M : p → domFType α} :
     Injective h →
@@ -538,30 +579,33 @@ axiom cspF_Rec_prefix_Renaming1_channel_step_notin
       ((∀ x y, g x ≠ h y) ∨ Set.range g ∩ Set.range h = ∅) →
       (∀ x y, f x ≠ g y) →
       eqF ((Rec_prefix h X Pf)[[f <==> g]]) M M
-        (Rec_prefix h X fun x => (Pf x)[[f <==> g]])
+        (Rec_prefix h X fun x => (Pf x)[[f <==> g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Rec_prefix_Renaming1_channel_step` is
    represented by `cspF_Rec_prefix_Renaming1_channel1_step_in`,
    `cspF_Rec_prefix_Renaming1_channel2_step_in`, and
    `cspF_Rec_prefix_Renaming1_channel_step_notin`. -/
 
-axiom cspF_Rec_prefix_Renaming2_channel_step_in
+theorem cspF_Rec_prefix_Renaming2_channel_step_in
     {x : Type _} [Inhabited x] {f g : x → α} {X : Set x} {Pf : x → proc p α}
     {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Rec_prefix f X Pf)[[f <== g]]) M M
-        (Rec_prefix g X fun x => (Pf x)[[f <== g]])
+        (Rec_prefix g X fun x => (Pf x)[[f <== g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Rec_prefix_Renaming2_channel_step_notin
+theorem cspF_Rec_prefix_Renaming2_channel_step_notin
     {x y : Type _} [Inhabited y] {f g : x → α} {h : y → α} {X : Set y}
     {Pf : y → proc p α} {M : p → domFType α} :
     Injective h →
       ((∀ x y, f x ≠ h y) ∨ Set.range f ∩ Set.range h = ∅) →
       (∀ x y, f x ≠ g y) →
       eqF ((Rec_prefix h X Pf)[[f <== g]]) M M
-        (Rec_prefix h X fun x => (Pf x)[[f <== g]])
+        (Rec_prefix h X fun x => (Pf x)[[f <== g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Rec_prefix_Renaming2_channel_step` is
    represented by `cspF_Rec_prefix_Renaming2_channel_step_in` and
@@ -575,7 +619,7 @@ axiom cspF_Rec_prefix_Renaming2_channel_step_notin
    by `cspF_Rec_prefix_Renaming_event_step` and
    `cspF_Rec_prefix_Renaming_channel_step`. -/
 
-axiom cspF_Nondet_send_prefix_Renaming1_event1_step_in
+theorem cspF_Nondet_send_prefix_Renaming1_event1_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domFType α} :
     Injective f →
@@ -583,9 +627,10 @@ axiom cspF_Nondet_send_prefix_Renaming1_event1_step_in
       (∀ x, a ≠ f x) →
       eqF ((Nondet_send_prefix f X Pf)[[a <--> f v]]) M M
         ((a ~> (Pf v)[[a <--> f v]]) |~|
-          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[a <--> f v]])
+          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[a <--> f v]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming1_event2_step_in
+theorem cspF_Nondet_send_prefix_Renaming1_event2_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domFType α} :
     Injective f →
@@ -593,15 +638,17 @@ axiom cspF_Nondet_send_prefix_Renaming1_event2_step_in
       (∀ x, a ≠ f x) →
       eqF ((Nondet_send_prefix f X Pf)[[f v <--> a]]) M M
         ((a ~> (Pf v)[[f v <--> a]]) |~|
-          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <--> a]])
+          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <--> a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming1_event_step_notin
+theorem cspF_Nondet_send_prefix_Renaming1_event_step_notin
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {a b : α} {M : p → domFType α} :
     ((∀ x, a ≠ f x) ∨ a ∉ Set.range f) →
       ((∀ x, b ≠ f x) ∨ b ∉ Set.range f) →
       eqF ((Nondet_send_prefix f X Pf)[[a <--> b]]) M M
-        (Nondet_send_prefix f X fun x => (Pf x)[[a <--> b]])
+        (Nondet_send_prefix f X fun x => (Pf x)[[a <--> b]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Nondet_send_prefix_Renaming1_event_step`
    is represented by `cspF_Nondet_send_prefix_Renaming1_event1_step_in`,
@@ -617,12 +664,13 @@ axiom cspF_Nondet_send_prefix_Renaming2_set_event_step_in
         ((a ~> Rep_int_choice_f f {x | x ∈ X ∧ f x ∈ A} fun x => (Pf x)[[A <<- a]]) |~|
           Nondet_send_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
 
-axiom cspF_Nondet_send_prefix_Renaming2_set_event_step_notin
+theorem cspF_Nondet_send_prefix_Renaming2_set_event_step_notin
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domFType α} :
     ((∀ x, x ∈ X → f x ∉ A) ∨ A ∩ (f '' X) = ∅) →
       eqF ((Nondet_send_prefix f X Pf)[[A <<- a]]) M M
-        (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]])
+        (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]]) := by
+  cspF_auto_step_dist
 
 axiom cspF_Nondet_send_prefix_Renaming2_set_event_step
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
@@ -634,7 +682,7 @@ axiom cspF_Nondet_send_prefix_Renaming2_set_event_step
             Nondet_send_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
           (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]]))
 
-axiom cspF_Nondet_send_prefix_Renaming2_event_step_in
+theorem cspF_Nondet_send_prefix_Renaming2_event_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domFType α} :
     Injective f →
@@ -642,14 +690,16 @@ axiom cspF_Nondet_send_prefix_Renaming2_event_step_in
       (∀ x, a ≠ f x) →
       eqF ((Nondet_send_prefix f X Pf)[[f v <-- a]]) M M
         ((a ~> (Pf v)[[f v <-- a]]) |~|
-          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <-- a]])
+          Nondet_send_prefix f (X \ ({v} : Set x)) fun x => (Pf x)[[f v <-- a]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming2_event_step_notin
+theorem cspF_Nondet_send_prefix_Renaming2_event_step_notin
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {a b : α} {M : p → domFType α} :
     ((∀ x, a ≠ f x) ∨ a ∉ Set.range f) →
       eqF ((Nondet_send_prefix f X Pf)[[a <-- b]]) M M
-        (Nondet_send_prefix f X fun x => (Pf x)[[a <-- b]])
+        (Nondet_send_prefix f X fun x => (Pf x)[[a <-- b]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Nondet_send_prefix_Renaming2_event_step`
    is represented by `cspF_Nondet_send_prefix_Renaming2_event_step_in` and
@@ -659,52 +709,57 @@ axiom cspF_Nondet_send_prefix_Renaming2_event_step_notin
    is represented by `cspF_Nondet_send_prefix_Renaming1_event_step` and
    `cspF_Nondet_send_prefix_Renaming2_event_step`. -/
 
-axiom cspF_Nondet_send_prefix_Renaming1_channel1_step_in
+theorem cspF_Nondet_send_prefix_Renaming1_channel1_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Nondet_send_prefix f X Pf)[[f <==> g]]) M M
-        (Nondet_send_prefix g X fun x => (Pf x)[[f <==> g]])
+        (Nondet_send_prefix g X fun x => (Pf x)[[f <==> g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming1_channel2_step_in
+theorem cspF_Nondet_send_prefix_Renaming1_channel2_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Nondet_send_prefix f X Pf)[[g <==> f]]) M M
-        (Nondet_send_prefix g X fun x => (Pf x)[[g <==> f]])
+        (Nondet_send_prefix g X fun x => (Pf x)[[g <==> f]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming1_channel_step_notin
+theorem cspF_Nondet_send_prefix_Renaming1_channel_step_notin
     {x y : Type _} [Inhabited α] [Inhabited y] {f g : x → α} {h : y → α}
     {X : Set y} {Pf : y → proc p α} {M : p → domFType α} :
     ((∀ x y, f x ≠ h y) ∨ Set.range f ∩ Set.range h = ∅) →
       ((∀ x y, g x ≠ h y) ∨ Set.range g ∩ Set.range h = ∅) →
       eqF ((Nondet_send_prefix h X Pf)[[f <==> g]]) M M
-        (Nondet_send_prefix h X fun x => (Pf x)[[f <==> g]])
+        (Nondet_send_prefix h X fun x => (Pf x)[[f <==> g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle `cspF_Nondet_send_prefix_Renaming1_channel_step`
    is represented by `cspF_Nondet_send_prefix_Renaming1_channel1_step_in`,
    `cspF_Nondet_send_prefix_Renaming1_channel2_step_in`, and
    `cspF_Nondet_send_prefix_Renaming1_channel_step_notin`. -/
 
-axiom cspF_Nondet_send_prefix_Renaming2_channel_step_in
+theorem cspF_Nondet_send_prefix_Renaming2_channel_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domFType α} :
     Injective f →
       Injective g →
       (∀ x y, f x ≠ g y) →
       eqF ((Nondet_send_prefix f X Pf)[[f <== g]]) M M
-        (Nondet_send_prefix g X fun x => (Pf x)[[f <== g]])
+        (Nondet_send_prefix g X fun x => (Pf x)[[f <== g]]) := by
+  cspF_auto_step_dist
 
-axiom cspF_Nondet_send_prefix_Renaming2_channel_step_notin
+theorem cspF_Nondet_send_prefix_Renaming2_channel_step_notin
     {x y : Type _} [Inhabited α] [Inhabited y] {f g : x → α} {h : y → α}
     {X : Set y} {Pf : y → proc p α} {M : p → domFType α} :
     ((∀ x y, f x ≠ h y) ∨ Set.range f ∩ Set.range h = ∅) →
       eqF ((Nondet_send_prefix h X Pf)[[f <== g]]) M M
-        (Nondet_send_prefix h X fun x => (Pf x)[[f <== g]])
+        (Nondet_send_prefix h X fun x => (Pf x)[[f <== g]]) := by
+  cspF_auto_step_dist
 
 /- The Isabelle theorem bundle
    `cspF_Nondet_send_prefix_Renaming2_channel_step` is represented by

@@ -15,6 +15,7 @@
 import LeanCspProver.CSP_F.CSP_F_law_SKIP
 import LeanCspProver.CSP_F.CSP_F_law_DIV
 import LeanCspProver.CSP_T.CSP_T_law_SKIP_DIV
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open Function
 open SumType
@@ -28,9 +29,10 @@ noncomputable section
  *********************************************************)
 -/
 
-axiom cspF_SKIP_DIV_Ext_choice1
+theorem cspF_SKIP_DIV_Ext_choice1
     {M1 : p → domFType α} {M2 : q → domFType α} :
-    eqF (((proc.SKIP : proc p α) [+] proc.DIV)) M1 M2 (proc.SKIP : proc q α)
+    eqF (((proc.SKIP : proc p α) [+] proc.DIV)) M1 M2 (proc.SKIP : proc q α) := by
+  cspF_auto
 
 theorem cspF_SKIP_DIV_Ext_choice2
     {M1 : p → domFType α} {M2 : q → domFType α} :
@@ -53,9 +55,10 @@ theorem cspF_SKIP_DIV_Ext_choice2
  *********************************************************)
 -/
 
-axiom cspF_SKIP_DIV_Parallel1
+theorem cspF_SKIP_DIV_Parallel1
     {X : Set α} {M1 : p → domFType α} {M2 : q → domFType α} :
-    eqF (((proc.SKIP : proc p α) |[X]| proc.DIV)) M1 M2 (proc.DIV : proc q α)
+    eqF (((proc.SKIP : proc p α) |[X]| proc.DIV)) M1 M2 (proc.DIV : proc q α) := by
+  cspF_auto
 
 theorem cspF_SKIP_DIV_Parallel2
     {X : Set α} {M1 : p → domFType α} {M2 : q → domFType α} :
@@ -81,9 +84,11 @@ theorem cspF_SKIP_DIV_Parallel2
 
 /- (*** SKIP and DIV ***) -/
 
-axiom cspF_DIV_Parallel_Ext_choice_SKIP_l
+theorem cspF_DIV_Parallel_Ext_choice_SKIP_l
     {P : proc p α} {X : Set α} {M : p → domFType α} :
-    eqF ((((P [+] proc.SKIP) |[X]| (proc.DIV : proc p α)))) M M (P |[X]| (proc.DIV : proc p α))
+    eqF ((((P [+] proc.SKIP) |[X]| (proc.DIV : proc p α)))) M M
+      (P |[X]| (proc.DIV : proc p α)) := by
+  cspF_auto
 
 theorem cspF_DIV_Parallel_Ext_choice_SKIP_r
     {P : proc p α} {X : Set α} {M : p → domFType α} :
@@ -118,10 +123,12 @@ theorem cspF_DIV_Parallel_Ext_choice_SKIP_r
 
 /- (*** DIV and SKIP ***) -/
 
-axiom cspF_SKIP_Parallel_Ext_choice_DIV_l
+theorem cspF_SKIP_Parallel_Ext_choice_DIV_l
     {Y X : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF ((((proc.Ext_pre_choice Y Pf) [+] (proc.DIV : proc p α)) |[X]| proc.SKIP)) M M
-      (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+] proc.DIV))
+      (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α))))
+        [+] proc.DIV)) := by
+  cspF_auto_step
 
 theorem cspF_SKIP_Parallel_Ext_choice_DIV_r
     {Y X : Set α} {Pf : α → proc p α} {M : p → domFType α} :

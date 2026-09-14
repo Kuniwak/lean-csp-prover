@@ -8,6 +8,7 @@
 
 import LeanCspProver.CSP_F.CSP_F_law_basic
 import LeanCspProver.CSP_T.CSP_T_law_DIV
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open Function
 open SumType

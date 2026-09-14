@@ -7,6 +7,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_F.CSP_F_law
+import LeanCspProver.CSP_T.CSP_T_law_aux
 
 open Function
 open SumType
@@ -97,30 +98,44 @@ theorem cspF_Rep_int_choice_f_singleton [Inhabited α] [Inhabited β]
    `cspF_Rep_int_choice_com_singleton`, and
    `cspF_Rep_int_choice_f_singleton`. -/
 
-axiom cspF_Rep_int_choice_const_sum_rule
+theorem cspF_Rep_int_choice_const_sum_rule
     {C : sets_nats α} {P : proc p α} {M : p → domFType α} :
     eqF (proc.Rep_int_choice C (fun _ => P)) M M
-      (procIte (sumset C = ∅) (proc.DIV : proc p α) P)
+      (procIte (sumset C = ∅) (proc.DIV : proc p α) P) := by
+  cspF_auto
 
-axiom cspF_Rep_int_choice_const_nat_rule
+theorem cspF_Rep_int_choice_const_nat_rule
     {N : Set Nat} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_nat N (fun _ => P)) M M
-      (procIte (N = ∅) (proc.DIV : proc p α) P)
+      (procIte (N = ∅) (proc.DIV : proc p α) P) := by
+  cspF_auto
 
-axiom cspF_Rep_int_choice_const_set_rule
+theorem cspF_Rep_int_choice_const_set_rule
     {Xs : Set (Set α)} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_set Xs (fun _ => P)) M M
-      (procIte (Xs = ∅) (proc.DIV : proc p α) P)
+      (procIte (Xs = ∅) (proc.DIV : proc p α) P) := by
+  cspF_auto
 
-axiom cspF_Rep_int_choice_const_com_rule [Inhabited α]
+theorem cspF_Rep_int_choice_const_com_rule [Inhabited α]
     {X : Set α} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com X (fun _ => P)) M M
-      (procIte (X = ∅) (proc.DIV : proc p α) P)
+      (procIte (X = ∅) (proc.DIV : proc p α) P) := by
+  cspF_auto
 
-axiom cspF_Rep_int_choice_const_f_rule [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_const_f_rule [Inhabited α] [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f X (fun _ => P)) M M
-      (procIte (X = ∅) (proc.DIV : proc p α) P)
+      (procIte (X = ∅) (proc.DIV : proc p α) P) := by
+  -- `in_failures_Rep_int_choice_f` needs `Injective f`; go through the `_com` form
+  rw [Rep_int_choice_f_def]
+  by_cases h : X = ∅
+  · subst h
+    simp only [Set.image_empty, procIte]
+    cspF_auto
+  · have h' : f '' X ≠ ∅ := by
+      simpa [Set.image_eq_empty] using h
+    simp only [procIte, if_neg h]
+    cspF_auto
 
 /- The Isabelle theorem bundle `cspF_Rep_int_choice_const_rule` is represented by
    `cspF_Rep_int_choice_const_sum_rule`,
@@ -272,36 +287,64 @@ private def cspF_Parallel_Timeout_input_resolve_r_rhs
             ((proc.Ext_pre_choice Y Pf |[X]| Qf x)))))
     ((proc.Ext_pre_choice Y Pf |[X]| Q))
 
-axiom cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV
+-- Algebraic proof following the Isabelle original (CSP_F_law_aux.thy):
+-- resolve `[+]` into `[>` on both sides, apply `cspF_Parallel_Timeout_split`,
+-- then rewrite `[>` back to `[+]` inside the branches by congruence.
+theorem cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV
     {P Q : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     (P = proc.SKIP ∨ P = proc.DIV) →
       (Q = proc.SKIP ∨ Q = proc.DIV) →
         eqF (((proc.Ext_pre_choice Y Pf) [+] P) |[X]| ((proc.Ext_pre_choice Z Qf) [+] Q)) M M
-          (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf P Q)
+          (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf P Q) := by
+  intro hP hQ
+  rw [cspF_Parallel_Timeout_split_resolve_rhs]
+  have hresP := cspF_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Y Pf) (M := M) hP
+  have hresQ := cspF_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Z Qf) (M := M) hQ
+  refine cspF_rw_left_eq (cspF_Parallel_cong rfl hresP hresQ) ?_
+  refine cspF_rw_left_eq cspF_Parallel_Timeout_split ?_
+  refine cspF_Timeout_cong
+    (cspF_Ext_pre_choice_cong rfl fun a _ => ?_)
+    (cspF_Int_choice_cong
+      (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hresQ))
+      (cspF_Parallel_cong rfl (cspF_sym hresP) cspF_reflex_eq_P))
+  exact cspF_procIte_cong cspF_reflex_eq_P
+    (cspF_procIte_cong
+      (cspF_Int_choice_cong
+        (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hresQ))
+        (cspF_Parallel_cong rfl (cspF_sym hresP) cspF_reflex_eq_P))
+      (cspF_procIte_cong
+        (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hresQ))
+        (cspF_Parallel_cong rfl (cspF_sym hresP) cspF_reflex_eq_P)))
 
-axiom cspF_Parallel_Timeout_split_resolve_SKIP_SKIP
+theorem cspF_Parallel_Timeout_split_resolve_SKIP_SKIP
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.SKIP : proc p α)) |[X]|
       ((proc.Ext_pre_choice Z Qf) [+] proc.SKIP)) M M
-      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.SKIP proc.SKIP)
+      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.SKIP proc.SKIP) :=
+  cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV (Or.inl rfl) (Or.inl rfl)
 
-axiom cspF_Parallel_Timeout_split_resolve_DIV_DIV
+theorem cspF_Parallel_Timeout_split_resolve_DIV_DIV
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.DIV : proc p α)) |[X]|
       ((proc.Ext_pre_choice Z Qf) [+] proc.DIV)) M M
-      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.DIV proc.DIV)
+      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.DIV proc.DIV) :=
+  cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV (Or.inr rfl) (Or.inr rfl)
 
-axiom cspF_Parallel_Timeout_split_resolve_SKIP_DIV
+theorem cspF_Parallel_Timeout_split_resolve_SKIP_DIV
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.SKIP : proc p α)) |[X]|
       ((proc.Ext_pre_choice Z Qf) [+] proc.DIV)) M M
-      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.SKIP proc.DIV)
+      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.SKIP proc.DIV) :=
+  cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV (Or.inl rfl) (Or.inr rfl)
 
-axiom cspF_Parallel_Timeout_split_resolve_DIV_SKIP
+theorem cspF_Parallel_Timeout_split_resolve_DIV_SKIP
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.DIV : proc p α)) |[X]|
       ((proc.Ext_pre_choice Z Qf) [+] proc.SKIP)) M M
-      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.DIV proc.SKIP)
+      (cspF_Parallel_Timeout_split_resolve_rhs X Y Z Pf Qf proc.DIV proc.SKIP) :=
+  cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV (Or.inr rfl) (Or.inl rfl)
 
 /- The Isabelle theorem bundle `cspF_Parallel_Timeout_split_resolve` is represented by
    `cspF_Parallel_Timeout_split_resolve_SKIP_SKIP`,
@@ -313,41 +356,77 @@ axiom cspF_Parallel_Timeout_split_resolve_DIV_SKIP
 (* input + resolve *)
 -/
 
-axiom cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_l
+-- Algebraic proof; see `cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV`.
+theorem cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_l
     {P : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     (P = proc.SKIP ∨ P = proc.DIV) →
       eqF (((proc.Ext_pre_choice Y Pf) [+] P) |[X]| proc.Ext_pre_choice Z Qf) M M
-        (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf P)
+        (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf P) := by
+  intro hP
+  rw [cspF_Parallel_Timeout_input_resolve_l_rhs]
+  have hresP := cspF_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Y Pf) (M := M) hP
+  refine cspF_rw_left_eq (cspF_Parallel_cong rfl hresP cspF_reflex_eq_P) ?_
+  refine cspF_rw_left_eq cspF_Parallel_Timeout_input_l ?_
+  refine cspF_Timeout_cong
+    (cspF_Ext_pre_choice_cong rfl fun a _ => ?_) cspF_reflex_eq_P
+  exact cspF_procIte_cong cspF_reflex_eq_P
+    (cspF_procIte_cong
+      (cspF_Int_choice_cong cspF_reflex_eq_P
+        (cspF_Parallel_cong rfl (cspF_sym hresP) cspF_reflex_eq_P))
+      (cspF_procIte_cong cspF_reflex_eq_P
+        (cspF_Parallel_cong rfl (cspF_sym hresP) cspF_reflex_eq_P)))
 
-axiom cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_r
+-- Algebraic proof; see `cspF_Parallel_Timeout_split_resolve_SKIP_or_DIV`.
+theorem cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_r
     {Q : proc p α} {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     (Q = proc.SKIP ∨ Q = proc.DIV) →
       eqF (proc.Ext_pre_choice Y Pf |[X]| ((proc.Ext_pre_choice Z Qf) [+] Q)) M M
-        (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf Q)
+        (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf Q) := by
+  intro hQ
+  rw [cspF_Parallel_Timeout_input_resolve_r_rhs]
+  have hresQ := cspF_Ext_choice_SKIP_or_DIV_resolve
+    (P := proc.Ext_pre_choice Z Qf) (M := M) hQ
+  refine cspF_rw_left_eq (cspF_Parallel_cong rfl cspF_reflex_eq_P hresQ) ?_
+  refine cspF_rw_left_eq cspF_Parallel_Timeout_input_r ?_
+  refine cspF_Timeout_cong
+    (cspF_Ext_pre_choice_cong rfl fun a _ => ?_) cspF_reflex_eq_P
+  exact cspF_procIte_cong cspF_reflex_eq_P
+    (cspF_procIte_cong
+      (cspF_Int_choice_cong
+        (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hresQ))
+        cspF_reflex_eq_P)
+      (cspF_procIte_cong
+        (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hresQ))
+        cspF_reflex_eq_P))
 
 /- The Isabelle theorem bundle `cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV` is represented by
    `cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_l` and
    `cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_r`. -/
 
-axiom cspF_Parallel_Timeout_input_resolve_SKIP_l
+theorem cspF_Parallel_Timeout_input_resolve_SKIP_l
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.SKIP : proc p α)) |[X]| proc.Ext_pre_choice Z Qf) M M
-      (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf proc.SKIP)
+      (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf proc.SKIP) :=
+  cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_l (Or.inl rfl)
 
-axiom cspF_Parallel_Timeout_input_resolve_DIV_l
+theorem cspF_Parallel_Timeout_input_resolve_DIV_l
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.Ext_pre_choice Y Pf) [+] (proc.DIV : proc p α)) |[X]| proc.Ext_pre_choice Z Qf) M M
-      (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf proc.DIV)
+      (cspF_Parallel_Timeout_input_resolve_l_rhs X Y Z Pf Qf proc.DIV) :=
+  cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_l (Or.inr rfl)
 
-axiom cspF_Parallel_Timeout_input_resolve_SKIP_r
+theorem cspF_Parallel_Timeout_input_resolve_SKIP_r
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Ext_pre_choice Y Pf |[X]| ((proc.Ext_pre_choice Z Qf) [+] (proc.SKIP : proc p α))) M M
-      (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf proc.SKIP)
+      (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf proc.SKIP) :=
+  cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_r (Or.inl rfl)
 
-axiom cspF_Parallel_Timeout_input_resolve_DIV_r
+theorem cspF_Parallel_Timeout_input_resolve_DIV_r
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Ext_pre_choice Y Pf |[X]| ((proc.Ext_pre_choice Z Qf) [+] (proc.DIV : proc p α))) M M
-      (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf proc.DIV)
+      (cspF_Parallel_Timeout_input_resolve_r_rhs X Y Z Pf Qf proc.DIV) :=
+  cspF_Parallel_Timeout_input_resolve_SKIP_or_DIV_r (Or.inr rfl)
 
 /- The Isabelle theorem bundle `cspF_Parallel_Timeout_input_resolve` is represented by
    `cspF_Parallel_Timeout_input_resolve_SKIP_l`,
@@ -466,9 +545,10 @@ axiom cspF_SKIP_or_DIV_or_STOP_Renaming_Id
 (* restg *)
 -/
 
-axiom cspF_STOP_Depth_rest
+theorem cspF_STOP_Depth_rest
     {n : Nat} {M1 : p → domFType α} {M2 : q → domFType α} :
-    eqF (((proc.STOP : proc p α) |. Nat.succ n)) M1 M2 (proc.STOP : proc q α)
+    eqF (((proc.STOP : proc p α) |. Nat.succ n)) M1 M2 (proc.STOP : proc q α) := by
+  cspF_auto
 
 /-
 (* =================================================== *
@@ -603,32 +683,36 @@ theorem cspF_Ext_choice_DIV_SKIP_assoc
 (*** rewrite (eq) ***)
 -/
 
-axiom cspF_rw_flag_left_eq
+theorem cspF_rw_flag_left_eq
     {R1 R2 : proc p α} {R3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h12 : eqF R1 M1 M1 R2) (h23 : Not_Decompo_Flag ∧ eqF R2 M1 M3 R3) :
-    eqF R1 M1 M3 R3
+    eqF R1 M1 M3 R3 := by
+  cspF_auto
 
-axiom cspF_rw_flag_left_ref
+theorem cspF_rw_flag_left_ref
     {R1 R2 : proc p α} {R3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h12 : eqF R1 M1 M1 R2) (h23 : Not_Decompo_Flag ∧ refF R2 M1 M3 R3) :
-    refF R1 M1 M3 R3
+    refF R1 M1 M3 R3 := by
+  cspF_auto
 
 /- The Isabelle theorem bundle `cspF_rw_flag_left` is represented by
    `cspF_rw_flag_left_eq` and `cspF_rw_flag_left_ref`. -/
 
-axiom cspF_rw_flag_right_eq
+theorem cspF_rw_flag_right_eq
     {R1 : proc p α} {R2 R3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h32 : eqF R3 M3 M3 R2) (h12 : Not_Decompo_Flag ∧ eqF R1 M1 M3 R2) :
-    eqF R1 M1 M3 R3
+    eqF R1 M1 M3 R3 := by
+  cspF_auto
 
-axiom cspF_rw_flag_right_ref
+theorem cspF_rw_flag_right_ref
     {R1 : proc p α} {R2 R3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h32 : eqF R3 M3 M3 R2) (h12 : Not_Decompo_Flag ∧ refF R1 M1 M3 R2) :
-    refF R1 M1 M3 R3
+    refF R1 M1 M3 R3 := by
+  cspF_auto
 
 /- The Isabelle theorem bundle `cspF_rw_flag_right` is represented by
    `cspF_rw_flag_right_eq` and `cspF_rw_flag_right_ref`. -/
@@ -639,32 +723,36 @@ axiom cspF_rw_flag_right_ref
  *------------------------------------------------*)
 -/
 
-axiom cspF_tr_flag_left_eq
+theorem cspF_tr_flag_left_eq
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h12 : eqF P1 M1 M1 P2) (h23 : Not_Decompo_Flag ∧ eqF P2 M1 M3 P3) :
-    eqF P1 M1 M3 P3
+    eqF P1 M1 M3 P3 := by
+  cspF_auto
 
-axiom cspF_tr_flag_left_ref
+theorem cspF_tr_flag_left_ref
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h12 : refF P1 M1 M1 P2) (h23 : Not_Decompo_Flag ∧ refF P2 M1 M3 P3) :
-    refF P1 M1 M3 P3
+    refF P1 M1 M3 P3 := by
+  cspF_auto
 
 /- The Isabelle theorem bundle `cspF_tr_flag_left` is represented by
    `cspF_tr_flag_left_eq` and `cspF_tr_flag_left_ref`. -/
 
-axiom cspF_tr_flag_right_eq
+theorem cspF_tr_flag_right_eq
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h23 : eqF P2 M3 M3 P3) (h12 : Not_Decompo_Flag ∧ eqF P1 M1 M3 P2) :
-    eqF P1 M1 M3 P3
+    eqF P1 M1 M3 P3 := by
+  cspF_auto
 
-axiom cspF_tr_flag_right_ref
+theorem cspF_tr_flag_right_ref
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α}
     (h23 : refF P2 M3 M3 P3) (h12 : Not_Decompo_Flag ∧ refF P1 M1 M3 P2) :
-    refF P1 M1 M3 P3
+    refF P1 M1 M3 P3 := by
+  cspF_auto
 
 /- The Isabelle theorem bundle `cspF_tr_flag_right` is represented by
    `cspF_tr_flag_right_eq` and `cspF_tr_flag_right_ref`. -/
@@ -677,36 +765,40 @@ axiom cspF_tr_flag_right_ref
 (*** rewrite (eq) ***)
 -/
 
-axiom cspF_rw_flag_left_eqE
+theorem cspF_rw_flag_left_eqE
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α} {R : Prop}
     (h13 : eqF P1 M1 M3 P3) (h12 : eqF P1 M1 M1 P2)
     (hR : Not_Decompo_Flag ∧ eqF P2 M1 M3 P3 → R) :
-    R
+    R :=
+  cspF_rw_left_eqE h13 h12 (fun h => hR ⟨trivial, h⟩)
 
-axiom cspF_rw_flag_left_refE
+theorem cspF_rw_flag_left_refE
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α} {R : Prop}
     (h13 : refF P1 M1 M3 P3) (h12 : eqF P1 M1 M1 P2)
     (hR : Not_Decompo_Flag ∧ refF P2 M1 M3 P3 → R) :
-    R
+    R :=
+  cspF_rw_left_refE h13 h12 (fun h => hR ⟨trivial, h⟩)
 
 /- The Isabelle theorem bundle `cspF_rw_flag_leftE` is represented by
    `cspF_rw_flag_left_eqE` and `cspF_rw_flag_left_refE`. -/
 
-axiom cspF_rw_flag_right_eqE
+theorem cspF_rw_flag_right_eqE
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α} {R : Prop}
     (h13 : eqF P1 M1 M3 P3) (h32 : eqF P3 M3 M3 P2)
     (hR : Not_Decompo_Flag ∧ eqF P1 M1 M3 P2 → R) :
-    R
+    R :=
+  cspF_rw_right_eqE h13 h32 (fun h => hR ⟨trivial, h⟩)
 
-axiom cspF_rw_flag_right_refE
+theorem cspF_rw_flag_right_refE
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domFType α} {M3 : q → domFType α} {R : Prop}
     (h13 : refF P1 M1 M3 P3) (h32 : eqF P3 M3 M3 P2)
     (hR : Not_Decompo_Flag ∧ refF P1 M1 M3 P2 → R) :
-    R
+    R :=
+  cspF_rw_right_refE h13 h32 (fun h => hR ⟨trivial, h⟩)
 
 /- The Isabelle theorem bundle `cspF_rw_flag_rightE` is represented by
    `cspF_rw_flag_right_eqE` and `cspF_rw_flag_right_refE`. -/

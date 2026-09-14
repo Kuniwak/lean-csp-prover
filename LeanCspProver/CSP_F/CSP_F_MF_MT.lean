@@ -6,6 +6,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_F.CSP_F_law_fp
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open fpmode
 

@@ -13,6 +13,7 @@
 
 import LeanCspProver.CSP_F.CSP_F_domain
 import LeanCspProver.CSP_T.CSP_T_law_step
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open Function
 open SumType
@@ -153,11 +154,12 @@ axiom cspF_Ext_choice_step
 
 /- set 1 -/
 
-axiom cspF_Parallel_step_set1
+theorem cspF_Parallel_step_set1
     {X Y Z : Set α} {Ya Za : Set (event α)} :
     Ya \ insert Tick (Ev '' X) = Za \ insert Tick (Ev '' X) →
       Ev '' Y ∩ Ya = ∅ → Ev '' Z ∩ Za = ∅ →
-        Ev '' (X ∩ Y ∩ Z) ∩ (Ya ∪ Za) = ∅
+        Ev '' (X ∩ Y ∩ Z) ∩ (Ya ∪ Za) = ∅ := by
+  cspF_auto
 
 /- set 2 -/
 
@@ -177,20 +179,23 @@ axiom cspF_Parallel_step_set3
 
 /- set 4 -/
 
-axiom cspF_Parallel_step_set4
+theorem cspF_Parallel_step_set4
     {X Y Z : Set α} {Xa : Set (event α)} :
     Ev '' ((X ∩ Y ∩ Z) ∪ (Y \ X) ∪ (Z \ X)) ∩ Xa = ∅ →
       Xa =
         (Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Y)) ∪
-          ((Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Z)))
+          ((Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Z))) := by
+  cspF_auto_step
 
 /- set 5 -/
 
-axiom cspF_Parallel_step_set5
+theorem cspF_Parallel_step_set5
     {X Y Z : Set α} {Xa : Set (event α)} :
     Ev '' ((X ∩ Y ∩ Z) ∪ (Y \ X) ∪ (Z \ X)) ∩ Xa = ∅ →
       Ev '' Y ∩ ((Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Y))) = ∅ ∧
-        Ev '' Z ∩ ((Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Z))) = ∅
+        Ev '' Z ∩
+            ((Xa \ insert Tick (Ev '' X)) ∪ (((Xa ∩ insert Tick (Ev '' X)) \ Ev '' Z))) = ∅ := by
+  cspF_auto
 
 /- (*------------------*
  |      csp law     |

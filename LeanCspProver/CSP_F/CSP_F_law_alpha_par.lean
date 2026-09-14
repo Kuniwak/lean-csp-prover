@@ -19,6 +19,7 @@ import LeanCspProver.CSP_F.CSP_F_op_alpha_par
 import LeanCspProver.CSP_F.CSP_F_law_decompo
 import LeanCspProver.CSP_F.CSP_F_law_SKIP
 import LeanCspProver.CSP_T.CSP_T_law_alpha_par
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open event
 

@@ -17,6 +17,7 @@
 import LeanCspProver.CSP_F.CSP_F_law_alpha_par
 import LeanCspProver.CSP_F.CSP_F_op_rep_par
 import LeanCspProver.CSP_T.CSP_T_law_rep_par
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open event
 
@@ -64,7 +65,7 @@ axiom cspF_Rep_parallel_index_eq_lm1
               (Yf (inv_on I1 f i))
               (Set.insert Tick (Ev '' (Prod.snd (PXf2 i))))}
 
-axiom cspF_Rep_parallel_index_eq_lm2
+theorem cspF_Rep_parallel_index_eq_lm2
     {I1 : Set ι} {f : ι → κ}
     {PXf1 : ι → proc p α × Set α} {PXf2 : κ → proc p α × Set α}
     {Yf : κ → Set (event α)} :
@@ -72,7 +73,8 @@ axiom cspF_Rep_parallel_index_eq_lm2
       Set.sUnion {S | ∃ i : κ, i ∈ f '' I1 ∧
         S = Set.inter (Yf i) (Set.insert Tick (Ev '' (Prod.snd (PXf2 i))))} =
       Set.sUnion {S | ∃ i : ι, i ∈ I1 ∧
-        S = Set.inter (Yf (f i)) (Set.insert Tick (Ev '' (Prod.snd (PXf1 i))))}
+        S = Set.inter (Yf (f i)) (Set.insert Tick (Ev '' (Prod.snd (PXf1 i))))} := by
+  cspF_auto
 
 /- (*------------------*
  |      csp law     |

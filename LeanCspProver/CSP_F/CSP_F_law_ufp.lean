@@ -51,14 +51,26 @@ noncomputable section
  |  existency  |
  *------------- -/
 
-axiom semF_hasUFP_cms [HasPNfun p α]
+theorem semF_hasUFP_cms [HasPNfun p α]
     {Pf : p → proc p α} :
-    Pf = PNfun → guardedfun Pf → hasUFP (semFfun Pf)
+    Pf = PNfun → guardedfun Pf → hasUFP (semFfun Pf) := by
+  intro hPf hguard
+  subst hPf
+  by_cases h : Nonempty p
+  · haveI := h
+    exact Banach_thm_EX (contraction_semFfun hguard)
+  · haveI : IsEmpty p := not_nonempty_iff.mp h
+    have hemp : ∀ F G : p → domFType α, F = G := fun F G => funext fun a => isEmptyElim a
+    exact ⟨default, hemp _ _, fun y _ => hemp _ _⟩
 
-axiom semF_UFP_cms [HasPNfun p α] [HasFPmode]
+theorem semF_UFP_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      semF (proc.Proc_name p0 : proc p α) = UFP (semFfun Pf) p0
+      semF (proc.Proc_name p0 : proc p α) = UFP (semFfun Pf) p0 := by
+  intro hPf hguard hmode; subst hPf
+  have hMF : (MF : p → domFType α) = UFP (semFfun PNfun) := by
+    rw [MF_def, semFfix_def, if_pos hmode]
+  simp only [semF_def, semFf_Proc_name, hMF]
 
 theorem semF_UFP_fun_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
@@ -72,20 +84,38 @@ theorem semF_UFP_fun_cms [HasPNfun p α] [HasFPmode]
  |    MF   |
  *--------- -/
 
-axiom MF_fixed_point_cms [HasPNfun p α] [HasFPmode]
+theorem MF_fixed_point_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      semFfun Pf (MF : p → domFType α) = (MF : p → domFType α)
+      semFfun Pf (MF : p → domFType α) = (MF : p → domFType α) := by
+  intro hPf hguard hmode
+  subst hPf
+  by_cases h : Nonempty p
+  · haveI := h
+    have hMF : (MF : p → domFType α) = UFP (semFfun PNfun) := by
+      rw [MF_def, semFfix_def, if_pos hmode]
+    rw [hMF]; exact UFP_fp (Banach_thm_EX (contraction_semFfun hguard))
+  · haveI : IsEmpty p := not_nonempty_iff.mp h
+    exact funext fun a => isEmptyElim a
 
 /- ---------*
  |  unique |
  *--------- -/
 
-axiom ALL_cspF_unique_cms [HasPNfun p α] [HasFPmode]
+theorem ALL_cspF_unique_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       (∀ p, eqF ((Pf p) << f) MF MF (f p)) →
-        ∀ pn, eqF (f pn) MF MF (proc.Proc_name pn : proc p α)
+        ∀ pn, eqF (f pn) MF MF (proc.Proc_name pn : proc p α) := by
+  intro hPf hguard hmode hfix pn; subst hPf
+  have hg_fix : semFfun (PNfun : p → proc p α) (fun q => semF (f q)) = (fun q => semF (f q)) := by
+    rw [← semF_subst_semFfun]; funext q; exact hfix q
+  have hMF_fix : semFfun (PNfun : p → proc p α) MF = MF := MF_fixed_point_cms rfl hguard hmode
+  have huniq : (fun q => semF (f q)) = (MF : p → domFType α) :=
+    hasUFP_unique_solution (semF_hasUFP_cms rfl hguard) hg_fix hMF_fix
+  rw [eqF_def, semFf_Proc_name]
+  change semFf (f pn) MF = MF pn
+  exact congrFun huniq pn
 
 theorem cspF_unique_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {p0 : p} :
@@ -101,10 +131,20 @@ theorem cspF_unique_cms [HasPNfun p α] [HasFPmode]
  |                                                      |
  *------------------------------------------------------ -/
 
-axiom ALL_cspF_unwind_cms [HasPNfun p α] [HasFPmode]
+theorem ALL_cspF_unwind_cms [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      ∀ pn, eqF (proc.Proc_name pn : proc p α) MF MF (Pf pn)
+      ∀ pn, eqF (proc.Proc_name pn : proc p α) MF MF (Pf pn) := by
+  intro hPf hguard hmode pn
+  subst hPf
+  haveI : Nonempty p := ⟨pn⟩
+  have hMF : (MF : p → domFType α) = UFP (semFfun PNfun) := by
+    rw [MF_def, semFfix_def, if_pos hmode]
+  have hfix : semFfun (PNfun : p → proc p α) MF = MF := by
+    rw [hMF]; exact UFP_fp (Banach_thm_EX (contraction_semFfun hguard))
+  rw [eqF_def, semFf_Proc_name]
+  change (MF : p → domFType α) pn = semFf (PNfun pn) MF
+  exact (congrFun hfix pn).symm
 
 /-  csp law  -/
 
@@ -127,30 +167,75 @@ theorem cspF_unwind_cms [HasPNfun p α] [HasFPmode]
 
 /- The Isabelle `_ALL` variants of the `fp_induct` laws differ from the plain
    ones only in using an object-level `ALL` hypothesis instead of a
-   meta-level `!!`; in Lean both are `∀`, so the plain law below covers both.
-   The former Lean `axiom … _ALL` here mis-translated the conclusion as
-   `∀ pn, …`, quantifying the *conclusion* over all process names, which is
-   not sound.  It has been removed. -/
+   meta-level `!!`; in Lean both are `∀`, so the plain theorem below covers
+   both.  (The former Lean `axiom … _ALL` here mis-translated the conclusion
+   as `∀ pn, …`, which is not sound, and was used nowhere.) -/
 
 /-  csp law  -/
 
-axiom cspF_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
+theorem cspF_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refF (f p0) MF MF Q →
         (∀ p, refF ((Pf p) << f) MF MF (f p)) →
-          refF (proc.Proc_name p0 : proc p α) MF MF Q
+          refF (proc.Proc_name p0 : proc p α) MF MF Q := by
+  intro hPf hguard hmode hp hfix
+  subst hPf
+  haveI : Nonempty p := ⟨p0⟩
+  have hdist : ∀ x y : (p → domFType α), distance x y = distance_rs x y :=
+    fun x y => ms0_rs.to_distance_rs x y
+  have hconst : constructive_rs (semFfun (PNfun : p → proc p α)) :=
+    contra_alpha_to_contst hdist hdist (contraction_alpha_semFfun hguard)
+  have hmono : mono (semFfun (PNfun : p → proc p α)) := mono_semFfun
+  set g : p → domFType α := fun q => semF (f q) with hg
+  have hpre : g ≤ semFfun (PNfun : p → proc p α) g := by
+    have hsub : semFfun (PNfun : p → proc p α) g = (fun q => semF ((PNfun q) << f)) := by
+      rw [hg]; exact (semF_subst_semFfun).symm
+    rw [hsub]; intro q
+    simpa [refF_def, semF_def, hg] using hfix q
+  have hfixMF : (MF : p → domFType α) = semFfun (PNfun : p → proc p α) MF :=
+    (MF_fixed_point_cms rfl hguard hmode).symm
+  have hle : g ≤ (MF : p → domFType α) :=
+    cms_fixpoint_induction_ref (β := p → domFType α) hdist hdist hconst hmono hpre hfixMF
+  simp only [refF_def, semFf_Proc_name]
+  calc semFf Q MF
+      ≤ semFf (f p0) MF := hp
+    _ = g p0 := rfl
+    _ ≤ (MF : p → domFType α) p0 := hle p0
 
 /- (*** right ***) -/
 
 /-  csp law  -/
 
-axiom cspF_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
+theorem cspF_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refF Q MF MF (f p0) →
         (∀ p, refF (f p) MF MF ((Pf p) << f)) →
-          refF Q MF MF (proc.Proc_name p0 : proc p α)
+          refF Q MF MF (proc.Proc_name p0 : proc p α) := by
+  intro hPf hguard hmode hp hfix
+  subst hPf
+  haveI : Nonempty p := ⟨p0⟩
+  have hdist : ∀ x y : (p → domFType α), distance x y = distance_rs x y :=
+    fun x y => ms0_rs.to_distance_rs x y
+  have hconst : constructive_rs (semFfun (PNfun : p → proc p α)) :=
+    contra_alpha_to_contst hdist hdist (contraction_alpha_semFfun hguard)
+  have hmono : mono (semFfun (PNfun : p → proc p α)) := mono_semFfun
+  set g : p → domFType α := fun q => semF (f q) with hg
+  have hpre : semFfun (PNfun : p → proc p α) g ≤ g := by
+    have hsub : semFfun (PNfun : p → proc p α) g = (fun q => semF ((PNfun q) << f)) := by
+      rw [hg]; exact (semF_subst_semFfun).symm
+    rw [hsub]; intro q
+    simpa [refF_def, semF_def, hg] using hfix q
+  have hfixMF : (MF : p → domFType α) = semFfun (PNfun : p → proc p α) MF :=
+    (MF_fixed_point_cms rfl hguard hmode).symm
+  have hle : (MF : p → domFType α) ≤ g :=
+    cms_fixpoint_induction_rev (β := p → domFType α) hdist hdist hconst hmono hpre hfixMF
+  simp only [refF_def, semFf_Proc_name]
+  calc (MF : p → domFType α) p0
+      ≤ g p0 := hle p0
+    _ = semFf (f p0) MF := rfl
+    _ ≤ semFf Q MF := hp
 
 /- ----------- equality ----------- -/
 
@@ -158,12 +243,21 @@ axiom cspF_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-axiom cspF_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
+theorem cspF_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       eqF (f p0) MF MF Q →
         (∀ p, eqF ((Pf p) << f) MF MF (f p)) →
-          eqF (proc.Proc_name p0 : proc p α) MF MF Q
+          eqF (proc.Proc_name p0 : proc p α) MF MF Q := by
+  intro hPf hguard hmode hp hfix
+  have e0 : semFf (f p0) MF = semFf Q MF := hp
+  have hL : refF (proc.Proc_name p0 : proc p α) MF MF Q :=
+    cspF_fp_induct_cms_ref_left (Pf := Pf) (f := f) (Q := Q) (p0 := p0)
+      hPf hguard hmode (le_of_eq e0.symm) (fun q => le_of_eq (hfix q).symm)
+  have hR : refF Q MF MF (proc.Proc_name p0 : proc p α) :=
+    cspF_fp_induct_cms_ref_right (Pf := Pf) (f := f) (Q := Q) (p0 := p0)
+      hPf hguard hmode (le_of_eq e0) (fun q => le_of_eq (hfix q))
+  exact le_antisymm hR hL
 
 theorem cspF_fp_induct_cms_eq_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
