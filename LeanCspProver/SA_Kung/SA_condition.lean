@@ -268,8 +268,6 @@ private theorem Example1_in_vert_base_ne {r : Type _} [Zero r] {i j : Nat} :
     simp
   exact hNot (hEq.symm ▸ hIn)
 
-set_option maxHeartbeats 1000000 in
--- The translated case splits over failure-set encodings require a larger heartbeat budget.
 theorem Example1_BusyNetwork_out_lm {r : Type _} [Ring r]
     {n i j : Nat} {x y : r} {s : traceType (Event r)} {Y : Set (event (Event r))}
     (hAll : ∀ s Y, (s, Y) ∈ peF_rec (r := r) n (i, j) → Y ≠ Ev '' Alpha_pe (r := r) (i, j))
@@ -305,8 +303,6 @@ theorem Example1_BusyNetwork_out_lm {r : Type _} [Ring r]
       cases hEq
       exact hAll _ _ hRec
 
-set_option maxHeartbeats 1000000 in
--- The recursive proof expands nested translated failure sets and needs extra heartbeats.
 theorem Example1_BusyNetwork_lm {r : Type _} [Ring r]
     (n i j : Nat) :
     ∀ s Y, (s, Y) ∈ peF_rec (r := r) n (i, j) → Y ≠ Ev '' Alpha_pe (r := r) (i, j) := by

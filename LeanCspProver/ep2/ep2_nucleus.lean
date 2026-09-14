@@ -220,8 +220,9 @@ def Seq_to_AC : SeqName → proc ACName Event
  ********************************************************* -/
 
 @[simp]
-axiom guardedfun_AC_Seq :
-    guardedfun ACfun ∧ guardedfun Seqfun
+theorem guardedfun_AC_Seq :
+    guardedfun ACfun ∧ guardedfun Seqfun := by
+  constructor <;> intro pn <;> cases pn <;> simp [ACfun, Seqfun, guarded, noHide]
 
 /- *********************************************************
            a theorem for verifying Seq <=F AC

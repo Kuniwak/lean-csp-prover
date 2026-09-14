@@ -172,8 +172,10 @@ theorem Imp_def :
  ********************************************************* -/
 
 @[simp]
-axiom guarded_Imp :
-    guardedfun (p := ImpName) (q := ImpName) (α := Event) Impfun
+theorem guarded_Imp :
+    guardedfun (p := ImpName) (q := ImpName) (α := Event) Impfun := by
+  intro pn
+  cases pn <;> simp [Impfun, guarded, noHide]
 
 /- *********************************************************
                         Lemmas
