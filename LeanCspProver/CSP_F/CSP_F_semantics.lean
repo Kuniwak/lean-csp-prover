@@ -98,32 +98,104 @@ def failures (P : proc p α) (M : p → domFType α) : setFType α :=
 (*** for dealing with both !nat and !set ***)
 -/
 
-axiom failures_inv_inj [Inhabited β] {g : β → γ} (hg : Function.Injective g)
+theorem failures_inv_inj [Inhabited β] {g : β → γ} (hg : Function.Injective g)
     {N : Set β} {Pf : β → proc p α} {f : failure α} {x : p → domFType α} :
     (∃ c : γ, (∃ n, c = g n ∧ n ∈ N) ∧ f :f failures (Pf (Function.invFun g c)) x) ↔
-      ∃ z, z ∈ N ∧ f :f failures (Pf z) x
+      ∃ z, z ∈ N ∧ f :f failures (Pf z) x := by
+  constructor
+  · rintro ⟨c, ⟨n, rfl, hn⟩, hf⟩
+    rw [Function.leftInverse_invFun hg n] at hf
+    exact ⟨n, hn, hf⟩
+  · rintro ⟨z, hz, hf⟩
+    refine ⟨g z, ⟨z, rfl, hz⟩, ?_⟩
+    rw [Function.leftInverse_invFun hg z]
+    exact hf
 
-axiom Rep_int_choice_failures_nat (N : Set Nat) (Pf : Nat → proc p α) :
+theorem Rep_int_choice_failures_nat (N : Set Nat) (Pf : Nat → proc p α) :
     failures (Rep_int_choice_nat N Pf) =
-      fun M => CollectF fun f => ∃ n, n ∈ N ∧ f :f failures (Pf n) M
+      fun M => CollectF fun f => ∃ n, n ∈ N ∧ f :f failures (Pf n) M := by
+  funext M
+  rw [Rep_int_choice_nat_def]
+  simp only [failures, sumset]
+  congr 1
+  funext f
+  simp only [eq_iff_iff]
+  constructor
+  · rintro ⟨c, hc, hf⟩
+    obtain ⟨n, hn, rfl⟩ := hc
+    rw [Function.leftInverse_invFun inj_type2 n] at hf
+    exact ⟨n, hn, hf⟩
+  · rintro ⟨n, hn, hf⟩
+    refine ⟨type2 n, ⟨n, hn, rfl⟩, ?_⟩
+    rw [Function.leftInverse_invFun inj_type2 n]
+    exact hf
 
-axiom Rep_int_choice_failures_set (Xs : Set (Set α)) (Pf : Set α → proc p α) :
+theorem Rep_int_choice_failures_set (Xs : Set (Set α)) (Pf : Set α → proc p α) :
     failures (Rep_int_choice_set Xs Pf) =
-      fun M => CollectF fun f => ∃ X, X ∈ Xs ∧ f :f failures (Pf X) M
+      fun M => CollectF fun f => ∃ X, X ∈ Xs ∧ f :f failures (Pf X) M := by
+  funext M
+  rw [Rep_int_choice_set_def]
+  simp only [failures, sumset]
+  congr 1
+  funext f
+  simp only [eq_iff_iff]
+  constructor
+  · rintro ⟨c, hc, hf⟩
+    obtain ⟨X, hX, rfl⟩ := hc
+    rw [Function.leftInverse_invFun inj_type1 X] at hf
+    exact ⟨X, hX, hf⟩
+  · rintro ⟨X, hX, hf⟩
+    refine ⟨type1 X, ⟨X, hX, rfl⟩, ?_⟩
+    rw [Function.leftInverse_invFun inj_type1 X]
+    exact hf
 
-axiom Rep_int_choice_failures_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem Rep_int_choice_failures_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
     {f : failure α} {M : p → domFType α} :
     (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧ f :f failures (Pf (the_elem z)) M) ↔
-      ∃ a, a ∈ X ∧ f :f failures (Pf a) M
+      ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
+  constructor
+  · rintro ⟨z, ⟨a, rfl, ha⟩, hf⟩
+    rw [the_elem_singleton] at hf
+    exact ⟨a, ha, hf⟩
+  · rintro ⟨a, ha, hf⟩
+    refine ⟨{a}, ⟨a, rfl, ha⟩, ?_⟩
+    rw [the_elem_singleton]
+    exact hf
 
-axiom Rep_int_choice_failures_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
+theorem Rep_int_choice_failures_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
     failures (Rep_int_choice_com X Pf) =
-      fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M
+      fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
+  rw [Rep_int_choice_com_def, Rep_int_choice_failures_set]
+  funext M
+  congr 1
+  funext f
+  simp only [eq_iff_iff]
+  constructor
+  · rintro ⟨Y, ⟨a, ha, rfl⟩, hf⟩
+    rw [the_elem_singleton] at hf
+    exact ⟨a, ha, hf⟩
+  · rintro ⟨a, ha, hf⟩
+    refine ⟨{a}, ⟨a, ha, rfl⟩, ?_⟩
+    rw [the_elem_singleton]
+    exact hf
 
-axiom Rep_int_choice_failures_f [Inhabited α] [Inhabited β]
+theorem Rep_int_choice_failures_f [Inhabited α] [Inhabited β]
     {g : β → α} (hg : Function.Injective g) (X : Set β) (Pf : β → proc p α) :
     failures (Rep_int_choice_f (p := p) g X Pf) =
-      fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M
+      fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
+  rw [Rep_int_choice_f_def, Rep_int_choice_failures_com]
+  funext M
+  congr 1
+  funext f
+  simp only [eq_iff_iff]
+  constructor
+  · rintro ⟨a, ⟨b, hb, rfl⟩, hf⟩
+    rw [Function.leftInverse_invFun hg b] at hf
+    exact ⟨b, hb, hf⟩
+  · rintro ⟨b, hb, hf⟩
+    refine ⟨g b, ⟨b, hb, rfl⟩, ?_⟩
+    rw [Function.leftInverse_invFun hg b]
+    exact hf
 
 /- The Isabelle theorem bundle `Rep_int_choice_failures` is represented by
    `Rep_int_choice_failures_nat`, `Rep_int_choice_failures_set`,
@@ -561,16 +633,129 @@ theorem cspF_rw_right_refE
  *-----------------------------------------*)
 -/
 
-axiom failures_noPN_Constant_lm_EC {X : Set α} {Pf : α → proc p α} :
+theorem failures_noPN_Constant_lm_EC {X : Set α} {Pf : α → proc p α} :
     (∀ P ∈ Set.range Pf, ∃ F, failures P = fun _ => F) →
-      ∃ F2, failures (proc.Ext_pre_choice X Pf) = fun _ => F2
+      ∃ F2, failures (proc.Ext_pre_choice X Pf) = fun _ => F2 := by
+  intro h
+  choose F hF using fun a => h (Pf a) ⟨a, rfl⟩
+  refine ⟨CollectF fun f =>
+    (∃ Y, f = (<>, Y) ∧ (event.Ev '' X) ∩ Y = ∅) ∨
+      ∃ a s Y, f = (Abs_trace [event.Ev a] ^^^ s, Y) ∧ (s, Y) :f F a ∧ a ∈ X, ?_⟩
+  funext M
+  simp only [failures, hF]
 
-axiom failures_noPN_Constant_lm_RIC {C : sets_nats α} {Pf : aset_anat α → proc p α} :
+theorem failures_noPN_Constant_lm_RIC {C : sets_nats α} {Pf : aset_anat α → proc p α} :
     (∀ P ∈ Set.range Pf, ∃ F, failures P = fun _ => F) →
-      ∃ F2, failures (proc.Rep_int_choice C Pf) = fun _ => F2
+      ∃ F2, failures (proc.Rep_int_choice C Pf) = fun _ => F2 := by
+  intro h
+  choose F hF using fun c => h (Pf c) ⟨c, rfl⟩
+  refine ⟨CollectF fun f => ∃ c, c ∈ sumset C ∧ f :f F c, ?_⟩
+  funext M
+  simp only [failures, hF]
 
-axiom failures_noPN_Constant_lm {P : proc p α} :
-    noPN P → ∃ F, failures P = fun _ => F
+theorem failures_noPN_Constant_lm {P : proc p α} :
+    noPN P → ∃ F, failures P = fun _ => F := by
+  induction P with
+  | STOP =>
+      intro _
+      exact ⟨_, rfl⟩
+  | SKIP =>
+      intro _
+      exact ⟨_, rfl⟩
+  | DIV =>
+      intro _
+      exact ⟨_, rfl⟩
+  | Act_prefix a P ih =>
+      intro hn
+      obtain ⟨F, hF⟩ := ih hn
+      refine ⟨CollectF fun f =>
+        (∃ X, f = (<>, X) ∧ event.Ev a ∉ X) ∨
+          ∃ s X, f = (Abs_trace [event.Ev a] ^^^ s, X) ∧ (s, X) :f F, ?_⟩
+      funext M
+      simp only [failures, hF]
+  | Ext_pre_choice X Pf ih =>
+      intro hn
+      refine failures_noPN_Constant_lm_EC ?_
+      rintro P ⟨a, rfl⟩
+      exact ih a (hn a)
+  | Ext_choice P Q ihP ihQ =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ihP hn.1
+      obtain ⟨FQ, hFQ⟩ := ihQ hn.2
+      obtain ⟨TP, hTP⟩ := traces_noPN_Constant hn.1
+      obtain ⟨TQ, hTQ⟩ := traces_noPN_Constant hn.2
+      refine ⟨CollectF fun f =>
+        (∃ X, f = (<>, X) ∧ f :f (FP IntF FQ)) ∨
+          (∃ s X, f = (s, X) ∧ f :f (FP UnF FQ) ∧ s ≠ <>) ∨
+          ∃ X, f = (<>, X) ∧
+            ((Abs_trace [event.Tick] : traceType α) :t (TP UnT TQ)) ∧
+            X ⊆ Evset, ?_⟩
+      funext M
+      simp only [failures, hFP, hFQ, hTP, hTQ]
+  | Int_choice P Q ihP ihQ =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ihP hn.1
+      obtain ⟨FQ, hFQ⟩ := ihQ hn.2
+      refine ⟨FP UnF FQ, ?_⟩
+      funext M
+      simp only [failures, hFP, hFQ]
+  | Rep_int_choice C Pf ih =>
+      intro hn
+      refine failures_noPN_Constant_lm_RIC ?_
+      rintro P ⟨c, rfl⟩
+      exact ih c (hn c)
+  | «IF» b P Q ihP ihQ =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ihP hn.1
+      obtain ⟨FQ, hFQ⟩ := ihQ hn.2
+      refine ⟨if b then FP else FQ, ?_⟩
+      funext M
+      simp only [failures, hFP, hFQ]
+  | Parallel P X Q ihP ihQ =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ihP hn.1
+      obtain ⟨FQ, hFQ⟩ := ihQ hn.2
+      refine ⟨CollectF fun f =>
+        ∃ u Y Z, f = (u, Y ∪ Z) ∧
+          Y \ ((event.Ev '' X) ∪ {event.Tick}) = Z \ ((event.Ev '' X) ∪ {event.Tick}) ∧
+          ∃ s t, u ∈ par_tr s X t ∧ (s, Y) :f FP ∧ (t, Z) :f FQ, ?_⟩
+      funext M
+      simp only [failures, hFP, hFQ]
+  | Hiding P X ih =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ih hn
+      refine ⟨CollectF fun f =>
+        ∃ s Y, f = (hide_tr s X, Y) ∧ (s, (event.Ev '' X) ∪ Y) :f FP, ?_⟩
+      funext M
+      simp only [failures, hFP]
+  | Renaming P r ih =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ih hn
+      refine ⟨CollectF fun f =>
+        ∃ s t X, f = (t, X) ∧ s [[r]]* t ∧ (s, [[r]]inv X) :f FP, ?_⟩
+      funext M
+      simp only [failures, hFP]
+  | Seq_compo P Q ihP ihQ =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ihP hn.1
+      obtain ⟨FQ, hFQ⟩ := ihQ hn.2
+      obtain ⟨TP, hTP⟩ := traces_noPN_Constant hn.1
+      refine ⟨CollectF fun f =>
+        (∃ t X, f = (t, X) ∧ (t, X ∪ {event.Tick}) :f FP ∧ noTick t) ∨
+          ∃ s t X, f = (s ^^^ t, X) ∧
+            (s ^^^ (Abs_trace [event.Tick] : traceType α)) :t TP ∧
+            (t, X) :f FQ ∧ noTick s, ?_⟩
+      funext M
+      simp only [failures, hFP, hFQ, hTP]
+  | Depth_rest P n ih =>
+      intro hn
+      obtain ⟨FP, hFP⟩ := ih hn
+      refine ⟨FP .|. n, ?_⟩
+      funext M
+      simp only [failures, hFP]
+  | Proc_name x =>
+      intro hn
+      exact False.elim hn
 
 theorem failures_noPN_Constant {P : proc p α} :
     noPN P → ∃ F, failures P = fun _ => F :=
