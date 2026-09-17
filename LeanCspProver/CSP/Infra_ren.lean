@@ -27,7 +27,11 @@ noncomputable section
 def fun_to_rel {α : Type _} (f : α → α) : Set (α × α) :=
   {p | p.2 = f p.1}
 
-axiom diff_fun {x a : Type _} : Set (x → a) → Prop
+/- Isabelle: `consts diff_fun :: "('x => 'a) set => bool"` — declared without a
+   defining equation.  `opaque` is the faithful Lean counterpart: the value below
+   only witnesses that the type is inhabited and is never unfolded, so `diff_fun`
+   stays completely abstract while costing no axiom. -/
+opaque diff_fun {x a : Type _} : Set (x → a) → Prop := fun _ => True
 
 noncomputable def Renaming1_event_fun {α : Type _} (a : α) (b : α) : α → α := by
   classical
