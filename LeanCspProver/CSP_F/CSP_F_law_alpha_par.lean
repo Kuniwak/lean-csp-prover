@@ -111,10 +111,89 @@ theorem cspF_Alpha_parallel_ass_lm1
     · exact Or.inl h
     · exact Or.inr h.1
 
-axiom cspF_Alpha_parallel_assoc
+private theorem ins_image_mono {A B : Set α} (h : A ⊆ B) :
+    Set.insert Tick (Ev '' A) ⊆ Set.insert Tick (Ev '' B) := by
+  intro e he
+  change e = Tick ∨ e ∈ Ev '' A at he
+  change e = Tick ∨ e ∈ Ev '' B
+  rcases he with rfl | ⟨a, ha, rfl⟩
+  · exact Or.inl rfl
+  · exact Or.inr ⟨a, h ha, rfl⟩
+
+private theorem inter_ins_union {A B : Set α} {Y Z : Set (event α)} :
+    ((Y ∩ Set.insert Tick (Ev '' A)) ∪ (Z ∩ Set.insert Tick (Ev '' B))) ∩
+        Set.insert Tick (Ev '' (A ∪ B)) =
+      (Y ∩ Set.insert Tick (Ev '' A)) ∪ (Z ∩ Set.insert Tick (Ev '' B)) := by
+  refine Set.inter_eq_left.mpr ?_
+  rintro e (⟨-, he⟩ | ⟨-, he⟩)
+  · exact ins_image_mono Set.subset_union_left he
+  · exact ins_image_mono Set.subset_union_right he
+
+theorem cspF_Alpha_parallel_assoc
     {P1 P2 P3 : proc p α} {X1 X2 X3 : Set α} {M : p → domFType α} :
     eqF (((P1 |[X1, X2]| P2) |[X1 ∪ X2, X3]| P3)) M M
-      (P1 |[X1, X2 ∪ X3]| (P2 |[X2, X3]| P3))
+      (P1 |[X1, X2 ∪ X3]| (P2 |[X2, X3]| P3)) := by
+  refine cspF_eqF_of_eqT cspT_Alpha_parallel_assoc ?_
+  intro s X
+  have hassoc : X1 ∪ X2 ∪ X3 = X1 ∪ (X2 ∪ X3) := Set.union_assoc X1 X2 X3
+  have hr1 : rest_tr (rest_tr s (X1 ∪ X2)) X1 = rest_tr s X1 :=
+    (rest_tr_of_rest_tr_subset (u := s) (X := X1) (Y := X1 ∪ X2) Set.subset_union_left).2
+  have hr2 : rest_tr (rest_tr s (X1 ∪ X2)) X2 = rest_tr s X2 :=
+    (rest_tr_of_rest_tr_subset (u := s) (X := X2) (Y := X1 ∪ X2) Set.subset_union_right).2
+  have hr2' : rest_tr (rest_tr s (X2 ∪ X3)) X2 = rest_tr s X2 :=
+    (rest_tr_of_rest_tr_subset (u := s) (X := X2) (Y := X2 ∪ X3) Set.subset_union_left).2
+  have hr3' : rest_tr (rest_tr s (X2 ∪ X3)) X3 = rest_tr s X3 :=
+    (rest_tr_of_rest_tr_subset (u := s) (X := X3) (Y := X2 ∪ X3) Set.subset_union_right).2
+  constructor
+  · intro h
+    rw [in_failures_Alpha_parallel] at h
+    obtain ⟨u, X', hEq, Y', Z, hX, h12, h3, hsu⟩ := h
+    have hu : u = s := (Prod.mk.inj hEq).1.symm
+    have hXX : X' = X := (Prod.mk.inj hEq).2.symm
+    rw [hu] at h12 h3 hsu
+    rw [hXX] at hX
+    rw [in_failures_Alpha_parallel] at h12
+    obtain ⟨u2, X2', hEq2, Ya, Za, hX12, h1, h2, -⟩ := h12
+    have hu2 : u2 = rest_tr s (X1 ∪ X2) := (Prod.mk.inj hEq2).1.symm
+    have hYv : X2' = Y' := (Prod.mk.inj hEq2).2.symm
+    rw [hu2, hr1] at h1
+    rw [hu2, hr2] at h2
+    rw [hYv] at hX12
+    rw [in_failures_Alpha_parallel]
+    refine ⟨s, X, rfl, Ya,
+      (Za ∩ Set.insert Tick (Ev '' X2)) ∪ (Z ∩ Set.insert Tick (Ev '' X3)), ?_, h1, ?_,
+      by rw [← hassoc]; exact hsu⟩
+    · rw [← hassoc, hX, hX12, Set.union_assoc]
+      exact cspF_Alpha_parallel_ass_lm1
+    · rw [in_failures_Alpha_parallel]
+      exact ⟨rest_tr s (X2 ∪ X3),
+        (Za ∩ Set.insert Tick (Ev '' X2)) ∪ (Z ∩ Set.insert Tick (Ev '' X3)), rfl, Za, Z,
+        inter_ins_union, by rw [hr2']; exact h2, by rw [hr3']; exact h3,
+        rest_tr_subset_event⟩
+  · intro h
+    rw [in_failures_Alpha_parallel] at h
+    obtain ⟨u, X', hEq, Y, Z', hX, h1, h23, hsu⟩ := h
+    have hu : u = s := (Prod.mk.inj hEq).1.symm
+    have hXX : X' = X := (Prod.mk.inj hEq).2.symm
+    rw [hu] at h1 h23 hsu
+    rw [hXX] at hX
+    rw [in_failures_Alpha_parallel] at h23
+    obtain ⟨u2, X2', hEq2, Ya', Za', hX23, h2, h3, -⟩ := h23
+    have hu2 : u2 = rest_tr s (X2 ∪ X3) := (Prod.mk.inj hEq2).1.symm
+    have hZv : X2' = Z' := (Prod.mk.inj hEq2).2.symm
+    rw [hu2, hr2'] at h2
+    rw [hu2, hr3'] at h3
+    rw [hZv] at hX23
+    rw [in_failures_Alpha_parallel]
+    refine ⟨s, X, rfl,
+      (Y ∩ Set.insert Tick (Ev '' X1)) ∪ (Ya' ∩ Set.insert Tick (Ev '' X2)), Za', ?_, ?_, h3,
+      by rw [hassoc]; exact hsu⟩
+    · rw [hassoc, hX, hX23, inter_ins_union, Set.union_assoc]
+    · rw [in_failures_Alpha_parallel]
+      exact ⟨rest_tr s (X1 ∪ X2),
+        (Y ∩ Set.insert Tick (Ev '' X1)) ∪ (Ya' ∩ Set.insert Tick (Ev '' X2)), rfl, Y, Ya',
+        inter_ins_union, by rw [hr1]; exact h1, by rw [hr2]; exact h2,
+        rest_tr_subset_event⟩
 
 theorem cspF_Alpha_parallel_assoc_sym
     {P1 P2 P3 : proc p α} {X1 X2 X3 : Set α} {M : p → domFType α} :
