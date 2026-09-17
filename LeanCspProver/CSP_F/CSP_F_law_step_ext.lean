@@ -46,16 +46,74 @@ noncomputable section
 
 /- Isabelle's anonymous lemmas are given explicit Lean names below. -/
 
-axiom cspF_Parallel_Timeout_counterexample_notin_failures
-    {a b : α} {M : p → domFType α} :
+/-- In an interleaving (`X = {}`) a singleton refusal must be shared by both sides. -/
+private theorem par_singleton_refusal {b : α} {Y Z : Set (event α)}
+    (hU : Y ∪ Z = ({Ev b} : Set (event α)))
+    (hD : Y \ ((Ev '' ({} : Set α)) ∪ {Tick}) = Z \ ((Ev '' ({} : Set α)) ∪ {Tick})) :
+    Y = ({Ev b} : Set (event α)) ∧ Z = ({Ev b} : Set (event α)) := by
+  have hYsub : Y ⊆ ({Ev b} : Set (event α)) := hU ▸ Set.subset_union_left
+  have hZsub : Z ⊆ ({Ev b} : Set (event α)) := hU ▸ Set.subset_union_right
+  have key : ∀ A B : Set (event α), A ⊆ ({Ev b} : Set (event α)) →
+      A \ ((Ev '' ({} : Set α)) ∪ {Tick}) = B \ ((Ev '' ({} : Set α)) ∪ {Tick}) → A ⊆ B := by
+    intro A B hA hEq e he
+    have h1 : e ∈ A \ ((Ev '' ({} : Set α)) ∪ {Tick}) := by
+      refine ⟨he, ?_⟩
+      rintro (⟨x, hx, -⟩ | hT)
+      · exact hx
+      · rw [Set.mem_singleton_iff] at hT
+        rw [hA he] at hT
+        exact absurd hT (by simp)
+    rw [hEq] at h1
+    exact h1.1
+  have hYZ : Y = Z := Set.Subset.antisymm (key Y Z hYsub hD) (key Z Y hZsub hD.symm)
+  have hYY : Y ∪ Z = Y := by rw [← hYZ, Set.union_self]
+  refine ⟨by rw [← hU, hYY], ?_⟩
+  rw [← hU, hYY]
+  exact hYZ.symm
+
+theorem cspF_Parallel_Timeout_counterexample_notin_failures {a b : α} {M : p → domFType α} :
     a ≠ b →
       (Abs_trace [event.Ev a], {event.Ev b}) ~:f
         failures
           ((Timeout (a ~> proc.STOP) proc.STOP) |[({} : Set α)]|
             (Timeout proc.STOP (b ~> proc.STOP)))
-          M
+          M := by
+  intro hab hmem
+  rw [Timeout_def, Timeout_def, in_failures_Parallel] at hmem
+  obtain ⟨u, Y, Z, hEq, hD, s, t, hpar, hsY, htZ⟩ := hmem
+  have hu : u = Abs_trace [Ev a] := (Prod.mk.inj hEq).1.symm
+  have hYZ : Y ∪ Z = ({Ev b} : Set (event α)) := (Prod.mk.inj hEq).2.symm
+  obtain ⟨rfl, rfl⟩ := par_singleton_refusal hYZ hD
+  rw [hu, par_tr_Ev] at hpar
+  rcases hpar with ⟨ha, -, -⟩ | ⟨-, rfl, rfl⟩ | ⟨-, rfl, rfl⟩
+  · exact ha
+  · rw [in_failures_Timeout1] at htZ
+    rcases htZ with hact | ⟨s1, W1, hEq1, hne1, -⟩ | ⟨W1, hEq1, -, hTick⟩
+    · rw [in_failures_Act_prefix] at hact
+      rcases hact with ⟨W1, hEq1, hnb⟩ | ⟨s1, W1, hEq1, -⟩
+      · rcases Prod.mk.inj hEq1 with ⟨-, hW⟩
+        exact hnb (hW ▸ rfl)
+      · exact absurd (Prod.mk.inj hEq1).1 (by simp)
+    · exact hne1 (Prod.mk.inj hEq1).1.symm
+    · rw [in_traces_STOP] at hTick
+      simp at hTick
+  · rw [in_failures_Timeout1] at htZ
+    rcases htZ with hact | ⟨s1, W1, hEq1, -, hstop⟩ | ⟨W1, hEq1, -, -⟩
+    · rw [in_failures_Act_prefix] at hact
+      rcases hact with ⟨W1, hEq1, -⟩ | ⟨s1, W1, hEq1, -⟩
+      · exact absurd (Prod.mk.inj hEq1).1 (by simp)
+      · have h1 : (Abs_trace [Ev a] ^^^ (<> : traceType α)) = Abs_trace [Ev b] ^^^ s1 := by
+          rw [appt_nil_right]
+          exact (Prod.mk.inj hEq1).1
+        exact hab (appt_same_head.mp h1).1
+    · rw [in_failures_STOP] at hstop
+      obtain ⟨W2, hEq2⟩ := hstop
+      have : (s1 : traceType α) = <> := (Prod.mk.inj hEq2).1
+      rw [this] at hEq1
+      exact absurd (Prod.mk.inj hEq1).1 (by simp)
+    · exact absurd (Prod.mk.inj hEq1).1 (by simp)
 
-axiom cspF_Parallel_Timeout_counterexample_in_failures
+theorem cspF_Parallel_Timeout_counterexample_in_failures
     {a b : α} {X : Set α} {M : p → domFType α} :
     (Abs_trace [event.Ev a], {event.Ev b}) :f
       (failures
@@ -63,7 +121,16 @@ axiom cspF_Parallel_Timeout_counterexample_in_failures
           ((a ~> proc.STOP) |[({} : Set α)]| proc.STOP)
           ((proc.STOP |[({} : Set α)]| Timeout proc.STOP (b ~> proc.STOP)) |~|
             ((Timeout (a ~> proc.STOP) proc.STOP) |[X]| (b ~> proc.STOP))))
-        M)
+        M) := by
+  simp only [Timeout_def]
+  rw [in_failures_Timeout1]
+  refine Or.inr (Or.inl ⟨Abs_trace [Ev a], {Ev b}, rfl, by simp, ?_⟩)
+  rw [in_failures_Parallel]
+  refine ⟨Abs_trace [Ev a], {Ev b}, {Ev b}, by rw [Set.union_self], rfl,
+    Abs_trace [Ev a], <>, par_tr_nil_right.mpr ⟨rfl, by simp, by simp⟩, ?_,
+    in_failures_STOP.mpr ⟨{Ev b}, rfl⟩⟩
+  rw [in_failures_Act_prefix]
+  exact Or.inr ⟨<>, {Ev b}, by rw [appt_nil_right], in_failures_STOP.mpr ⟨{Ev b}, rfl⟩⟩
 
 /-
 (*********************************************************
@@ -83,17 +150,49 @@ axiom cspF_Parallel_Timeout_counterexample_in_failures
 /-                                                                         -/
 /-  check the following lemmas                                             -/
 
-axiom cspF_Timeout_Parallel_input_counterexample_notin_failures
-    {a b : α} {M : p → domFType α} :
+theorem cspF_Timeout_Parallel_input_counterexample_notin_failures {a b : α} {M : p → domFType α} :
     a ≠ b →
       (Abs_trace [event.Ev a], {event.Ev b}) ~:f
         failures
           ((Timeout proc.STOP (b ~> proc.STOP)) |[({} : Set α)]|
             (proc.Ext_pre_choice ({a} : Set α) (fun _ => proc.STOP)))
-          M
+          M := by
+  intro hab hmem
+  rw [Timeout_def, in_failures_Parallel] at hmem
+  obtain ⟨u, Y, Z, hEq, hD, s, t, hpar, hsY, htZ⟩ := hmem
+  have hu : u = Abs_trace [Ev a] := (Prod.mk.inj hEq).1.symm
+  have hYZ : Y ∪ Z = ({Ev b} : Set (event α)) := (Prod.mk.inj hEq).2.symm
+  obtain ⟨rfl, rfl⟩ := par_singleton_refusal hYZ hD
+  rw [hu, par_tr_Ev] at hpar
+  rcases hpar with ⟨ha, -, -⟩ | ⟨-, rfl, rfl⟩ | ⟨-, rfl, rfl⟩
+  · exact ha
+  · rw [in_failures_Timeout1] at hsY
+    rcases hsY with hact | ⟨s1, W1, hEq1, -, hstop⟩ | ⟨W1, hEq1, -, -⟩
+    · rw [in_failures_Act_prefix] at hact
+      rcases hact with ⟨W1, hEq1, -⟩ | ⟨s1, W1, hEq1, -⟩
+      · exact absurd (Prod.mk.inj hEq1).1 (by simp)
+      · have h1 : (Abs_trace [Ev a] ^^^ (<> : traceType α)) = Abs_trace [Ev b] ^^^ s1 := by
+          rw [appt_nil_right]
+          exact (Prod.mk.inj hEq1).1
+        exact hab (appt_same_head.mp h1).1
+    · rw [in_failures_STOP] at hstop
+      obtain ⟨W2, hEq2⟩ := hstop
+      have h0 : (s1 : traceType α) = <> := (Prod.mk.inj hEq2).1
+      rw [h0] at hEq1
+      exact absurd (Prod.mk.inj hEq1).1 (by simp)
+    · exact absurd (Prod.mk.inj hEq1).1 (by simp)
+  · rw [in_failures_Timeout1] at hsY
+    rcases hsY with hact | ⟨s1, W1, hEq1, hne1, -⟩ | ⟨W1, hEq1, -, hTick⟩
+    · rw [in_failures_Act_prefix] at hact
+      rcases hact with ⟨W1, hEq1, hnb⟩ | ⟨s1, W1, hEq1, -⟩
+      · rcases Prod.mk.inj hEq1 with ⟨-, hW⟩
+        exact hnb (hW ▸ rfl)
+      · exact absurd (Prod.mk.inj hEq1).1 (by simp)
+    · exact hne1 (Prod.mk.inj hEq1).1.symm
+    · rw [in_traces_STOP] at hTick
+      simp at hTick
 
-axiom cspF_Timeout_Parallel_input_counterexample_in_failures
-    {a b : α} {M : p → domFType α} :
+theorem cspF_Timeout_Parallel_input_counterexample_in_failures {a b : α} {M : p → domFType α} :
     a ≠ b →
       (Abs_trace [event.Ev a], {event.Ev b}) :f
         (failures
@@ -103,7 +202,18 @@ axiom cspF_Timeout_Parallel_input_counterexample_in_failures
               (proc.STOP |[({} : Set α)]| proc.Ext_pre_choice ({a} : Set α) (fun _ => proc.STOP))
               ((b ~> proc.STOP) |[({} : Set α)]|
                 proc.Ext_pre_choice ({a} : Set α) (fun _ => proc.STOP))))
-          M)
+          M) := by
+  intro _
+  simp only [Timeout_def]
+  rw [in_failures_Ext_choice]
+  refine Or.inr (Or.inl ⟨Abs_trace [Ev a], ⟨{Ev b}, rfl⟩, Or.inr ?_, by simp⟩)
+  rw [in_failures_Timeout1]
+  refine Or.inr (Or.inl ⟨Abs_trace [Ev a], {Ev b}, rfl, by simp, ?_⟩)
+  rw [in_failures_Parallel]
+  refine ⟨Abs_trace [Ev a], {Ev b}, {Ev b}, by rw [Set.union_self], rfl, <>, Abs_trace [Ev a],
+    par_tr_nil_left.mpr ⟨rfl, by simp, by simp⟩, in_failures_STOP.mpr ⟨{Ev b}, rfl⟩, ?_⟩
+  rw [in_failures_Ext_pre_choice]
+  exact Or.inr ⟨a, <>, {Ev b}, by rw [appt_nil_right], in_failures_STOP.mpr ⟨{Ev b}, rfl⟩, rfl⟩
 
 /-
 (*********************************************************
