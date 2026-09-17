@@ -28,11 +28,47 @@ noncomputable section
    is equal in the traces model but *false* in the stable-failures model
    (take `A = {a}`, `Pf = %_. STOP`: `(<Ev a>, {})` is a failure of the
    left-hand side but of neither summand on the right). -/
-axiom cspF_input_DIV
+theorem cspF_input_DIV
     {A : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Ext_pre_choice A Pf) M M
       (((proc.Ext_pre_choice A Pf) [+] (proc.DIV : proc p α)) |~|
-        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α)))
+        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α))) := by
+  refine cspF_eqF_of_eqT cspT_input_DIV ?_
+  intro s X
+  constructor
+  · intro h
+    rw [in_failures_Ext_pre_choice] at h
+    rw [in_failures_Int_choice]
+    rcases h with ⟨Y, hEq, hdisj⟩ | ⟨a, t, Y, hEq, hf, ha⟩
+    · refine Or.inr ?_
+      rw [in_failures_Ext_pre_choice]
+      exact Or.inl ⟨Y, hEq, hdisj⟩
+    · refine Or.inl ?_
+      rw [in_failures_Ext_choice]
+      refine Or.inr (Or.inl ⟨s, ⟨X, rfl⟩, Or.inl ?_, ?_⟩)
+      · rw [in_failures_Ext_pre_choice]
+        exact Or.inr ⟨a, t, Y, hEq, hf, ha⟩
+      · rw [(Prod.mk.inj hEq).1]
+        simp
+  · intro h
+    rw [in_failures_Int_choice] at h
+    rcases h with h | h
+    · rw [in_failures_Ext_choice] at h
+      rcases h with ⟨-, -, hdiv⟩ | ⟨-, -, hor, -⟩ | ⟨-, -, hTick, -⟩
+      · exact absurd hdiv in_failures_DIV
+      · exact hor.resolve_right in_failures_DIV
+      · rcases hTick with hT | hT
+        · rw [in_traces_Ext_pre_choice] at hT
+          rcases hT with hnil | ⟨a, u, hu, -, -⟩
+          · simp at hnil
+          · simp at hu
+        · rw [in_traces_DIV] at hT
+          simp at hT
+    · rw [in_failures_Ext_pre_choice] at h
+      rcases h with ⟨Y, hEq, hdisj⟩ | ⟨a, t, Y, -, hf, -⟩
+      · rw [in_failures_Ext_pre_choice]
+        exact Or.inl ⟨Y, hEq, hdisj⟩
+      · exact absurd hf in_failures_DIV
 
 /-
 (*********************************************************

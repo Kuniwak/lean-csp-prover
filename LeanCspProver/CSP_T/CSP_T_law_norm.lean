@@ -26,11 +26,33 @@ noncomputable section
    is equal in the traces model but *false* in the stable-failures model
    (take `A = {a}`, `Pf = %_. STOP`: `(<Ev a>, {})` is a failure of the
    left-hand side but of neither summand on the right). -/
-axiom cspT_input_DIV
+theorem cspT_input_DIV
     {A : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Ext_pre_choice A Pf) M M
       (((proc.Ext_pre_choice A Pf) [+] (proc.DIV : proc p α)) |~|
-        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α)))
+        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α))) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Int_choice]
+    exact Or.inl (in_traces_Ext_choice.2 (Or.inl ht))
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Int_choice] at ht
+    rcases ht with h | h
+    · rw [in_traces_Ext_choice] at h
+      rcases h with h | h
+      · exact h
+      · rw [in_traces_DIV] at h
+        subst h
+        exact nilt_in_T
+    · rw [in_traces_Ext_pre_choice] at h
+      rcases h with rfl | ⟨a, s, rfl, hs, ha⟩
+      · exact nilt_in_T
+      · rw [in_traces_DIV] at hs
+        subst hs
+        exact in_traces_Ext_pre_choice.2 (Or.inr ⟨a, <>, rfl, nilt_in_T, ha⟩)
 
 /-
 (*********************************************************
