@@ -42,6 +42,24 @@ private theorem set_map' {β γ : Type _} (f : β → γ) (l : List β) :
     _root_.set (l.map f) = f '' _root_.set l := by
   ext x
   simp [_root_.set]
+private theorem nth_map_lt {β γ : Type _} [Inhabited β] [Inhabited γ] {f : β → γ}
+    {l : List β} {i : Nat} (hi : i < l.length) : nth (l.map f) i = f (nth l i) := by
+  have hi' : i < (l.map f).length := by simpa using hi
+  rw [nth, nth, List.getD_eq_getElem (l := l.map f) (d := default) hi',
+    List.getD_eq_getElem (l := l) (d := default) hi, List.getElem_map]
+
+private theorem nth_zip_lt {β γ : Type _} [Inhabited β] [Inhabited γ] {s : List β} {t : List γ}
+    {i : Nat} (hi : i < s.length) (hlen : s.length = t.length) :
+    nth (List.zip s t) i = (nth s i, nth t i) := by
+  have hz : i < (List.zip s t).length := by
+    simpa [List.length_zip, hlen] using hi
+  rw [nth, nth, nth, List.getD_eq_getElem (l := List.zip s t) (d := default) hz,
+    List.getD_eq_getElem (l := s) (d := default) hi,
+    List.getD_eq_getElem (l := t) (d := default) (by omega)]
+  simp
+
+/- local copies of the file-private definitions -/
+
 private theorem sUnion_snd_cons' {PX : proc p α × Set α} {PXs : List (proc p α × Set α)} :
     Set.sUnion (Prod.snd '' _root_.set (PX :: PXs)) =
       Prod.snd PX ∪ Set.sUnion (Prod.snd '' _root_.set PXs) := by
@@ -415,16 +433,63 @@ private def in_failures_Inductive_parallel_nth_stmt
                     (∀ i : Nat, (i < PXs.length) →
                       nth_inductive_parallel_failure_cond PXs Ys u M i)))
 
-/- The statement was repaired twice: the iff is now parenthesised (see
-   `in_failures_Inductive_parallel` above), and the last conjunct used to be a
-   `private axiom … : Prop` placeholder instead of the Isabelle condition
-   `ALL i. i < length PXs --> ((u rest-tr (snd (PXs!i))), Ys!i) :f failures (fst (PXs!i)) M`
-   -- which is exactly the already-present `nth_inductive_parallel_failure_cond`.
-   Still to prove: it is `in_failures_Inductive_parallel` transported along
-   `PXYs <-> (map fst PXYs, map snd PXYs)` (see `zip_map_fst_snd`). -/
-axiom in_failures_Inductive_parallel_nth
+private theorem union_PXYs_eq_nth {PXYs : List ((proc p α × Set α) × Set (event α))} :
+    Set.sUnion {S | ∃ P X Y, ((P, X), Y) ∈ _root_.set PXYs ∧
+        S = Set.inter Y (Set.insert Tick (Ev '' X))} =
+      Set.sUnion
+        (inductive_parallel_nth_union (List.map Prod.fst PXYs) (List.map Prod.snd PXYs)) := by
+  ext e
+  constructor
+  · rintro ⟨S, ⟨P, X, Y, hmem, rfl⟩, he⟩
+    obtain ⟨i, hi, hnth⟩ := set_nth.mp hmem
+    refine ⟨Set.inter (nth (List.map Prod.snd PXYs) i)
+      (Set.insert Tick (Ev '' (Prod.snd (nth (List.map Prod.fst PXYs) i)))),
+      ⟨i, by simpa using hi, rfl⟩, ?_⟩
+    rw [nth_map_lt hi, nth_map_lt hi, ← hnth]
+    exact he
+  · rintro ⟨S, ⟨i, hi, rfl⟩, he⟩
+    have hi' : i < PXYs.length := by simpa using hi
+    refine ⟨Set.inter (nth PXYs i).2 (Set.insert Tick (Ev '' (Prod.snd (nth PXYs i).1))),
+      ⟨(nth PXYs i).1.1, (nth PXYs i).1.2, (nth PXYs i).2, set_nth.mpr ⟨i, hi', rfl⟩, rfl⟩, ?_⟩
+    rw [nth_map_lt hi', nth_map_lt hi'] at he
+    exact he
+
+theorem in_failures_Inductive_parallel_nth
     {PXs : List (proc p α × Set α)} {f : failure α} {M : p → domFType α} :
-    in_failures_Inductive_parallel_nth_stmt PXs f M
+    in_failures_Inductive_parallel_nth_stmt PXs f M := by
+  intro h
+  rw [in_failures_Inductive_parallel h]
+  constructor
+  · rintro ⟨u, hsu, Z, hEq, PXYs, hmap, hZ, hall⟩
+    subst hmap
+    refine ⟨u, hsu, Z, hEq, List.map Prod.snd PXYs, by simp, ?_, ?_⟩
+    · rw [hZ, union_PXYs_eq_nth]
+    · intro i hi
+      have hi' : i < PXYs.length := by simpa using hi
+      have hval := hall (nth PXYs i).1.1 (nth PXYs i).1.2 (nth PXYs i).2
+        (set_nth.mpr ⟨i, hi', rfl⟩)
+      simp only [nth_inductive_parallel_failure_cond]
+      rw [nth_map_lt hi', nth_map_lt hi']
+      exact hval
+  · rintro ⟨u, hsu, Z, hEq, Ys, hlen, hZ, hall⟩
+    refine ⟨u, hsu, Z, hEq, List.zip PXs Ys, map_fst_zip_eq (le_of_eq hlen), ?_, ?_⟩
+    · rw [hZ, union_PXYs_eq_nth, map_fst_zip_eq (le_of_eq hlen),
+        List.map_snd_zip (le_of_eq hlen.symm)]
+    · intro P X Y hmem
+      obtain ⟨i, hi, hnth⟩ := set_nth.mp hmem
+      have hiP : i < PXs.length := by
+        rw [List.length_zip] at hi
+        omega
+      have hval := hall i hiP
+      simp only [nth_inductive_parallel_failure_cond] at hval
+      rw [nth_zip_lt hiP hlen] at hnth
+      obtain ⟨h1, h2⟩ := Prod.mk.inj hnth
+      have hP : P = (nth PXs i).1 := congrArg Prod.fst h1
+      have hX : X = (nth PXs i).2 := congrArg Prod.snd h1
+      subst hP
+      subst hX
+      subst h2
+      exact hval
 
 /-============================================================*
  |                                                            |
@@ -470,26 +535,67 @@ private def rep_parallel_lm2_right
           (nth (List.map Yf Is) i)
           (Set.insert Tick (Ev '' (Prod.snd (nth (List.map PXf Is) i)))))
 
-axiom in_failures_Rep_parallel_lm1
+theorem in_failures_Rep_parallel_lm1
     [Inhabited ι] {I : Set ι} {Is : List ι} {Ys : List (Set (event α))}
     {PXf : ι → proc p α × Set α} :
     isListOf Is I → Ys.length = Is.length →
       Set.sUnion (rep_parallel_lm1_left Is Ys PXf) =
-      Set.sUnion (rep_parallel_lm1_right I Is Ys PXf)
+        Set.sUnion (rep_parallel_lm1_right I Is Ys PXf) := by
+  intro hIs hlen
+  ext e
+  constructor
+  · rintro ⟨S, ⟨i, hi, rfl⟩, he⟩
+    have hiIs : i < Is.length := by omega
+    refine ⟨Set.inter (nth Ys (THE (fun n : Nat => nth Is n = nth Is i ∧ n < Is.length)))
+        (Set.insert Tick (Ev '' (Prod.snd (PXf (nth Is i))))),
+      ⟨nth Is i, isListOf_nth_in_index hIs hiIs, rfl⟩, ?_⟩
+    rw [isListOf_THE_nth hIs hiIs, ← nth_map_lt (f := PXf) hiIs]
+    exact he
+  · rintro ⟨S, ⟨i, hi, rfl⟩, he⟩
+    obtain ⟨n, hn, hin⟩ := isListOf_index_to_nth hIs i hi
+    refine ⟨Set.inter (nth Ys n)
+        (Set.insert Tick (Ev '' (Prod.snd (nth (List.map PXf Is) n)))),
+      ⟨n, by omega, rfl⟩, ?_⟩
+    rw [nth_map_lt hn]
+    rw [hin, isListOf_THE_nth hIs hn] at he
+    exact he
 
-axiom in_failures_Rep_parallel_lm2
+theorem in_failures_Rep_parallel_lm2
     {I : Set ι} {Is : List ι} {PXf : ι → proc p α × Set α} {Yf : ι → Set (event α)} :
     isListOf Is I →
       Set.sUnion (rep_parallel_lm2_left I PXf Yf) =
-      Set.sUnion (rep_parallel_lm2_right Is PXf Yf)
+        Set.sUnion (rep_parallel_lm2_right Is PXf Yf) := by
+  cases Is with
+  | nil =>
+      intro hIs
+      have hI : I = {} := isListOf_nil_to_emptyset.mp hIs
+      subst hI
+      ext e
+      constructor
+      · rintro ⟨S, ⟨i, hi, rfl⟩, -⟩
+        simp at hi
+      · rintro ⟨S, ⟨i, hi, rfl⟩, -⟩
+        simp at hi
+  | cons a t =>
+      intro hIs
+      haveI : Inhabited ι := ⟨a⟩
+      ext e
+      constructor
+      · rintro ⟨S, ⟨i, hi, rfl⟩, he⟩
+        obtain ⟨n, hn, hin⟩ := isListOf_index_to_nth hIs i hi
+        refine ⟨Set.inter (nth (List.map Yf (a :: t)) n)
+            (Set.insert Tick (Ev '' (Prod.snd (nth (List.map PXf (a :: t)) n)))),
+          ⟨n, hn, rfl⟩, ?_⟩
+        rw [nth_map_lt hn, nth_map_lt hn, ← hin]
+        exact he
+      · rintro ⟨S, ⟨i, hi, rfl⟩, he⟩
+        refine ⟨Set.inter (Yf (nth (a :: t) i))
+            (Set.insert Tick (Ev '' (Prod.snd (PXf (nth (a :: t) i))))),
+          ⟨nth (a :: t) i, isListOf_nth_in_index hIs hi, rfl⟩, ?_⟩
+        rw [nth_map_lt hi, nth_map_lt hi] at he
+        exact he
 
-/- The iff is now parenthesised (it used to read `(I ≠ ∅ → I.Finite → f :f …) ↔ …`,
-   which is false for `I = ∅`).  Still to prove: it follows from
-   `in_failures_Inductive_parallel_nth` via `in_failures_Rep_parallel_lm1` /
-   `_lm2`, which in turn need an `isListOf_THE_nth` lemma (the index list of a
-   finite set has no duplicates, so `THE n. Is!n = i ∧ n < length Is` is the
-   position of `i`). -/
-axiom in_failures_Rep_parallel
+theorem in_failures_Rep_parallel
     {I : Set ι} {PXf : ι → proc p α × Set α} {f : failure α} {M : p → domFType α} :
     I ≠ ∅ → I.Finite →
       ((f :f failures (Rep_parallel I PXf) M) ↔
@@ -502,7 +608,67 @@ axiom in_failures_Rep_parallel
                     Set.sUnion {S | ∃ i : ι, i ∈ I ∧
                       S = Set.inter (Yf i) (Set.insert Tick (Ev '' (Prod.snd (PXf i))))} ∧
                   ∀ i : ι, i ∈ I →
-                    ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M)
+                    ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M) := by
+  intro hI hfin
+  obtain ⟨i0, -⟩ := Set.nonempty_iff_ne_empty.2 hI
+  haveI : Inhabited ι := ⟨i0⟩
+  have hIs : isListOf (SOME fun Is : List ι => isListOf Is I) I :=
+    chooseOrDefault_spec (isListOf_EX hfin)
+  have hne : (SOME fun Is : List ι => isListOf Is I) ≠ [] := isListOf_nonemptyset hI hIs
+  have hmapne : List.map PXf (SOME fun Is : List ι => isListOf Is I) ≠ [] := by
+    simpa using hne
+  have hset : _root_.set (List.map PXf (SOME fun Is : List ι => isListOf Is I)) = PXf '' I := by
+    rw [set_map', isListOf_set_eq hIs]
+  rw [Rep_parallel_def, in_failures_Inductive_parallel_nth hmapne, hset]
+  constructor
+  · rintro ⟨u, hsu, Z, hEq, Ys, hlen, hZ, hall⟩
+    have hlen' : Ys.length = (SOME fun Is : List ι => isListOf Is I).length := by
+      simpa using hlen.symm
+    have hnu :
+        inductive_parallel_nth_union (List.map PXf (SOME fun Is : List ι => isListOf Is I)) Ys =
+          rep_parallel_lm1_left (SOME fun Is : List ι => isListOf Is I) Ys PXf := by
+      ext S
+      constructor
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by rw [← hlen]; exact hi, rfl⟩
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by rw [hlen]; exact hi, rfl⟩
+    refine ⟨u, hsu, Z, hEq,
+      fun i => nth Ys (THE (fun n : Nat =>
+        nth (SOME fun Is : List ι => isListOf Is I) n = i ∧
+          n < (SOME fun Is : List ι => isListOf Is I).length)), ?_, ?_⟩
+    · rw [hZ, hnu, in_failures_Rep_parallel_lm1 hIs hlen']
+      rfl
+    · intro i hi
+      obtain ⟨n, hn, hin⟩ := isListOf_index_to_nth hIs i hi
+      have hval := hall n (by simpa using hn)
+      simp only [nth_inductive_parallel_failure_cond] at hval
+      rw [nth_map_lt hn] at hval
+      subst hin
+      dsimp only
+      rw [isListOf_THE_nth hIs hn]
+      exact hval
+  · rintro ⟨u, hsu, Z, hEq, Yf, hZ, hall⟩
+    have hnu :
+        inductive_parallel_nth_union (List.map PXf (SOME fun Is : List ι => isListOf Is I))
+            (List.map Yf (SOME fun Is : List ι => isListOf Is I)) =
+          rep_parallel_lm2_right (SOME fun Is : List ι => isListOf Is I) PXf Yf := by
+      ext S
+      constructor
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by simpa using hi, rfl⟩
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by simpa using hi, rfl⟩
+    refine ⟨u, hsu, Z, hEq, List.map Yf (SOME fun Is : List ι => isListOf Is I), by simp, ?_, ?_⟩
+    · rw [hZ, hnu, ← in_failures_Rep_parallel_lm2 hIs]
+      rfl
+    · intro i hi
+      have hi' : i < (SOME fun Is : List ι => isListOf Is I).length := by simpa using hi
+      have hval := hall (nth (SOME fun Is : List ι => isListOf Is I) i)
+        (isListOf_nth_in_index hIs hi')
+      simp only [nth_inductive_parallel_failure_cond]
+      rw [nth_map_lt hi', nth_map_lt hi']
+      exact hval
 
 /- The Isabelle theorem bundle `in_failures_par` is represented by
    `in_failures_Alpha_parallel`, `in_failures_Inductive_parallel`, and
@@ -510,7 +676,7 @@ axiom in_failures_Rep_parallel
 
 /- (*** Semantics for indexed alphabetized parallel on F ***) -/
 
-axiom failures_Rep_parallel
+theorem failures_Rep_parallel
     {I : Set ι} {PXf : ι → proc p α × Set α} {M : p → domFType α} :
     I ≠ ∅ → I.Finite →
       failures (Rep_parallel I PXf) M =
@@ -524,16 +690,26 @@ axiom failures_Rep_parallel
                     Set.sUnion {S | ∃ i : ι, i ∈ I ∧
                       S = Set.inter (Yf i) (Set.insert Tick (Ev '' (Prod.snd (PXf i))))} ∧
                   ∀ i : ι, i ∈ I →
-                      ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M)
+                      ((u rest-tr (Prod.snd (PXf i))), Yf i) :f
+                        failures (Prod.fst (PXf i)) M) := by
+  intro hI hfin
+  rw [← CollectF_open (F := failures (Rep_parallel I PXf) M)]
+  apply CollectF_eq
+  intro f
+  exact propext (in_failures_Rep_parallel (f := f) hI hfin)
 
 /-************************************
  |              traces              |
  ************************************-/
 
-axiom sett_in_failures_Rep_parallel
+theorem sett_in_failures_Rep_parallel
     {I : Set ι} {PXf : ι → proc p α × Set α} {t : traceType α}
     {X : Set (event α)} {M : p → domFType α} :
     I ≠ ∅ → I.Finite → (t, X) :f failures (Rep_parallel I PXf) M →
-      sett t ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I))))
+      sett t ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) := by
+  intro hI hfin hf
+  obtain ⟨u, hsu, Z, hEq, -⟩ := (in_failures_Rep_parallel hI hfin).1 hf
+  rw [(Prod.mk.inj hEq).1]
+  exact hsu
 
 end
