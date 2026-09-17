@@ -595,6 +595,80 @@ theorem in_failures_Rep_parallel_lm2
         rw [nth_map_lt hi, nth_map_lt hi] at he
         exact he
 
+/-- The `Rep_parallel` characterisation for an *arbitrary* enumeration `Is` of `I`,
+    not just the one picked by `Rep_parallel_def`. -/
+theorem in_failures_Inductive_parallel_isListOf [Inhabited ι]
+    {I : Set ι} {Is : List ι} {PXf : ι → proc p α × Set α} {f : failure α}
+    {M : p → domFType α} :
+    I ≠ ∅ → isListOf Is I →
+      ((f :f failures (Inductive_parallel (List.map PXf Is)) M) ↔
+        ∃ u,
+          sett u ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) ∧
+            ∃ Z,
+              f = (u, Z) ∧
+                ∃ Yf : ι → Set (event α),
+                  Z ∩ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) =
+                    Set.sUnion {S | ∃ i : ι, i ∈ I ∧
+                      S = Set.inter (Yf i) (Set.insert Tick (Ev '' (Prod.snd (PXf i))))} ∧
+                  ∀ i : ι, i ∈ I →
+                    ((u rest-tr (Prod.snd (PXf i))), Yf i) :f failures (Prod.fst (PXf i)) M) := by
+  intro hI hIs
+  have hne : Is ≠ [] := isListOf_nonemptyset hI hIs
+  have hmapne : List.map PXf Is ≠ [] := by
+    simpa using hne
+  have hset : _root_.set (List.map PXf Is) = PXf '' I := by
+    rw [set_map', isListOf_set_eq hIs]
+  rw [in_failures_Inductive_parallel_nth hmapne, hset]
+  constructor
+  · rintro ⟨u, hsu, Z, hEq, Ys, hlen, hZ, hall⟩
+    have hlen' : Ys.length = Is.length := by
+      simpa using hlen.symm
+    have hnu :
+        inductive_parallel_nth_union (List.map PXf Is) Ys =
+          rep_parallel_lm1_left Is Ys PXf := by
+      ext S
+      constructor
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by rw [← hlen]; exact hi, rfl⟩
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by rw [hlen]; exact hi, rfl⟩
+    refine ⟨u, hsu, Z, hEq,
+      fun i => nth Ys (THE (fun n : Nat =>
+        nth Is n = i ∧
+          n < Is.length)), ?_, ?_⟩
+    · rw [hZ, hnu, in_failures_Rep_parallel_lm1 hIs hlen']
+      rfl
+    · intro i hi
+      obtain ⟨n, hn, hin⟩ := isListOf_index_to_nth hIs i hi
+      have hval := hall n (by simpa using hn)
+      simp only [nth_inductive_parallel_failure_cond] at hval
+      rw [nth_map_lt hn] at hval
+      subst hin
+      dsimp only
+      rw [isListOf_THE_nth hIs hn]
+      exact hval
+  · rintro ⟨u, hsu, Z, hEq, Yf, hZ, hall⟩
+    have hnu :
+        inductive_parallel_nth_union (List.map PXf Is)
+            (List.map Yf Is) =
+          rep_parallel_lm2_right Is PXf Yf := by
+      ext S
+      constructor
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by simpa using hi, rfl⟩
+      · rintro ⟨i, hi, rfl⟩
+        exact ⟨i, by simpa using hi, rfl⟩
+    refine ⟨u, hsu, Z, hEq, List.map Yf Is, by simp, ?_, ?_⟩
+    · rw [hZ, hnu, ← in_failures_Rep_parallel_lm2 hIs]
+      rfl
+    · intro i hi
+      have hi' : i < Is.length := by simpa using hi
+      have hval := hall (nth Is i)
+        (isListOf_nth_in_index hIs hi')
+      simp only [nth_inductive_parallel_failure_cond]
+      rw [nth_map_lt hi', nth_map_lt hi']
+      exact hval
+
 theorem in_failures_Rep_parallel
     {I : Set ι} {PXf : ι → proc p α × Set α} {f : failure α} {M : p → domFType α} :
     I ≠ ∅ → I.Finite →
@@ -612,63 +686,9 @@ theorem in_failures_Rep_parallel
   intro hI hfin
   obtain ⟨i0, -⟩ := Set.nonempty_iff_ne_empty.2 hI
   haveI : Inhabited ι := ⟨i0⟩
-  have hIs : isListOf (SOME fun Is : List ι => isListOf Is I) I :=
-    chooseOrDefault_spec (isListOf_EX hfin)
-  have hne : (SOME fun Is : List ι => isListOf Is I) ≠ [] := isListOf_nonemptyset hI hIs
-  have hmapne : List.map PXf (SOME fun Is : List ι => isListOf Is I) ≠ [] := by
-    simpa using hne
-  have hset : _root_.set (List.map PXf (SOME fun Is : List ι => isListOf Is I)) = PXf '' I := by
-    rw [set_map', isListOf_set_eq hIs]
-  rw [Rep_parallel_def, in_failures_Inductive_parallel_nth hmapne, hset]
-  constructor
-  · rintro ⟨u, hsu, Z, hEq, Ys, hlen, hZ, hall⟩
-    have hlen' : Ys.length = (SOME fun Is : List ι => isListOf Is I).length := by
-      simpa using hlen.symm
-    have hnu :
-        inductive_parallel_nth_union (List.map PXf (SOME fun Is : List ι => isListOf Is I)) Ys =
-          rep_parallel_lm1_left (SOME fun Is : List ι => isListOf Is I) Ys PXf := by
-      ext S
-      constructor
-      · rintro ⟨i, hi, rfl⟩
-        exact ⟨i, by rw [← hlen]; exact hi, rfl⟩
-      · rintro ⟨i, hi, rfl⟩
-        exact ⟨i, by rw [hlen]; exact hi, rfl⟩
-    refine ⟨u, hsu, Z, hEq,
-      fun i => nth Ys (THE (fun n : Nat =>
-        nth (SOME fun Is : List ι => isListOf Is I) n = i ∧
-          n < (SOME fun Is : List ι => isListOf Is I).length)), ?_, ?_⟩
-    · rw [hZ, hnu, in_failures_Rep_parallel_lm1 hIs hlen']
-      rfl
-    · intro i hi
-      obtain ⟨n, hn, hin⟩ := isListOf_index_to_nth hIs i hi
-      have hval := hall n (by simpa using hn)
-      simp only [nth_inductive_parallel_failure_cond] at hval
-      rw [nth_map_lt hn] at hval
-      subst hin
-      dsimp only
-      rw [isListOf_THE_nth hIs hn]
-      exact hval
-  · rintro ⟨u, hsu, Z, hEq, Yf, hZ, hall⟩
-    have hnu :
-        inductive_parallel_nth_union (List.map PXf (SOME fun Is : List ι => isListOf Is I))
-            (List.map Yf (SOME fun Is : List ι => isListOf Is I)) =
-          rep_parallel_lm2_right (SOME fun Is : List ι => isListOf Is I) PXf Yf := by
-      ext S
-      constructor
-      · rintro ⟨i, hi, rfl⟩
-        exact ⟨i, by simpa using hi, rfl⟩
-      · rintro ⟨i, hi, rfl⟩
-        exact ⟨i, by simpa using hi, rfl⟩
-    refine ⟨u, hsu, Z, hEq, List.map Yf (SOME fun Is : List ι => isListOf Is I), by simp, ?_, ?_⟩
-    · rw [hZ, hnu, ← in_failures_Rep_parallel_lm2 hIs]
-      rfl
-    · intro i hi
-      have hi' : i < (SOME fun Is : List ι => isListOf Is I).length := by simpa using hi
-      have hval := hall (nth (SOME fun Is : List ι => isListOf Is I) i)
-        (isListOf_nth_in_index hIs hi')
-      simp only [nth_inductive_parallel_failure_cond]
-      rw [nth_map_lt hi', nth_map_lt hi']
-      exact hval
+  rw [Rep_parallel_def]
+  exact in_failures_Inductive_parallel_isListOf hI (chooseOrDefault_spec (isListOf_EX hfin))
+
 
 /- The Isabelle theorem bundle `in_failures_par` is represented by
    `in_failures_Alpha_parallel`, `in_failures_Inductive_parallel`, and
