@@ -199,16 +199,53 @@ theorem Rep_parallel_def (I : Set ι) (PXf : ι → proc p α × Set α) :
  ************************************ -/
 
 @[simp]
-axiom Rep_parallel_empty (PXf : ι → proc p α × Set α) :
-    Rep_parallel (p := p) ({} : Set ι) PXf = SKIP
+theorem Rep_parallel_empty (PXf : ι → proc p α × Set α) :
+    Rep_parallel (p := p) ({} : Set ι) PXf = SKIP := by
+  rw [Rep_parallel_def]
+  have hset : _root_.set ([] : List ι) = (∅ : Set ι) := by
+    ext x
+    simp [_root_.set]
+  have h : (SOME fun Is : List ι => isListOf Is ({} : Set ι)) = ([] : List ι) := by
+    refine chooseOrDefault_eq ⟨hset.symm, by rw [hset]; simp⟩ ?_
+    intro y hy
+    obtain ⟨hy1, -⟩ := hy
+    refine List.eq_nil_iff_forall_not_mem.mpr ?_
+    intro x hx
+    have hmem : x ∈ (∅ : Set ι) := by
+      rw [hy1]
+      exact hx
+    exact hmem
+  rw [h]
+  rfl
 
 /- ************************************
  |            one Index             |
  ************************************ -/
 
-axiom Rep_parallel_one (PXf : ι → proc p α × Set α) {i : ι} :
+theorem Rep_parallel_one (PXf : ι → proc p α × Set α) {i : ι} :
     Rep_parallel (p := p) ({i} : Set ι) PXf =
-      (Prod.fst (PXf i)) |[Prod.snd (PXf i), {}]| SKIP
+      (Prod.fst (PXf i)) |[Prod.snd (PXf i), {}]| SKIP := by
+  rw [Rep_parallel_def]
+  have hset : _root_.set ([i] : List ι) = ({i} : Set ι) := by
+    ext x
+    simp [_root_.set]
+  have h : (SOME fun Is : List ι => isListOf Is ({i} : Set ι)) = ([i] : List ι) := by
+    refine chooseOrDefault_eq ⟨hset.symm, by rw [hset]; simp⟩ ?_
+    intro y hy
+    obtain ⟨hy1, hy2⟩ := hy
+    rw [← hy1] at hy2
+    have hlen : y.length = 1 := by
+      rw [← hy2]
+      simp
+    obtain ⟨x, rfl⟩ := List.length_eq_one_iff.mp hlen
+    have hx : x = i := by
+      have hmem : x ∈ ({i} : Set ι) := by
+        rw [hy1]
+        simp [_root_.set]
+      simpa using hmem
+    rw [hx]
+  rw [h]
+  simp [Inductive_parallel, _root_.set]
 
 /- (*** timeout ***) -/
 
@@ -843,7 +880,86 @@ inductive procterm : proc p α → proc p α → Prop where
   | Seq_compo_r (P Q : proc p α) : procterm Q (P ;; Q)
   | Depth_rest (P : proc p α) (n : Nat) : procterm P (P |. n)
 
-axiom wf_procterm : WellFounded (@procterm p α)
+theorem wf_procterm : WellFounded (@procterm p α) := by
+  constructor
+  intro P
+  induction P with
+  | STOP =>
+      constructor
+      intro y h
+      cases h
+  | SKIP =>
+      constructor
+      intro y h
+      cases h
+  | DIV =>
+      constructor
+      intro y h
+      cases h
+  | Act_prefix a P ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih
+  | Ext_pre_choice X Pf ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih _
+  | Ext_choice P Q ihP ihQ =>
+      constructor
+      intro y h
+      cases h
+      · exact ihP
+      · exact ihQ
+  | Int_choice P Q ihP ihQ =>
+      constructor
+      intro y h
+      cases h
+      · exact ihP
+      · exact ihQ
+  | Rep_int_choice C Pf ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih _
+  | «IF» b P Q ihP ihQ =>
+      constructor
+      intro y h
+      cases h
+      · exact ihP
+      · exact ihQ
+  | Parallel P X Q ihP ihQ =>
+      constructor
+      intro y h
+      cases h
+      · exact ihP
+      · exact ihQ
+  | Hiding P X ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih
+  | Renaming P r ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih
+  | Seq_compo P Q ihP ihQ =>
+      constructor
+      intro y h
+      cases h
+      · exact ihP
+      · exact ihQ
+  | Depth_rest P n ih =>
+      constructor
+      intro y h
+      cases h
+      exact ih
+  | Proc_name pn =>
+      constructor
+      intro y h
+      cases h
 
 /- -------------------------------------------------------*
  |                                                       |
