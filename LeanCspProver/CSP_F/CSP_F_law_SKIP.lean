@@ -126,10 +126,174 @@ theorem cspF_Parallel_preterm_l_set1
   · intro he
     cases he
 
-axiom cspF_Parallel_preterm_l
+private theorem Tick_notin_traces_Ext_pre_choice
+    {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
+    ¬ ((Abs_trace [Tick] : traceType α) :t traces (proc.Ext_pre_choice X Pf) M) := by
+  intro h
+  rw [in_traces_Ext_pre_choice] at h
+  rcases h with hnil | ⟨a, u, hu, -, -⟩
+  · simp at hnil
+  · simp at hu
+
+theorem cspF_Parallel_preterm_l
     {X Y : Set α} {Qf : α → proc p α} {M : p → domFType α} :
     eqF (((proc.SKIP : proc p α) |[X]| proc.Ext_pre_choice Y Qf)) M M
-      (proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Qf x)))
+      (proc.Ext_pre_choice (Y \ X) (fun x => ((proc.SKIP : proc p α) |[X]| Qf x))) := by
+  refine cspF_eqF_of_eqT cspT_Parallel_preterm_l ?_
+  intro t W
+  rw [in_failures_Parallel, in_failures_Ext_pre_choice]
+  constructor
+  · rintro ⟨u, A, B, hEq, hAB, s, t1, hpar, hs, ht1⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_SKIP_iff3] at hs
+    rw [in_failures_Ext_pre_choice] at ht1
+    rcases hs with ⟨rfl, hA⟩ | rfl
+    · rw [par_tr_nil_left] at hpar
+      obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+      rcases ht1 with ⟨B2, hEqB, hdisj⟩ | ⟨a, t2, B2, hEqB, hQ, haY⟩
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqB
+        refine Or.inl ⟨A ∪ B, rfl, ?_⟩
+        rw [Set.eq_empty_iff_forall_notMem]
+        rintro e ⟨⟨a, ⟨haY, haX⟩, rfl⟩, he⟩
+        have hB : (Ev a : event α) ∉ B := by
+          intro hb
+          have hm : (Ev a : event α) ∈ (Ev '' Y) ∩ B := ⟨⟨a, haY, rfl⟩, hb⟩
+          rw [hdisj] at hm
+          exact hm
+        rcases he with he | he
+        · have hnotA' : (Ev a : event α) ∉ ((Ev '' X) ∪ ({Tick} : Set (event α))) := by
+            rintro (⟨b, hb, hEv⟩ | hTk)
+            · exact haX (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+            · exact absurd (Set.mem_singleton_iff.mp hTk) (by simp)
+          have hm : (Ev a : event α) ∈ A \ ((Ev '' X) ∪ {Tick}) := ⟨he, hnotA'⟩
+          rw [hAB] at hm
+          exact hB hm.1
+        · exact hB he
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqB
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (Ev a : event α) ∈ sett (Abs_trace [Ev a] ^^^ t2) ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inr ⟨a, t2, A ∪ B, rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨t2, A, B, rfl, hAB, <>, t2, par_tr_nil_left.mpr ⟨rfl, ?_, ?_⟩,
+          in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hA⟩), hQ⟩
+        · intro hTk
+          exact hnoT (sett_Ev_head_mem.mpr (Or.inr hTk))
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [Ev a] ^^^ t2) ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+    · rw [par_tr_Tick_left] at hpar
+      obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+      rcases ht1 with ⟨B2, hEqB, -⟩ | ⟨a, t2, B2, hEqB, hQ, haY⟩
+      · obtain ⟨rfl, -⟩ := Prod.mk.inj hEqB
+        simp at hTk
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqB
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (Ev a : event α) ∈ sett (Abs_trace [Ev a] ^^^ t2) ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inr ⟨a, t2, A ∪ B, rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨t2, A, B, rfl, hAB, Abs_trace [Tick], t2,
+          par_tr_Tick_left.mpr ⟨rfl, ?_, ?_⟩,
+          in_failures_SKIP_iff3.mpr (Or.inr rfl), hQ⟩
+        · rcases sett_Ev_head_mem.mp hTk with hEq | h
+          · exact absurd hEq (by simp)
+          · exact h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [Ev a] ^^^ t2) ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+  · rintro (⟨V, hEq, hdisj⟩ | ⟨a, v, V, hEq, hv, ha⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      refine ⟨<>, W \ {Tick}, W \ (Ev '' Y), ?_, ?_, <>, <>, par_tr_nil_nil,
+        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, ?_⟩), ?_⟩
+      · congr 1
+        ext e
+        simp only [Set.mem_union, Set.mem_diff, Set.mem_singleton_iff]
+        constructor
+        · intro he
+          by_cases hTe : e = Tick
+          · refine Or.inr ⟨he, ?_⟩
+            rintro ⟨b, -, hb⟩
+            rw [hTe] at hb
+            exact absurd hb.symm (by simp)
+          · exact Or.inl ⟨he, hTe⟩
+        · rintro (⟨he, -⟩ | ⟨he, -⟩) <;> exact he
+      · ext e
+        simp only [Set.mem_diff, Set.mem_union, Set.mem_singleton_iff]
+        constructor
+        · rintro ⟨⟨he, hTe⟩, hA⟩
+          refine ⟨⟨he, ?_⟩, hA⟩
+          rintro ⟨b, hbY, rfl⟩
+          have hbX : b ∉ X := by
+            intro hbX
+            exact hA (Or.inl ⟨b, hbX, rfl⟩)
+          have hm : (Ev b : event α) ∈ (Ev '' (Y \ X)) ∩ W := ⟨⟨b, ⟨hbY, hbX⟩, rfl⟩, he⟩
+          rw [hdisj] at hm
+          exact hm
+        · rintro ⟨⟨he, -⟩, hA⟩
+          refine ⟨⟨he, ?_⟩, hA⟩
+          intro hTe
+          exact hA (Or.inr (Set.mem_singleton_iff.mpr hTe))
+      · rintro e ⟨-, hTe⟩ hEv
+        exact hTe (Set.mem_singleton_iff.mpr hEv)
+      · rw [in_failures_Ext_pre_choice]
+        refine Or.inl ⟨W \ (Ev '' Y), rfl, ?_⟩
+        rw [Set.eq_empty_iff_forall_notMem]
+        rintro e ⟨he, -, hnY⟩
+        exact hnY he
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_Parallel] at hv
+      obtain ⟨v', A, B, hEqv, hAB, s, t1, hpar, hs, ht1⟩ := hv
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+      rw [in_failures_SKIP_iff3] at hs
+      rcases hs with ⟨rfl, hA⟩ | rfl
+      · rw [par_tr_nil_left] at hpar
+        obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, <>, Abs_trace [Ev a] ^^^ v,
+          par_tr_nil_left.mpr ⟨rfl, ?_, ?_⟩,
+          in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hA⟩), ?_⟩
+        · intro hTk
+          rcases sett_Ev_head_mem.mp hTk with hEq | h
+          · exact absurd hEq (by simp)
+          · exact hnoT h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact ha.2 (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · rw [in_failures_Ext_pre_choice]
+          exact Or.inr ⟨a, v, B, rfl, ht1, ha.1⟩
+      · rw [par_tr_Tick_left] at hpar
+        obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [Tick],
+          Abs_trace [Ev a] ^^^ v, par_tr_Tick_left.mpr ⟨rfl, ?_, ?_⟩,
+          in_failures_SKIP_iff3.mpr (Or.inr rfl), ?_⟩
+        · exact sett_Ev_head_mem.mpr (Or.inr hTk)
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact ha.2 (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · rw [in_failures_Ext_pre_choice]
+          exact Or.inr ⟨a, v, B, rfl, ht1, ha.1⟩
 
 theorem cspF_Parallel_preterm_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domFType α} :
@@ -433,10 +597,93 @@ theorem cspF_Seq_compo_unit_r
 
 /- p.141 -/
 
-axiom cspF_SKIP_Seq_compo_step
+theorem cspF_SKIP_Seq_compo_step
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     eqF ((((proc.Ext_pre_choice X Pf) [> (proc.SKIP : proc p α)) ;; Q)) M M
-      (((proc.Ext_pre_choice X (fun x => Pf x ;; Q)) [> Q))
+      (((proc.Ext_pre_choice X (fun x => Pf x ;; Q)) [> Q)) := by
+  refine cspF_eqF_of_eqT cspT_SKIP_Seq_compo_step ?_
+  intro t W
+  rw [in_failures_Seq_compo, in_failures_Timeout1]
+  constructor
+  · rintro (⟨t1, W1, hEq, hP0, hno⟩ | ⟨s, t1, W1, hEq, hT, hQ, hno⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_Timeout1] at hP0
+      rcases hP0 with hS | ⟨s1, V, hEq1, hne, hpre⟩ | ⟨V, hEq1, hsub, hTk⟩
+      · rw [in_failures_SKIP_iff3] at hS
+        rcases hS with ⟨-, hsub⟩ | hTk
+        · exact absurd (hsub (Or.inr rfl)) (by simp [Evset])
+        · exact absurd (hTk ▸ hno) not_noTick_Tick
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq1
+        rw [in_failures_Ext_pre_choice] at hpre
+        rcases hpre with ⟨V', hEqn, -⟩ | ⟨a, s', V', hEqn, hPf, ha⟩
+        · exact absurd (Prod.mk.inj hEqn).1 hne
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqn
+          refine Or.inr (Or.inl ⟨Abs_trace [Ev a] ^^^ s', W, rfl, by simp, ?_⟩)
+          rw [in_failures_Ext_pre_choice]
+          refine Or.inr ⟨a, s', W, rfl, ?_, ha⟩
+          rw [in_failures_Seq_compo]
+          exact Or.inl ⟨s', W, rfl, hPf,
+            (decompo_appt_noTick_only_if (Or.inl (noTick_Ev a)) hno).2⟩
+      · exact absurd hTk Tick_notin_traces_Ext_pre_choice
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_traces_Timeout1, in_traces_Ext_pre_choice, in_traces_SKIP] at hT
+      rcases hT with (hnil | ⟨a, u, hu, hu', ha⟩) | (hnil | hTk)
+      · exact absurd ((appt_nil hno).mp hnil).2 (by simp)
+      · rcases trace_nil_or_Tick_or_Ev s with rfl | rfl | ⟨b, s2, rfl⟩
+        · exfalso
+          rw [appt_nil_left] at hu
+          exact absurd hu.symm (by simp)
+        · exact absurd hno not_noTick_Tick
+        · have hno2 : noTick s2 := (decompo_appt_noTick_only_if (Or.inl (noTick_Ev b)) hno).2
+          rw [appt_assoc (Or.inl (noTick_Ev b)) (Or.inl hno2)] at hu
+          obtain ⟨rfl, hs2⟩ := appt_same_head.mp hu.symm
+          refine Or.inr (Or.inl ⟨(Abs_trace [Ev a] ^^^ s2) ^^^ t1, W, rfl, ?_, ?_⟩)
+          · rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno2)]
+            simp
+          · rw [in_failures_Ext_pre_choice]
+            refine Or.inr ⟨a, s2 ^^^ t1, W,
+              (by rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno2)]), ?_, ha⟩
+            rw [in_failures_Seq_compo]
+            exact Or.inr ⟨s2, t1, W, rfl, by rw [← hs2]; exact hu', hQ, hno2⟩
+      · exact absurd ((appt_nil hno).mp hnil).2 (by simp)
+      · have hs0 : s = <> := by
+          rcases trace_nil_or_Tick_or_Ev s with h | rfl | ⟨b, s2, rfl⟩
+          · exact h
+          · exact absurd hno not_noTick_Tick
+          · exfalso
+            have hno2 : noTick s2 := (decompo_appt_noTick_only_if (Or.inl (noTick_Ev b)) hno).2
+            rw [appt_assoc (Or.inl (noTick_Ev b)) (Or.inl hno2)] at hTk
+            simp at hTk
+        subst hs0
+        rw [appt_nil_left]
+        exact Or.inl hQ
+  · rintro (hQ | ⟨s1, V, hEq, hne, hpre⟩ | ⟨V, hEq, hsub, hTk⟩)
+    · refine Or.inr ⟨<>, t, W, by rw [appt_nil_left], ?_, hQ, noTick_nil⟩
+      rw [appt_nil_left, in_traces_Timeout1]
+      exact Or.inr (in_traces_SKIP.mpr (Or.inr rfl))
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_Ext_pre_choice] at hpre
+      rcases hpre with ⟨V', hEqn, -⟩ | ⟨a, v, V', hEqn, hv, ha⟩
+      · exact absurd (Prod.mk.inj hEqn).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqn
+        rw [in_failures_Seq_compo] at hv
+        rcases hv with ⟨t2, V2, hEq2, hPf, hno2⟩ | ⟨s2, t2, V2, hEq2, hT2, hQ2, hno2⟩
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq2
+          refine Or.inl ⟨Abs_trace [Ev a] ^^^ v, W, rfl, ?_,
+            decompo_appt_noTick_if (noTick_Ev a) hno2⟩
+          rw [in_failures_Timeout1]
+          refine Or.inr (Or.inl ⟨Abs_trace [Ev a] ^^^ v, W ∪ {Tick}, rfl, by simp, ?_⟩)
+          rw [in_failures_Ext_pre_choice]
+          exact Or.inr ⟨a, v, W ∪ {Tick}, rfl, hPf, ha⟩
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq2
+          refine Or.inr ⟨Abs_trace [Ev a] ^^^ s2, t2, W,
+            (by rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno2)]), ?_, hQ2,
+            decompo_appt_noTick_if (noTick_Ev a) hno2⟩
+          rw [in_traces_Timeout1]
+          refine Or.inl (in_traces_Ext_pre_choice.mpr
+            (Or.inr ⟨a, (s2 ^^^ (Abs_trace [Tick] : traceType α) : traceType α), ?_, hT2, ha⟩))
+          rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno2)]
+    · exact absurd hTk Tick_notin_traces_Ext_pre_choice
 
 /-
 (*********************************************************
