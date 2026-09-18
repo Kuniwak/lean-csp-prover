@@ -725,13 +725,47 @@ theorem cspF_STOP_Depth_rest
  *********************************************************)
 -/
 
-axiom cspF_Alpha_Parallel_step
+-- Algebraic proof following the Isabelle original (CSP_F_law_aux.thy) and the
+-- `cspT_Alpha_Parallel_step` port: unfold `|[X,Y]|`, absorb the `SKIP`
+-- components with `cspF_Parallel_preterm_r`, apply `cspF_Parallel_step`, then
+-- align the index set and the `procIte` branches case by case.
+theorem cspF_Alpha_Parallel_step
     {A B X Y : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF ((proc.Ext_pre_choice A Pf) |[X,Y]| proc.Ext_pre_choice B Qf) M M
       (proc.Ext_pre_choice ((A ∩ (X \ Y)) ∪ (B ∩ (Y \ X)) ∪ (A ∩ B ∩ X ∩ Y)) fun x =>
         procIte (x ∈ X ∧ x ∈ Y) (Pf x |[X,Y]| Qf x)
           (procIte (x ∈ X) (Pf x |[X,Y]| proc.Ext_pre_choice B Qf)
-            (proc.Ext_pre_choice A Pf |[X,Y]| Qf x)))
+            (proc.Ext_pre_choice A Pf |[X,Y]| Qf x))) := by
+  simp only [Alpha_parallel_def]
+  refine cspF_rw_left_eq
+    (cspF_Parallel_cong rfl cspF_Parallel_preterm_r cspF_Parallel_preterm_r) ?_
+  refine cspF_rw_left_eq cspF_Parallel_step ?_
+  have hS : (((X ∩ Y) ∩ (A \ Xᶜ) ∩ (B \ Yᶜ)) ∪ ((A \ Xᶜ) \ (X ∩ Y)) ∪ ((B \ Yᶜ) \ (X ∩ Y)))
+      = ((A ∩ (X \ Y)) ∪ (B ∩ (Y \ X)) ∪ (A ∩ B ∩ X ∩ Y)) := by
+    ext x
+    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff, Set.mem_compl_iff, not_not,
+      not_and]
+    tauto
+  refine cspF_Ext_pre_choice_cong hS fun a ha => ?_
+  simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff] at ha
+  by_cases hx : a ∈ X <;> by_cases hy : a ∈ Y
+  · rw [procIte_pos (Set.mem_inter hx hy), procIte_pos ⟨hx, hy⟩]
+    exact cspF_reflex_eq_P
+  · have hB' : a ∉ B \ Yᶜ := by simp [hy]
+    rw [procIte_neg (by simp [Set.mem_inter_iff, hy] : a ∉ X ∩ Y),
+        procIte_neg (fun h => hB' h.2),
+        procIte_pos (show a ∈ A \ Xᶜ by
+          have hA : a ∈ A := by tauto
+          simp [hA, hx]),
+        procIte_neg (fun h => hy h.2), procIte_pos hx]
+    exact cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym cspF_Parallel_preterm_r)
+  · have hA' : a ∉ A \ Xᶜ := by simp [hx]
+    rw [procIte_neg (by simp [Set.mem_inter_iff, hx] : a ∉ X ∩ Y),
+        procIte_neg (fun h => hA' h.1),
+        procIte_neg hA',
+        procIte_neg (fun h => hx h.1), procIte_neg hx]
+    exact cspF_Parallel_cong rfl (cspF_sym cspF_Parallel_preterm_r) cspF_reflex_eq_P
+  · exact absurd ha (by tauto)
 
 /-
 (*==============================================================*

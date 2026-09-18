@@ -306,7 +306,30 @@ theorem cspF_Parallel_step_set5
  |      csp law     |
  *------------------*) -/
 
-axiom cspF_Parallel_step
+/-- A failure of `? :Y -> Pf` whose trace starts with `Ev a`. -/
+private theorem failures_Ext_pre_choice_cons {Y : Set α} {Pf : α → proc p α}
+    {a : α} {s : traceType α} {V : Set (event α)} {M : p → domFType α}
+    (h : (Abs_trace [Ev a] ^^^ s, V) :f failures (proc.Ext_pre_choice Y Pf) M) :
+    a ∈ Y ∧ (s, V) :f failures (Pf a) M := by
+  rw [in_failures_Ext_pre_choice] at h
+  rcases h with ⟨V1, hE1, -⟩ | ⟨b, s2, V1, hE1, hPf, hbY⟩
+  · exact absurd (Prod.mk.inj hE1).1 (by simp)
+  · obtain ⟨hs, rfl⟩ := Prod.mk.inj hE1
+    obtain ⟨rfl, rfl⟩ := appt_same_head.mp hs
+    exact ⟨hbY, hPf⟩
+
+/-- `? :Y -> Pf` has no failure at the trace `<Tick>`. -/
+private theorem failures_Ext_pre_choice_Tick {Y : Set α} {Pf : α → proc p α}
+    {V : Set (event α)} {M : p → domFType α} :
+    ¬ (((Abs_trace [Tick] : traceType α), V) :f failures (proc.Ext_pre_choice Y Pf) M) := by
+  intro h
+  rw [in_failures_Ext_pre_choice] at h
+  rcases h with ⟨V1, hE1, -⟩ | ⟨b, s2, V1, hE1, -, -⟩
+  · exact absurd (Prod.mk.inj hE1).1 (by simp)
+  · have hhd := congrArg hdt (Prod.mk.inj hE1).1
+    simp [hdt_appt] at hhd
+
+theorem cspF_Parallel_step
     {X Y Z : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF ((proc.Ext_pre_choice Y Pf) |[X]| (proc.Ext_pre_choice Z Qf)) M M
       (proc.Ext_pre_choice (((X ∩ Y ∩ Z) ∪ (Y \ X) ∪ (Z \ X))) fun x =>
@@ -316,7 +339,158 @@ axiom cspF_Parallel_step
               (proc.Ext_pre_choice Y Pf |[X]| Qf x)))
             (procIte (x ∈ Y)
               (Pf x |[X]| proc.Ext_pre_choice Z Qf)
-              (proc.Ext_pre_choice Y Pf |[X]| Qf x))))
+              (proc.Ext_pre_choice Y Pf |[X]| Qf x)))) := by
+  refine cspF_eqF_of_eqT cspT_Parallel_step ?_
+  intro u W
+  have hD : (Ev '' X ∪ ({Tick} : Set (event α))) = insert Tick (Ev '' X) := by
+    rw [Set.insert_eq, Set.union_comm]
+  rw [in_failures_Parallel, in_failures_Ext_pre_choice
+      (Pf := fun x =>
+        procIte (x ∈ X) ((Pf x) |[X]| (Qf x))
+          (procIte (x ∈ Y ∧ x ∈ Z)
+            (((Pf x |[X]| proc.Ext_pre_choice Z Qf) |~|
+              (proc.Ext_pre_choice Y Pf |[X]| Qf x)))
+            (procIte (x ∈ Y)
+              (Pf x |[X]| proc.Ext_pre_choice Z Qf)
+              (proc.Ext_pre_choice Y Pf |[X]| Qf x))))]
+  constructor
+  · rintro ⟨u', Ya, Za, hEq, hdiff, s, t, hpar, hs, ht⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [hD] at hdiff
+    rcases par_tr_step.mp hpar with ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨a, v, rfl, hcase⟩
+    · rw [in_failures_Ext_pre_choice] at hs ht
+      rcases hs with ⟨V1, hE1, hY⟩ | ⟨b, s2, V1, hE1, -, -⟩
+      · rcases ht with ⟨V2, hE2, hZ⟩ | ⟨b, t2, V2, hE2, -, -⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj hE1
+          obtain ⟨-, rfl⟩ := Prod.mk.inj hE2
+          refine Or.inl ⟨Ya ∪ Za, rfl, ?_⟩
+          rw [Set.image_union, Set.image_union, Set.union_inter_distrib_right,
+            Set.union_inter_distrib_right, Set.union_empty_iff, Set.union_empty_iff]
+          exact ⟨⟨cspF_Parallel_step_set1 hdiff hY hZ,
+            cspF_Parallel_step_set2 (Z := Z) hdiff hY hZ⟩,
+            cspF_Parallel_step_set3 (Y := Y) hdiff hY hZ⟩
+        · exact absurd (Prod.mk.inj hE2).1 (by simp)
+      · exact absurd (Prod.mk.inj hE1).1 (by simp)
+    · exact absurd hs failures_Ext_pre_choice_Tick
+    · rcases hcase with ⟨haX, s', t', hpar', rfl, rfl⟩ |
+        ⟨haX, s', hpar', rfl⟩ | ⟨haX, t', hpar', rfl⟩
+      · obtain ⟨haY, hPf⟩ := failures_Ext_pre_choice_cons hs
+        obtain ⟨haZ, hQf⟩ := failures_Ext_pre_choice_cons ht
+        refine Or.inr ⟨a, v, Ya ∪ Za, rfl, ?_, Or.inl (Or.inl ⟨⟨haX, haY⟩, haZ⟩)⟩
+        rw [procIte_pos haX, in_failures_Parallel]
+        exact ⟨v, Ya, Za, rfl, by rw [hD]; exact hdiff, s', t', hpar', hPf, hQf⟩
+      · obtain ⟨haY, hPf⟩ := failures_Ext_pre_choice_cons hs
+        refine Or.inr ⟨a, v, Ya ∪ Za, rfl, ?_, Or.inl (Or.inr ⟨haY, haX⟩)⟩
+        rw [procIte_neg haX]
+        have hcore : (v, Ya ∪ Za) :f
+            failures (Pf a |[X]| proc.Ext_pre_choice Z Qf) M :=
+          in_failures_Parallel.mpr
+            ⟨v, Ya, Za, rfl, by rw [hD]; exact hdiff, s', t, hpar', hPf, ht⟩
+        by_cases haZ : a ∈ Z
+        · rw [procIte_pos ⟨haY, haZ⟩, in_failures_Int_choice]
+          exact Or.inl hcore
+        · rw [procIte_neg (by tauto), procIte_pos haY]
+          exact hcore
+      · obtain ⟨haZ, hQf⟩ := failures_Ext_pre_choice_cons ht
+        refine Or.inr ⟨a, v, Ya ∪ Za, rfl, ?_, Or.inr ⟨haZ, haX⟩⟩
+        rw [procIte_neg haX]
+        have hcore : (v, Ya ∪ Za) :f
+            failures (proc.Ext_pre_choice Y Pf |[X]| Qf a) M :=
+          in_failures_Parallel.mpr
+            ⟨v, Ya, Za, rfl, by rw [hD]; exact hdiff, s, t', hpar', hs, hQf⟩
+        by_cases haY : a ∈ Y
+        · rw [procIte_pos ⟨haY, haZ⟩, in_failures_Int_choice]
+          exact Or.inr hcore
+        · rw [procIte_neg (by tauto), procIte_neg haY]
+          exact hcore
+  · rintro (⟨V, hEq, hidx⟩ | ⟨a, v, V, hEq, hf, haidx⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      refine ⟨<>, (W \ insert Tick (Ev '' X)) ∪ ((W ∩ insert Tick (Ev '' X)) \ Ev '' Y),
+        (W \ insert Tick (Ev '' X)) ∪ ((W ∩ insert Tick (Ev '' X)) \ Ev '' Z),
+        congrArg (fun z => ((<> : traceType α), z)) (cspF_Parallel_step_set4 hidx), ?_,
+        <>, <>, par_tr_nil_nil, ?_, ?_⟩
+      · rw [hD]
+        ext e
+        constructor
+        · rintro ⟨he, hnd⟩
+          rcases he with he | he
+          · exact ⟨Or.inl he, hnd⟩
+          · exact absurd he.1.2 hnd
+        · rintro ⟨he, hnd⟩
+          rcases he with he | he
+          · exact ⟨Or.inl he, hnd⟩
+          · exact absurd he.1.2 hnd
+      · exact in_failures_Ext_pre_choice.mpr
+          (Or.inl ⟨_, rfl, (cspF_Parallel_step_set5 hidx).1⟩)
+      · exact in_failures_Ext_pre_choice.mpr
+          (Or.inl ⟨_, rfl, (cspF_Parallel_step_set5 hidx).2⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      by_cases haX : a ∈ X
+      · rw [procIte_pos haX, in_failures_Parallel] at hf
+        obtain ⟨v', Ya, Za, hE', hdiff, s', t', hpar', hPf, hQf⟩ := hf
+        obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE'
+        have haY : a ∈ Y := by
+          rcases haidx with (h | h) | h
+          · exact h.1.2
+          · exact h.1
+          · exact absurd haX h.2
+        have haZ : a ∈ Z := by
+          rcases haidx with (h | h) | h
+          · exact h.2
+          · exact absurd haX h.2
+          · exact h.1
+        refine ⟨Abs_trace [Ev a] ^^^ v, Ya, Za, rfl, hdiff,
+          Abs_trace [Ev a] ^^^ s', Abs_trace [Ev a] ^^^ t',
+          par_tr_step.mpr (Or.inr (Or.inr ⟨a, v, rfl, Or.inl ⟨haX, s', t', hpar', rfl, rfl⟩⟩)),
+          in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s', Ya, rfl, hPf, haY⟩),
+          in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, t', Za, rfl, hQf, haZ⟩)⟩
+      · rw [procIte_neg haX] at hf
+        have hleft : ∀ {W' : Set (event α)},
+            ((v, W') :f failures (Pf a |[X]| proc.Ext_pre_choice Z Qf) M) → a ∈ Y →
+              ∃ u' Ya Za, ((Abs_trace [Ev a] ^^^ v, W') = (u', Ya ∪ Za)) ∧
+                Ya \ (Ev '' X ∪ ({Tick} : Set (event α))) =
+                  Za \ (Ev '' X ∪ ({Tick} : Set (event α))) ∧
+                ∃ s t, u' ∈ s |[X]|tr t ∧
+                  (s, Ya) :f failures (proc.Ext_pre_choice Y Pf) M ∧
+                  (t, Za) :f failures (proc.Ext_pre_choice Z Qf) M := by
+          intro W' hc haY
+          obtain ⟨v', Ya, Za, hE', hdiff, s', t, hpar', hPf, hQ⟩ := in_failures_Parallel.mp hc
+          obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE'
+          exact ⟨Abs_trace [Ev a] ^^^ v, Ya, Za, rfl, hdiff,
+            Abs_trace [Ev a] ^^^ s', t,
+            par_tr_step.mpr (Or.inr (Or.inr ⟨a, v, rfl, Or.inr (Or.inl ⟨haX, s', hpar', rfl⟩)⟩)),
+            in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s', Ya, rfl, hPf, haY⟩), hQ⟩
+        have hright : ∀ {W' : Set (event α)},
+            ((v, W') :f failures (proc.Ext_pre_choice Y Pf |[X]| Qf a) M) → a ∈ Z →
+              ∃ u' Ya Za, ((Abs_trace [Ev a] ^^^ v, W') = (u', Ya ∪ Za)) ∧
+                Ya \ (Ev '' X ∪ ({Tick} : Set (event α))) =
+                  Za \ (Ev '' X ∪ ({Tick} : Set (event α))) ∧
+                ∃ s t, u' ∈ s |[X]|tr t ∧
+                  (s, Ya) :f failures (proc.Ext_pre_choice Y Pf) M ∧
+                  (t, Za) :f failures (proc.Ext_pre_choice Z Qf) M := by
+          intro W' hc haZ
+          obtain ⟨v', Ya, Za, hE', hdiff, s, t', hpar', hP, hQf⟩ := in_failures_Parallel.mp hc
+          obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE'
+          exact ⟨Abs_trace [Ev a] ^^^ v, Ya, Za, rfl, hdiff,
+            s, Abs_trace [Ev a] ^^^ t',
+            par_tr_step.mpr (Or.inr (Or.inr ⟨a, v, rfl, Or.inr (Or.inr ⟨haX, t', hpar', rfl⟩)⟩)),
+            hP, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, t', Za, rfl, hQf, haZ⟩)⟩
+        by_cases hYZ : a ∈ Y ∧ a ∈ Z
+        · rw [procIte_pos hYZ, in_failures_Int_choice] at hf
+          rcases hf with hc | hc
+          · exact hleft hc hYZ.1
+          · exact hright hc hYZ.2
+        · rw [procIte_neg hYZ] at hf
+          by_cases haY : a ∈ Y
+          · rw [procIte_pos haY] at hf
+            exact hleft hf haY
+          · rw [procIte_neg haY] at hf
+            have haZ : a ∈ Z := by
+              rcases haidx with (h | h) | h
+              · exact absurd h.1.1 haX
+              · exact absurd h.1 haY
+              · exact h.1
+            exact hright hf haZ
 
 /-
 (*********************************************************
