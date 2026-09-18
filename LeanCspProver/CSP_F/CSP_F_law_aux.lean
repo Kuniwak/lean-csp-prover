@@ -487,10 +487,134 @@ theorem cspF_DIV_Seq_compo_step_resolve
  *=========================================================*)
 -/
 
-axiom cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_l
+/-- Failures of `((? :Y -> Pf) [+] Z) |[X]| SKIP` for `Z` equal to `SKIP` or `DIV`;
+    the shared core of `cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l`. -/
+private theorem par_SKIP_Ext_choice_failures
+    {X Y : Set α} {Pf : α → proc p α} {Z : proc p α} {M : p → domFType α}
+    (hZ : Z = proc.SKIP ∨ Z = proc.DIV) (t : traceType α) (W : Set (event α)) :
+    ((t, W) :f failures (((proc.Ext_pre_choice Y Pf) [+] Z) |[X]| (proc.SKIP : proc p α)) M) ↔
+      ((t, W) :f failures
+        ((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) [+] Z) M) := by
+  rw [in_failures_Parallel, in_failures_Ext_pre_choice_Ext_choice hZ]
+  constructor
+  · rintro ⟨u, A, B, hEq, hAB, s, t1, hpar, hs, ht1⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Ext_pre_choice_Ext_choice hZ] at hs
+    rw [in_failures_SKIP_split] at ht1
+    rcases hs with ⟨a, s', rfl, hPf, haY⟩ | ⟨hZS, rfl⟩ | ⟨hZS, rfl, hA⟩
+    · rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil_right] at hpar
+        obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (event.Ev a : event α) ∈
+              sett (Abs_trace [event.Ev a] ^^^ s') ∩ event.Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inl ⟨a, s', rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨s', A, B, rfl, hAB, s', <>, par_tr_nil_right.mpr ⟨rfl, ?_, ?_⟩, hPf,
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hB⟩)⟩
+        · intro hTk
+          exact hnoT (sett_Ev_head_mem.mpr (Or.inr hTk))
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [event.Ev a] ^^^ s') ∩ event.Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+      · rw [par_tr_Tick_right] at hpar
+        obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (event.Ev a : event α) ∈
+              sett (Abs_trace [event.Ev a] ^^^ s') ∩ event.Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inl ⟨a, s', rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨s', A, B, rfl, hAB, s', Abs_trace [event.Tick],
+          par_tr_Tick_right.mpr ⟨rfl, ?_, ?_⟩, hPf,
+          in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+        · rcases sett_Ev_head_mem.mp hTk with hEq2 | h
+          · exact absurd hEq2 (by simp)
+          · exact h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [event.Ev a] ^^^ s') ∩ event.Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+    · rcases ht1 with ⟨rfl, -⟩ | rfl
+      · exact absurd hpar (by simp)
+      · rw [par_tr_Tick2] at hpar
+        subst hpar
+        exact Or.inr (Or.inl ⟨hZS, rfl⟩)
+    · rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil2] at hpar
+        subst hpar
+        refine Or.inr (Or.inr ⟨hZS, rfl, ?_⟩)
+        rintro e (he | he)
+        · exact hA he
+        · exact hB he
+      · exact absurd hpar (by simp)
+  · rintro (⟨a, v, rfl, hv, ⟨haY, haX⟩⟩ | ⟨hZS, rfl⟩ | ⟨hZS, rfl, hW⟩)
+    · rw [in_failures_Parallel] at hv
+      obtain ⟨v', A, B, hEqv, hAB, s, t1, hpar, hs, ht1⟩ := hv
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+      rw [in_failures_SKIP_split] at ht1
+      rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil_right] at hpar
+        obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [event.Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [event.Ev a] ^^^ v, <>,
+          par_tr_nil_right.mpr ⟨rfl, ?_, ?_⟩, ?_,
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hB⟩)⟩
+        · intro hTk
+          rcases sett_Ev_head_mem.mp hTk with hEq2 | h
+          · exact absurd hEq2 (by simp)
+          · exact hnoT h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact haX (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ event.Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · exact (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inl ⟨a, v, rfl, hs, haY⟩)
+      · rw [par_tr_Tick_right] at hpar
+        obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [event.Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [event.Ev a] ^^^ v,
+          Abs_trace [event.Tick], par_tr_Tick_right.mpr ⟨rfl, ?_, ?_⟩, ?_,
+          in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+        · exact sett_Ev_head_mem.mpr (Or.inr hTk)
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact haX (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ event.Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · exact (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inl ⟨a, v, rfl, hs, haY⟩)
+    · exact ⟨Abs_trace [event.Tick], W, W, by rw [Set.union_self], rfl,
+        Abs_trace [event.Tick], Abs_trace [event.Tick], par_tr_Tick_Tick,
+        (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inr (Or.inl ⟨hZS, rfl⟩)),
+        in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+    · exact ⟨<>, W, W, by rw [Set.union_self], rfl, <>, <>, par_tr_nil_nil,
+        (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inr (Or.inr ⟨hZS, rfl, hW⟩)),
+        in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hW⟩)⟩
+
+theorem cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_l
     {P Q : proc p α} {X : Set α} {M : p → domFType α} :
     (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
-      eqF ((P [+] Q) |[X]| (proc.DIV : proc p α)) M M (P |[X]| (proc.DIV : proc p α))
+      eqF ((P [+] Q) |[X]| (proc.DIV : proc p α)) M M (P |[X]| (proc.DIV : proc p α)) := by
+  rintro (rfl | rfl | rfl)
+  · cspF_auto
+  · cspF_auto
+  · cspF_auto
 
 theorem cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_r
     {P Q : proc p α} {X : Set α} {M : p → domFType α} :
@@ -512,17 +636,54 @@ theorem cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_r
    `cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_l` and
    `cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_r`. -/
 
-axiom cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l
+theorem cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l
     {Y X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
       eqF ((((proc.Ext_pre_choice Y Pf) [+] Q) |[X]| (proc.SKIP : proc p α))) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) [+] Q))
+        (((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) [+] Q)) := by
+  rintro (rfl | rfl | rfl)
+  · exact cspF_SKIP_Parallel_Ext_choice_SKIP_l
+  · exact cspF_eqF_of_eqT (by cspT_auto_step) (par_SKIP_Ext_choice_failures (Or.inr rfl))
+  · have h₁ :
+        eqF ((((proc.Ext_pre_choice Y Pf) [+] proc.STOP) |[X]| (proc.SKIP : proc p α))) M M
+          ((proc.Ext_pre_choice Y Pf) |[X]| (proc.SKIP : proc p α)) :=
+      cspF_Parallel_cong rfl cspF_Ext_choice_unit_r cspF_reflex_eq_P
+    have h₂ :
+        eqF ((proc.Ext_pre_choice Y Pf) |[X]| (proc.SKIP : proc p α)) M M
+          (proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) :=
+      cspF_Parallel_preterm_r
+    have h₃ :
+        eqF (proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) M M
+          (((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α)))
+            [+] proc.STOP)) :=
+      cspF_sym cspF_Ext_choice_unit_r
+    exact cspF_trans_left_eq h₁ (cspF_trans_left_eq h₂ h₃)
 
-axiom cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_r
+theorem cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_r
     {Y X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
       eqF (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] Q))) M M
-        (((proc.Ext_pre_choice (Y \ X) (fun x => (proc.SKIP : proc p α) |[X]| Pf x)) [+] Q))
+        (((proc.Ext_pre_choice (Y \ X) (fun x => (proc.SKIP : proc p α) |[X]| Pf x)) [+] Q)) := by
+  intro hQ
+  have h₁ :
+      eqF (((proc.SKIP : proc p α) |[X]| ((proc.Ext_pre_choice Y Pf) [+] Q))) M M
+        ((((proc.Ext_pre_choice Y Pf) [+] Q) |[X]| (proc.SKIP : proc p α))) :=
+    cspF_Parallel_commut
+  have h₂ :
+      eqF ((((proc.Ext_pre_choice Y Pf) [+] Q) |[X]| (proc.SKIP : proc p α))) M M
+        (((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) [+] Q)) :=
+    cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l hQ
+  have h₃₁ :
+      eqF (proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) M M
+        (proc.Ext_pre_choice (Y \ X) (fun x => (proc.SKIP : proc p α) |[X]| Pf x)) := by
+    apply cspF_Ext_pre_choice_cong rfl
+    intro a ha
+    exact cspF_Parallel_commut
+  have h₃ :
+      eqF (((proc.Ext_pre_choice (Y \ X) (fun x => Pf x |[X]| (proc.SKIP : proc p α))) [+] Q)) M M
+        (((proc.Ext_pre_choice (Y \ X) (fun x => (proc.SKIP : proc p α) |[X]| Pf x)) [+] Q)) :=
+    cspF_Ext_choice_cong h₃₁ cspF_reflex_eq_P
+  exact cspF_trans_left_eq h₁ (cspF_trans_left_eq h₂ h₃)
 
 /- The Isabelle theorem bundle `cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP` is represented by
    `cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l` and
@@ -536,10 +697,14 @@ axiom cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_r
 (* renaming *)
 -/
 
-axiom cspF_SKIP_or_DIV_or_STOP_Renaming_Id
+theorem cspF_SKIP_or_DIV_or_STOP_Renaming_Id
     {P : proc p α} {r : Set (α × α)} {M : p → domFType α} :
     (P = proc.SKIP ∨ P = proc.DIV ∨ P = proc.STOP) →
-      eqF (P[[r]]) M M P
+      eqF (P[[r]]) M M P := by
+  rintro (rfl | rfl | rfl)
+  · cspF_auto
+  · cspF_auto
+  · cspF_auto
 
 /-
 (* restg *)
