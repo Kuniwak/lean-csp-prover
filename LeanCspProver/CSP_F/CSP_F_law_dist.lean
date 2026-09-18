@@ -1109,23 +1109,389 @@ axiom cspF_Rep_int_choice_set_Ext_choice
  * =================================================== *)
 -/
 
-axiom cspF_Seq_compo_hide_dist
-    {P Q : proc p α} {X : Set α} {M : p → domFType α} :
-    eqF (proc.Hiding (P ;; Q) X) M M ((proc.Hiding P X) ;; proc.Hiding Q X)
+private theorem Tick_notin_Ev_image' {X : Set α} : (event.Tick : event α) ∉ event.Ev '' X := by
+  rintro ⟨a, -, ha⟩
+  cases ha
 
-axiom cspF_Interleave_hide_dist
+/-- In an interleaving the two refusals agree off `Tick`, so the hidden events are
+    refused by both components. -/
+private theorem EvX_subset_left {X : Set α} {A B W : Set (event α)}
+    (hU : (event.Ev '' X) ∪ W = A ∪ B)
+    (hAB : A \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) =
+      B \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick})) :
+    (event.Ev '' X : Set (event α)) ⊆ A := by
+  intro e he
+  have hmem : e ∈ A ∪ B := by
+    rw [← hU]
+    exact Or.inl he
+  rcases hmem with hA | hB
+  · exact hA
+  · have hne : e ∉ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α))) := by
+      rintro (⟨a, ha, -⟩ | hT)
+      · exact ha
+      · rw [Set.mem_singleton_iff] at hT
+        rw [hT] at he
+        exact Tick_notin_Ev_image' he
+    have hmem' : e ∈ B \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := ⟨hB, hne⟩
+    rw [← hAB] at hmem'
+    exact hmem'.1
+
+private theorem ren_inv_union_Tick {r : Set (α × α)} {V : Set (event α)} :
+    ren_inv r (V ∪ {event.Tick}) = ren_inv r V ∪ {event.Tick} := by
+  rw [Set.union_singleton, ren_inv_insert_Tick, Set.union_singleton]
+
+private theorem mem_par_empty_refusal {e : event α} :
+    (e ∈ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α)))) ↔ e = event.Tick := by
+  constructor
+  · rintro (⟨a, ha, -⟩ | hT)
+    · exact ha.elim
+    · exact Set.mem_singleton_iff.mp hT
+  · intro h
+    exact Or.inr (Set.mem_singleton_iff.mpr h)
+
+private theorem ren_inv_union {r : Set (α × α)} {A B : Set (event α)} :
+    ren_inv r (A ∪ B) = ren_inv r A ∪ ren_inv r B := by
+  ext e
+  constructor
+  · rintro ⟨eb, (hb | hb), hc⟩
+    · exact Or.inl ⟨eb, hb, hc⟩
+    · exact Or.inr ⟨eb, hb, hc⟩
+  · rintro (⟨eb, hb, hc⟩ | ⟨eb, hb, hc⟩)
+    · exact ⟨eb, Or.inl hb, hc⟩
+    · exact ⟨eb, Or.inr hb, hc⟩
+
+theorem cspF_Seq_compo_hide_dist
+    {P Q : proc p α} {X : Set α} {M : p → domFType α} :
+    eqF (proc.Hiding (P ;; Q) X) M M ((proc.Hiding P X) ;; proc.Hiding Q X) := by
+  refine cspF_eqF_of_eqT cspT_Seq_compo_hide_dist ?_
+  intro t W
+  rw [in_failures_Hiding, in_failures_Seq_compo]
+  constructor
+  · rintro ⟨s, Y, hEq, hs⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Seq_compo] at hs
+    rcases hs with ⟨t1, W1, hEq1, hP, hno⟩ | ⟨s1, t1, W1, hEq1, hT, hQ, hno⟩
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq1
+      refine Or.inl ⟨hide_tr s X, W, rfl, ?_, hide_tr_noTick.mpr hno⟩
+      rw [in_failures_Hiding]
+      exact ⟨s, W ∪ {event.Tick}, rfl, by rw [← Set.union_assoc]; exact hP⟩
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq1
+      refine Or.inr ⟨hide_tr s1 X, hide_tr t1 X, W, by rw [hide_tr_appt (Or.inl hno)], ?_, ?_,
+        hide_tr_noTick.mpr hno⟩
+      · rw [in_traces_Hiding]
+        refine ⟨(s1 ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α), ?_, hT⟩
+        rw [hide_tr_appt (Or.inl hno), hide_tr_Tick]
+      · rw [in_failures_Hiding]
+        exact ⟨t1, W, rfl, hQ⟩
+  · rintro (⟨t1, W1, hEq, hP, hno⟩ | ⟨u, v, W1, hEq, hT, hQ, hno⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_Hiding] at hP
+      obtain ⟨s, Y, hEqs, hsP⟩ := hP
+      obtain ⟨hts, rfl⟩ := Prod.mk.inj hEqs
+      refine ⟨s, W, by rw [hts], ?_⟩
+      rw [in_failures_Seq_compo]
+      refine Or.inl ⟨s, (event.Ev '' X) ∪ W, rfl, by rw [Set.union_assoc]; exact hsP, ?_⟩
+      rw [← hide_tr_noTick (X := X), ← hts]
+      exact hno
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_traces_Hiding] at hT
+      rw [in_failures_Hiding] at hQ
+      obtain ⟨w, hwEq, hwP⟩ := hT
+      obtain ⟨t', Y', hEqt, ht'Q⟩ := hQ
+      obtain ⟨hvt, rfl⟩ := Prod.mk.inj hEqt
+      rcases trace_last_noTick_or_Tick w with hwno | ⟨w', hw'no, rfl⟩
+      · exfalso
+        have hcontra : noTick (u ^^^ (Abs_trace [event.Tick] : traceType α)) := by
+          rw [hwEq]
+          exact hide_tr_noTick.mpr hwno
+        exact not_noTick_Tick (decompo_appt_noTick_only_if (Or.inl hno) hcontra).2
+      · rw [hide_tr_appt (Or.inl hw'no), hide_tr_Tick] at hwEq
+        have hu : u = hide_tr w' X :=
+          ((appt_same_last hno (hide_tr_noTick.mpr hw'no)).mp hwEq).1
+        subst hu
+        subst hvt
+        refine ⟨(w' ^^^ t' : traceType α), W, (by rw [hide_tr_appt (Or.inl hw'no)]), ?_⟩
+        rw [in_failures_Seq_compo]
+        exact Or.inr ⟨w', t', (event.Ev '' X) ∪ W, rfl, hwP, ht'Q, hw'no⟩
+
+theorem cspF_Interleave_hide_dist
     {P Q : proc p α} {X : Set α} {M : p → domFType α} :
     eqF (proc.Hiding (P |[(∅ : Set α)]| Q) X) M M
-      ((proc.Hiding P X) |[(∅ : Set α)]| proc.Hiding Q X)
+      ((proc.Hiding P X) |[(∅ : Set α)]| proc.Hiding Q X) := by
+  refine cspF_eqF_of_eqT cspT_Interleave_hide_dist ?_
+  intro t W
+  rw [in_failures_Hiding, in_failures_Parallel]
+  constructor
+  · rintro ⟨u, Y, hEq, hu⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Parallel] at hu
+    obtain ⟨u2, Y1, Z1, hEq1, hYZ, s, t1, hpar, hsP, ht1Q⟩ := hu
+    obtain ⟨rfl, hU⟩ := Prod.mk.inj hEq1
+    have hEvY : (event.Ev '' X : Set (event α)) ⊆ Y1 := EvX_subset_left hU hYZ
+    have hEvZ : (event.Ev '' X : Set (event α)) ⊆ Z1 :=
+      EvX_subset_left (by rw [hU, Set.union_comm]) hYZ.symm
+    have hpt : ∀ a : event α,
+        (a ∈ Y1 ∧ a ∉ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α)))) ↔
+          (a ∈ Z1 ∧ a ∉ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α)))) := by
+      intro a
+      constructor
+      · intro h
+        have hm : a ∈ Z1 \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by rw [← hYZ]; exact h
+        exact hm
+      · intro h
+        have hm : a ∈ Y1 \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by rw [hYZ]; exact h
+        exact hm
+    have hWeq : W = ((event.Ev '' X) ∪ Y1) ∩ W ∪ ((event.Ev '' X) ∪ Z1) ∩ W := by
+      ext e
+      constructor
+      · intro he
+        have hmem : e ∈ Y1 ∪ Z1 := by
+          rw [← hU]
+          exact Or.inr he
+        rcases hmem with h | h
+        · exact Or.inl ⟨Or.inr h, he⟩
+        · exact Or.inr ⟨Or.inr h, he⟩
+      · rintro (⟨-, he⟩ | ⟨-, he⟩) <;> exact he
+    refine ⟨hide_tr u X, ((event.Ev '' X) ∪ Y1) ∩ W, ((event.Ev '' X) ∪ Z1) ∩ W, by rw [← hWeq], ?_,
+      hide_tr s X, hide_tr t1 X, interleave_of_hide_tr hpar, ?_, ?_⟩
+    · ext e
+      simp only [Set.mem_diff, Set.mem_inter_iff, Set.mem_union]
+      have h1 := hpt e
+      simp only [Set.mem_union] at h1
+      tauto
+    · rw [in_failures_Hiding]
+      refine ⟨s, ((event.Ev '' X) ∪ Y1) ∩ W, rfl, memF_F2 hsP ?_⟩
+      rintro e (he | ⟨(he | he), -⟩)
+      · exact hEvY he
+      · exact hEvY he
+      · exact he
+    · rw [in_failures_Hiding]
+      refine ⟨t1, ((event.Ev '' X) ∪ Z1) ∩ W, rfl, memF_F2 ht1Q ?_⟩
+      rintro e (he | ⟨(he | he), -⟩)
+      · exact hEvZ he
+      · exact hEvZ he
+      · exact he
+  · rintro ⟨u2, Y', Z', hEq, hYZ, s', t', hpar, hsP, ht'Q⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Hiding] at hsP ht'Q
+    obtain ⟨s, Y1, hEqs, hsP'⟩ := hsP
+    obtain ⟨t1, Z1, hEqt, ht1Q'⟩ := ht'Q
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqs
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqt
+    obtain ⟨v, rfl, hv⟩ := interleave_of_hide_tr_ex.mp hpar
+    refine ⟨v, Y' ∪ Z', rfl, ?_⟩
+    rw [in_failures_Parallel]
+    refine ⟨v, (event.Ev '' X) ∪ Y', (event.Ev '' X) ∪ Z', ?_, ?_, s, t1, hv, hsP', ht1Q'⟩
+    · have hsplit :
+          (event.Ev '' X) ∪ (Y' ∪ Z') = ((event.Ev '' X) ∪ Y') ∪ ((event.Ev '' X) ∪ Z') := by
+        ext e
+        simp only [Set.mem_union]
+        tauto
+      rw [← hsplit]
+    · have hpt : ∀ a : event α,
+          (a ∈ Y' ∧ a ∉ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α)))) ↔
+            (a ∈ Z' ∧ a ∉ ((event.Ev '' (∅ : Set α)) ∪ ({event.Tick} : Set (event α)))) := by
+        intro a
+        constructor
+        · intro h
+          have hm : a ∈ Z' \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by rw [← hYZ]; exact h
+          exact hm
+        · intro h
+          have hm : a ∈ Y' \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by rw [hYZ]; exact h
+          exact hm
+      ext e
+      simp only [Set.mem_diff, Set.mem_union]
+      have h1 := hpt e
+      simp only [Set.mem_union] at h1
+      tauto
 
-axiom cspF_Seq_compo_renaming_dist
+theorem cspF_Seq_compo_renaming_dist
     {P Q : proc p α} {r : Set (α × α)} {M : p → domFType α} :
-    eqF ((P ;; Q)[[r]]) M M ((P[[r]]) ;; (Q[[r]]))
+    eqF ((P ;; Q)[[r]]) M M ((P[[r]]) ;; (Q[[r]])) := by
+  refine cspF_eqF_of_eqT cspT_Seq_compo_renaming_dist ?_
+  intro t W
+  rw [in_failures_Renaming, in_failures_Seq_compo]
+  constructor
+  · rintro ⟨s, t', W', hEq, hren, hs⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Seq_compo] at hs
+    rcases hs with ⟨t1, W1, hEq1, hP, hno⟩ | ⟨s1, t1, W1, hEq1, hT, hQ, hno⟩
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq1
+      refine Or.inl ⟨t, W, rfl, ?_, ren_tr_noTick_left hren hno⟩
+      rw [in_failures_Renaming]
+      refine ⟨s, t, W ∪ {event.Tick}, rfl, hren, ?_⟩
+      rw [ren_inv_union_Tick]
+      exact hP
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq1
+      obtain ⟨u, v, rfl, h1, h2, -⟩ := (ren_tr_appt_decompo_left (Or.inl hno)).mp hren
+      refine Or.inr ⟨u, v, W, rfl, ?_, ?_, ren_tr_noTick_left h1 hno⟩
+      · rw [in_traces_Renaming]
+        exact ⟨(s1 ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α),
+          ren_tr_appt h1 ren_tr_Tick (Or.inl hno), hT⟩
+      · rw [in_failures_Renaming]
+        exact ⟨t1, v, W, rfl, h2, hQ⟩
+  · rintro (⟨t1, W1, hEq, hP, hno⟩ | ⟨u, v, W1, hEq, hT, hQ, hno⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_Renaming] at hP
+      obtain ⟨s, t'', W'', hEqs, hren, hsP⟩ := hP
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqs
+      refine ⟨s, t, W, rfl, hren, ?_⟩
+      rw [in_failures_Seq_compo]
+      refine Or.inl ⟨s, ren_inv r W, rfl, ?_, ren_tr_noTick_right hren hno⟩
+      rw [← ren_inv_union_Tick]
+      exact hsP
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_traces_Renaming] at hT
+      rw [in_failures_Renaming] at hQ
+      obtain ⟨w, hwren, hwP⟩ := hT
+      obtain ⟨t1, v', W', hEqv, hvren, ht1Q⟩ := hQ
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+      obtain ⟨w1, w2, rfl, h1, h2, -⟩ := (ren_tr_appt_decompo_right (Or.inl hno)).mp hwren
+      have hw2 : w2 = (Abs_trace [event.Tick] : traceType α) := ren_tr_Tick2.mp h2
+      subst hw2
+      have hw1no : noTick w1 := ren_tr_noTick_right h1 hno
+      refine ⟨(w1 ^^^ t1 : traceType α), (u ^^^ v : traceType α), W, rfl,
+        ren_tr_appt h1 hvren (Or.inl hw1no), ?_⟩
+      rw [in_failures_Seq_compo]
+      exact Or.inr ⟨w1, t1, ren_inv r W, rfl, hwP, ht1Q, hw1no⟩
 
-axiom cspF_Interleave_renaming_dist
+theorem cspF_Interleave_renaming_dist
     {P Q : proc p α} {r : Set (α × α)} {M : p → domFType α} :
-    eqF (((P |[(∅ : Set α)]| Q))[[r]]) M M
-      ((P[[r]]) |[(∅ : Set α)]| (Q[[r]]))
+    eqF (((P |[(∅ : Set α)]| Q))[[r]]) M M ((P[[r]]) |[(∅ : Set α)]| (Q[[r]])) := by
+  refine cspF_eqF_of_eqT cspT_Interleave_renaming_dist ?_
+  intro t W
+  rw [in_failures_Renaming, in_failures_Parallel]
+  constructor
+  · rintro ⟨s, t', W', hEq, hren, hs⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Parallel] at hs
+    obtain ⟨u, Y, Z, hEq1, hYZ, s1, t1, hpar, hsP, ht1Q⟩ := hs
+    obtain ⟨rfl, hinvW⟩ := Prod.mk.inj hEq1
+    obtain ⟨s', t'', hpar', hs'ren, ht'ren⟩ := interleave_of_ren_tr_only_if hpar hren
+    have hYZ' : ∀ e : event α, (e ∈ Y ∧ e ≠ event.Tick) ↔ (e ∈ Z ∧ e ≠ event.Tick) := by
+      intro e
+      constructor
+      · rintro ⟨hY, hne⟩
+        have hm : e ∈ Z \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by
+          rw [← hYZ]
+          exact ⟨hY, fun h => hne (mem_par_empty_refusal.mp h)⟩
+        exact ⟨hm.1, hne⟩
+      · rintro ⟨hZ, hne⟩
+        have hm : e ∈ Y \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) := by
+          rw [hYZ]
+          exact ⟨hZ, fun h => hne (mem_par_empty_refusal.mp h)⟩
+        exact ⟨hm.1, hne⟩
+    by_cases hT : (event.Tick : event α) ∈ Y ∨ (event.Tick : event α) ∈ Z
+    · have hTW : (event.Tick : event α) ∈ W := by
+        have hTinv : (event.Tick : event α) ∈ ren_inv r W := by
+          rw [hinvW]
+          exact hT
+        obtain ⟨eb, hb, hc⟩ := hTinv
+        rcases hc with ⟨-, rfl⟩ | ⟨a, b, -, hc, -⟩
+        · exact hb
+        · exact absurd hc.symm (by simp)
+      refine ⟨t, (W \ {event.Tick}) ∪ (Y ∩ {event.Tick}),
+        (W \ {event.Tick}) ∪ (Z ∩ {event.Tick}), ?_, ?_, s', t'', hpar', ?_, ?_⟩
+      · congr 1
+        ext e
+        constructor
+        · intro he
+          by_cases hTe : e = event.Tick
+          · subst hTe
+            rcases hT with h | h
+            · exact Or.inl (Or.inr ⟨h, rfl⟩)
+            · exact Or.inr (Or.inr ⟨h, rfl⟩)
+          · exact Or.inl (Or.inl ⟨he, fun h => hTe (Set.mem_singleton_iff.mp h)⟩)
+        · rintro ((⟨he, -⟩ | ⟨-, he⟩) | (⟨he, -⟩ | ⟨-, he⟩))
+          · exact he
+          · rw [Set.mem_singleton_iff] at he
+            rw [he]
+            exact hTW
+          · exact he
+          · rw [Set.mem_singleton_iff] at he
+            rw [he]
+            exact hTW
+      · ext e
+        simp only [Set.mem_diff, Set.mem_union, Set.mem_inter_iff, Set.mem_singleton_iff]
+        tauto
+      · rw [in_failures_Renaming]
+        refine ⟨s1, s', (W \ {event.Tick}) ∪ (Y ∩ {event.Tick}), rfl, hs'ren, memF_F2 hsP ?_⟩
+        rintro e ⟨eb, hebY, hcase⟩
+        rcases hcase with ⟨rfl, rfl⟩ | ⟨a, b, hr, rfl, rfl⟩
+        · rcases hebY with ⟨-, hne⟩ | ⟨hY, -⟩
+          · exact absurd (Set.mem_singleton_iff.mpr rfl) hne
+          · exact hY
+        · rcases hebY with ⟨hW, -⟩ | ⟨-, hTk⟩
+          · have hmem : (event.Ev a : event α) ∈ ren_inv r W :=
+              ⟨event.Ev b, hW, Or.inr ⟨a, b, hr, rfl, rfl⟩⟩
+            rw [hinvW] at hmem
+            rcases hmem with h | h
+            · exact h
+            · exact ((hYZ' (event.Ev a)).mpr ⟨h, by simp⟩).1
+          · exact absurd (Set.mem_singleton_iff.mp hTk) (by simp)
+      · rw [in_failures_Renaming]
+        refine ⟨t1, t'', (W \ {event.Tick}) ∪ (Z ∩ {event.Tick}), rfl, ht'ren, memF_F2 ht1Q ?_⟩
+        rintro e ⟨eb, hebZ, hcase⟩
+        rcases hcase with ⟨rfl, rfl⟩ | ⟨a, b, hr, rfl, rfl⟩
+        · rcases hebZ with ⟨-, hne⟩ | ⟨hZ, -⟩
+          · exact absurd (Set.mem_singleton_iff.mpr rfl) hne
+          · exact hZ
+        · rcases hebZ with ⟨hW, -⟩ | ⟨-, hTk⟩
+          · have hmem : (event.Ev a : event α) ∈ ren_inv r W :=
+              ⟨event.Ev b, hW, Or.inr ⟨a, b, hr, rfl, rfl⟩⟩
+            rw [hinvW] at hmem
+            rcases hmem with h | h
+            · exact ((hYZ' (event.Ev a)).mp ⟨h, by simp⟩).1
+            · exact h
+          · exact absurd (Set.mem_singleton_iff.mp hTk) (by simp)
+    · push_neg at hT
+      obtain ⟨hTY, hTZ⟩ := hT
+      have hYeqZ : Y = Z := by
+        ext e
+        by_cases hTe : e = event.Tick
+        · subst hTe
+          constructor
+          · intro h; exact absurd h hTY
+          · intro h; exact absurd h hTZ
+        · constructor
+          · intro h; exact ((hYZ' e).mp ⟨h, hTe⟩).1
+          · intro h; exact ((hYZ' e).mpr ⟨h, hTe⟩).1
+      have hinvY : ren_inv r W = Y := by
+        rw [hinvW, ← hYeqZ, Set.union_self]
+      refine ⟨t, W, W, by rw [Set.union_self], rfl, s', t'', hpar', ?_, ?_⟩
+      · rw [in_failures_Renaming]
+        exact ⟨s1, s', W, rfl, hs'ren, by rw [hinvY]; exact hsP⟩
+      · rw [in_failures_Renaming]
+        exact ⟨t1, t'', W, rfl, ht'ren, by rw [hinvY, hYeqZ]; exact ht1Q⟩
+  · rintro ⟨u, Y', Z', hEq, hYZ, s', t', hpar, hsP, ht'Q⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Renaming] at hsP ht'Q
+    obtain ⟨s1, s'', Y'', hEqs, hs1ren, hs1P⟩ := hsP
+    obtain ⟨t1, t'', Z'', hEqt, ht1ren, ht1Q⟩ := ht'Q
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqs
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqt
+    obtain ⟨v, hv, hvren⟩ := interleave_of_ren_tr_if hpar hs1ren ht1ren
+    refine ⟨v, t, Y' ∪ Z', rfl, hvren, ?_⟩
+    rw [in_failures_Parallel]
+    refine ⟨v, ren_inv r Y', ren_inv r Z', by rw [ren_inv_union], ?_, s1, t1, hv, hs1P, ht1Q⟩
+    ext e
+    constructor
+    · rintro ⟨⟨eb, hebY, hcase⟩, hne⟩
+      rcases hcase with ⟨rfl, rfl⟩ | ⟨a, b, hr, rfl, rfl⟩
+      · exact absurd (mem_par_empty_refusal.mpr rfl) hne
+      · refine ⟨⟨event.Ev b, ?_, Or.inr ⟨a, b, hr, rfl, rfl⟩⟩, hne⟩
+        have hm : (event.Ev b : event α) ∈ Y' \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) :=
+          ⟨hebY, fun h => by simpa using mem_par_empty_refusal.mp h⟩
+        rw [hYZ] at hm
+        exact hm.1
+    · rintro ⟨⟨eb, hebZ, hcase⟩, hne⟩
+      rcases hcase with ⟨rfl, rfl⟩ | ⟨a, b, hr, rfl, rfl⟩
+      · exact absurd (mem_par_empty_refusal.mpr rfl) hne
+      · refine ⟨⟨event.Ev b, ?_, Or.inr ⟨a, b, hr, rfl, rfl⟩⟩, hne⟩
+        have hm : (event.Ev b : event α) ∈ Z' \ ((event.Ev '' (∅ : Set α)) ∪ {event.Tick}) :=
+          ⟨hebZ, fun h => by simpa using mem_par_empty_refusal.mp h⟩
+        rw [← hYZ] at hm
+        exact hm.1
 
 theorem cspF_Act_prefix_dist {a : α} {P Q : proc p α} {M : p → domFType α} :
     eqF (a ~> (P |~| Q)) M M ((a ~> P) |~| (a ~> Q)) := by

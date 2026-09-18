@@ -893,23 +893,158 @@ theorem cspT_Rep_int_choice_input_Dist
  * =================================================== *)
 -/
 
-axiom cspT_Seq_compo_hide_dist
+theorem cspT_Seq_compo_hide_dist
     {P Q : proc p α} {X : Set α} {M : p → domTType α} :
-    eqT (proc.Hiding (P ;; Q) X) M M ((proc.Hiding P X) ;; proc.Hiding Q X)
+    eqT (proc.Hiding (P ;; Q) X) M M ((proc.Hiding P X) ;; proc.Hiding Q X) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Hiding] at ht
+    obtain ⟨s, rfl, hs⟩ := ht
+    rw [in_traces_Seq_compo] at hs
+    rw [in_traces_Seq_compo]
+    rcases hs with ⟨s1, rfl, hs1⟩ | ⟨s1, t1, rfl, hs1, ht1, hno⟩
+    · exact Or.inl ⟨hide_tr s1 X, rmTick_hide, in_traces_Hiding.mpr ⟨s1, rfl, hs1⟩⟩
+    · refine Or.inr ⟨hide_tr s1 X, hide_tr t1 X, hide_tr_appt (Or.inl hno), ?_, ?_,
+        hide_tr_noTick.mpr hno⟩
+      · refine in_traces_Hiding.mpr
+          ⟨(s1 ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α), ?_, hs1⟩
+        rw [hide_tr_appt (Or.inl hno), hide_tr_Tick]
+      · exact in_traces_Hiding.mpr ⟨t1, rfl, ht1⟩
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Seq_compo] at ht
+    rw [in_traces_Hiding]
+    rcases ht with ⟨u, rfl, hu⟩ | ⟨u, v, rfl, hu, hv, hno⟩
+    · rw [in_traces_Hiding] at hu
+      obtain ⟨s, rfl, hs⟩ := hu
+      rcases trace_last_noTick_or_Tick s with hsno | ⟨s', hs'no, rfl⟩
+      · refine ⟨s, ?_, in_traces_Seq_compo.mpr (Or.inl ⟨s, (rmTick_nochange hsno).symm, hs⟩)⟩
+        rw [rmTick_nochange (hide_tr_noTick.mpr hsno)]
+      · refine ⟨s', ?_, in_traces_Seq_compo.mpr
+          (Or.inl ⟨(s' ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α),
+            (rmTick_last_Tick hs'no).symm, hs⟩)⟩
+        rw [hide_tr_appt (Or.inl hs'no), hide_tr_Tick,
+          rmTick_last_Tick (hide_tr_noTick.mpr hs'no)]
+    · rw [in_traces_Hiding] at hu hv
+      obtain ⟨s, hsEq, hs⟩ := hu
+      obtain ⟨t', rfl, ht'⟩ := hv
+      rcases trace_last_noTick_or_Tick s with hsno | ⟨s'', hs''no, rfl⟩
+      · exfalso
+        have hcontra : noTick (u ^^^ (Abs_trace [event.Tick] : traceType α)) := by
+          rw [hsEq]
+          exact hide_tr_noTick.mpr hsno
+        exact not_noTick_Tick (decompo_appt_noTick_only_if (Or.inl hno) hcontra).2
+      · rw [hide_tr_appt (Or.inl hs''no), hide_tr_Tick] at hsEq
+        have hu' : u = hide_tr s'' X :=
+          ((appt_same_last hno (hide_tr_noTick.mpr hs''no)).mp hsEq).1
+        subst hu'
+        refine ⟨(s'' ^^^ t' : traceType α), (hide_tr_appt (Or.inl hs''no)).symm, ?_⟩
+        exact in_traces_Seq_compo.mpr (Or.inr ⟨s'', t', rfl, hs, ht', hs''no⟩)
 
-axiom cspT_Interleave_hide_dist
+theorem cspT_Interleave_hide_dist
     {P Q : proc p α} {X : Set α} {M : p → domTType α} :
     eqT (proc.Hiding (P |[(∅ : Set α)]| Q) X) M M
-      ((proc.Hiding P X) |[(∅ : Set α)]| proc.Hiding Q X)
+      ((proc.Hiding P X) |[(∅ : Set α)]| proc.Hiding Q X) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Hiding] at ht
+    obtain ⟨w, rfl, hw⟩ := ht
+    rw [in_traces_Parallel] at hw
+    obtain ⟨s, t1, hpar, hs, ht1⟩ := hw
+    rw [in_traces_Parallel]
+    exact ⟨hide_tr s X, hide_tr t1 X, interleave_of_hide_tr hpar,
+      in_traces_Hiding.mpr ⟨s, rfl, hs⟩, in_traces_Hiding.mpr ⟨t1, rfl, ht1⟩⟩
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Parallel] at ht
+    obtain ⟨s', t'', hpar, hs', ht''⟩ := ht
+    rw [in_traces_Hiding] at hs' ht''
+    obtain ⟨s, rfl, hs⟩ := hs'
+    obtain ⟨t1, rfl, ht1⟩ := ht''
+    obtain ⟨v, rfl, hv⟩ := interleave_of_hide_tr_ex.mp hpar
+    rw [in_traces_Hiding]
+    exact ⟨v, rfl, in_traces_Parallel.mpr ⟨s, t1, hv, hs, ht1⟩⟩
 
-axiom cspT_Seq_compo_renaming_dist
+theorem cspT_Seq_compo_renaming_dist
     {P Q : proc p α} {r : Set (α × α)} {M : p → domTType α} :
-    eqT ((P ;; Q)[[r]]) M M ((P[[r]]) ;; (Q[[r]]))
+    eqT ((P ;; Q)[[r]]) M M ((P[[r]]) ;; (Q[[r]])) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Renaming] at ht
+    obtain ⟨s, hren, hs⟩ := ht
+    rw [in_traces_Seq_compo] at hs
+    rw [in_traces_Seq_compo]
+    rcases hs with ⟨s1, rfl, hs1⟩ | ⟨s1, t1, rfl, hs1, ht1, hno⟩
+    · have hnoT : noTick t := ren_tr_noTick_left hren noTick_rmTick
+      exact Or.inl ⟨t, (rmTick_nochange hnoT).symm,
+        in_traces_Renaming.mpr ⟨rmTick s1, hren,
+          memT_prefix_closed hs1 rmTick_prefix_rev_simp⟩⟩
+    · obtain ⟨t1', t2', rfl, h1, h2, -⟩ := (ren_tr_appt_decompo_left (Or.inl hno)).mp hren
+      refine Or.inr ⟨t1', t2', rfl, ?_, in_traces_Renaming.mpr ⟨t1, h2, ht1⟩,
+        ren_tr_noTick_left h1 hno⟩
+      exact in_traces_Renaming.mpr
+        ⟨(s1 ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α),
+          ren_tr_appt h1 ren_tr_Tick (Or.inl hno), hs1⟩
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Seq_compo] at ht
+    rw [in_traces_Renaming]
+    rcases ht with ⟨u, rfl, hu⟩ | ⟨u, v, rfl, hu, hv, hno⟩
+    · rw [in_traces_Renaming] at hu
+      obtain ⟨s, hren, hs⟩ := hu
+      rcases trace_last_noTick_or_Tick s with hsno | ⟨s', hs'no, rfl⟩
+      · refine ⟨s, ?_, in_traces_Seq_compo.mpr (Or.inl ⟨s, (rmTick_nochange hsno).symm, hs⟩)⟩
+        rw [rmTick_nochange (ren_tr_noTick_left hren hsno)]
+        exact hren
+      · obtain ⟨u1, u2, rfl, h1, h2, -⟩ := (ren_tr_appt_decompo_left (Or.inl hs'no)).mp hren
+        have hu2 : u2 = (Abs_trace [event.Tick] : traceType α) := ren_tr_Tick1.mp h2
+        subst hu2
+        refine ⟨s', ?_, in_traces_Seq_compo.mpr
+          (Or.inl ⟨(s' ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α),
+            (rmTick_last_Tick hs'no).symm, hs⟩)⟩
+        rw [rmTick_last_Tick (ren_tr_noTick_left h1 hs'no)]
+        exact h1
+    · rw [in_traces_Renaming] at hu hv
+      obtain ⟨s, hren, hs⟩ := hu
+      obtain ⟨t1, htr, ht1⟩ := hv
+      obtain ⟨s1, s2, rfl, h1, h2, -⟩ := (ren_tr_appt_decompo_right (Or.inl hno)).mp hren
+      have hs2 : s2 = (Abs_trace [event.Tick] : traceType α) := ren_tr_Tick2.mp h2
+      subst hs2
+      have hs1no : noTick s1 := ren_tr_noTick_right h1 hno
+      exact ⟨(s1 ^^^ t1 : traceType α), ren_tr_appt h1 htr (Or.inl hs1no),
+        in_traces_Seq_compo.mpr (Or.inr ⟨s1, t1, rfl, hs, ht1, hs1no⟩)⟩
 
-axiom cspT_Interleave_renaming_dist
+theorem cspT_Interleave_renaming_dist
     {P Q : proc p α} {r : Set (α × α)} {M : p → domTType α} :
-    eqT (((P |[(∅ : Set α)]| Q))[[r]]) M M
-      ((P[[r]]) |[(∅ : Set α)]| (Q[[r]]))
+    eqT (((P |[(∅ : Set α)]| Q))[[r]]) M M ((P[[r]]) |[(∅ : Set α)]| (Q[[r]])) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Renaming] at ht
+    obtain ⟨w, hren, hw⟩ := ht
+    rw [in_traces_Parallel] at hw
+    obtain ⟨s, t1, hpar, hs, ht1⟩ := hw
+    obtain ⟨s', t', hpar', hsr, htr⟩ := interleave_of_ren_tr_only_if hpar hren
+    rw [in_traces_Parallel]
+    exact ⟨s', t', hpar', in_traces_Renaming.mpr ⟨s, hsr, hs⟩,
+      in_traces_Renaming.mpr ⟨t1, htr, ht1⟩⟩
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Parallel] at ht
+    obtain ⟨s', t', hpar, hs', ht'⟩ := ht
+    rw [in_traces_Renaming] at hs' ht'
+    obtain ⟨s, hsr, hs⟩ := hs'
+    obtain ⟨t1, htr, ht1⟩ := ht'
+    obtain ⟨u, hu, hur⟩ := interleave_of_ren_tr_if hpar hsr htr
+    rw [in_traces_Renaming]
+    exact ⟨u, hur, in_traces_Parallel.mpr ⟨s, t1, hu, hs, ht1⟩⟩
 
 theorem cspT_Act_prefix_dist {a : α} {P Q : proc p α} {M : p → domTType α} :
     eqT (a ~> (P |~| Q)) M M ((a ~> P) |~| (a ~> Q)) := by
