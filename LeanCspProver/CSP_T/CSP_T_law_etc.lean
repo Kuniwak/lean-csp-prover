@@ -315,12 +315,22 @@ theorem cspT_Ext_choice_DIV_Int_choice_Id
  * =================================================== *)
 -/
 
-axiom cspT_Ext_pre_choice_Renaming_fun_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming_fun_step [Inhabited α]
     {X : Set α} {Pf : α → proc p α} {f : α → α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[fun_to_rel f]]) M M
       (proc.Ext_pre_choice (f '' X) fun y =>
         Rep_int_choice_com {x | x ∈ X ∧ y = f x} fun x =>
-          (Pf x)[[fun_to_rel f]])
+          (Pf x)[[fun_to_rel f]]) := by
+  refine cspT_rw_left_eq cspT_Renaming_step ?_
+  have hS : {y | ∃ x, x ∈ X ∧ (x, y) ∈ fun_to_rel f} = f '' X := by
+    ext y
+    simp [Set.mem_image, eq_comm]
+  refine cspT_Ext_pre_choice_cong hS fun a ha => ?_
+  have hT : {x | x ∈ X ∧ (x, a) ∈ fun_to_rel f} = {x | x ∈ X ∧ a = f x} := by
+    ext x
+    simp
+  rw [hT]
+  exact cspT_reflex_eq_P
 
 theorem cspT_Act_prefix_Renaming_fun_step
     {a : α} {P : proc p α} {f : α → α} {M : p → domTType α} :
@@ -472,12 +482,62 @@ theorem cspT_Ext_pre_choice_Renaming1_event_step [Inhabited α]
         (proc.Ext_pre_choice (X \ ({a, b} : Set α)) fun x => (Pf x)[[a <--> b]])) := by
   cspT_auto_step_dist
 
-axiom cspT_Ext_pre_choice_Renaming2_set_event_step_in [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming2_set_event_step_in [Inhabited α]
     {X A : Set α} {Pf : α → proc p α} {a : α} {M : p → domTType α} :
     X ∩ A ≠ ∅ →
       eqT ((proc.Ext_pre_choice X Pf)[[A <<- a]]) M M
         ((a ~> Rep_int_choice_com (X ∩ A) fun x => (Pf x)[[A <<- a]]) [+]
-          proc.Ext_pre_choice (X \ A) fun x => (Pf x)[[A <<- a]])
+          proc.Ext_pre_choice (X \ A) fun x => (Pf x)[[A <<- a]]) := by
+  intro hXA
+  obtain ⟨c, hcX, hcA⟩ : ∃ c, c ∈ X ∧ c ∈ A := by
+    by_contra hcon
+    exact hXA (Set.eq_empty_iff_forall_notMem.mpr fun c hc => hcon ⟨c, hc.1, hc.2⟩)
+  rw [cspT_eqT_iff]
+  intro t
+  rw [in_traces_Renaming, in_traces_Ext_choice, in_traces_Act_prefix,
+    in_traces_Ext_pre_choice (X := X \ A)]
+  constructor
+  · rintro ⟨s, hren, hs⟩
+    rw [in_traces_Ext_pre_choice] at hs
+    rcases hs with rfl | ⟨x, sx, rfl, hsx, hxX⟩
+    · exact Or.inl (Or.inl (ren_tr_nil1.mp hren))
+    · obtain ⟨b, tb, rfl, hab, hren'⟩ := ren_tr_decompo_left.mp hren
+      rw [mem_Renaming2_event] at hab
+      by_cases hxA : x ∈ A
+      · have hba : b = a := by rw [hab]; simp [Renaming2_event_fun, hxA]
+        subst hba
+        refine Or.inl (Or.inr ⟨tb, rfl, ?_⟩)
+        rw [in_traces_Rep_int_choice_com]
+        exact Or.inr ⟨x, ⟨hxX, hxA⟩, in_traces_Renaming.mpr ⟨sx, hren', hsx⟩⟩
+      · have hbx : b = x := by rw [hab]; simp [Renaming2_event_fun, hxA]
+        subst hbx
+        exact Or.inr (Or.inr ⟨b, tb, rfl,
+          in_traces_Renaming.mpr ⟨sx, hren', hsx⟩, ⟨hxX, hxA⟩⟩)
+  · have hnil : (<> : traceType α) :t traces ((proc.Ext_pre_choice X Pf)[[A <<- a]]) M := by
+      exact in_traces_Renaming.mpr ⟨<>, ren_tr_nil,
+        in_traces_Ext_pre_choice.mpr (Or.inl rfl)⟩
+    rintro ((rfl | ⟨tb, rfl, hQ⟩) | (rfl | ⟨x, tb, rfl, hR, hx⟩))
+    · exact in_traces_Renaming.mp hnil
+    · rw [in_traces_Rep_int_choice_com] at hQ
+      rcases hQ with rfl | ⟨x, ⟨hxX, hxA⟩, hR⟩
+      · refine ⟨Abs_trace [event.Ev c] ^^^ <>, ?_, in_traces_Ext_pre_choice.mpr
+          (Or.inr ⟨c, <>, rfl, nilt_in_T, hcX⟩)⟩
+        refine ren_tr_decompo_left_if ?_ ren_tr_nil
+        rw [mem_Renaming2_event]
+        simp [Renaming2_event_fun, hcA]
+      · obtain ⟨sx, hren', hsx⟩ := in_traces_Renaming.mp hR
+        refine ⟨Abs_trace [event.Ev x] ^^^ sx, ?_,
+          in_traces_Ext_pre_choice.mpr (Or.inr ⟨x, sx, rfl, hsx, hxX⟩)⟩
+        refine ren_tr_decompo_left_if ?_ hren'
+        rw [mem_Renaming2_event]
+        simp [Renaming2_event_fun, hxA]
+    · exact in_traces_Renaming.mp hnil
+    · obtain ⟨sx, hren', hsx⟩ := in_traces_Renaming.mp hR
+      refine ⟨Abs_trace [event.Ev x] ^^^ sx, ?_,
+        in_traces_Ext_pre_choice.mpr (Or.inr ⟨x, sx, rfl, hsx, hx.1⟩)⟩
+      refine ren_tr_decompo_left_if ?_ hren'
+      rw [mem_Renaming2_event]
+      simp [Renaming2_event_fun, hx.2]
 
 theorem cspT_Ext_pre_choice_Renaming2_set_event_step_notin
     {X A : Set α} {Pf : α → proc p α} {b : α} {M : p → domTType α} :
@@ -486,13 +546,18 @@ theorem cspT_Ext_pre_choice_Renaming2_set_event_step_notin
         (proc.Ext_pre_choice X fun x => (Pf x)[[A <<- b]]) := by
   cspT_auto_step_dist
 
-axiom cspT_Ext_pre_choice_Renaming2_set_event_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming2_set_event_step [Inhabited α]
     {X A : Set α} {Pf : α → proc p α} {a : α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[A <<- a]]) M M
       (procIte (X ∩ A ≠ ∅)
         ((a ~> Rep_int_choice_com (X ∩ A) fun x => (Pf x)[[A <<- a]]) [+]
           proc.Ext_pre_choice (X \ A) fun x => (Pf x)[[A <<- a]])
-        (proc.Ext_pre_choice X fun x => (Pf x)[[A <<- a]]))
+        (proc.Ext_pre_choice X fun x => (Pf x)[[A <<- a]])) := by
+  by_cases h : X ∩ A ≠ ∅
+  · rw [procIte_pos h]
+    exact cspT_Ext_pre_choice_Renaming2_set_event_step_in h
+  · rw [procIte_neg h]
+    exact cspT_Ext_pre_choice_Renaming2_set_event_step_notin (by simpa using h)
 
 theorem cspT_Ext_pre_choice_Renaming2_event_step [Inhabited α]
     {X : Set α} {Pf : α → proc p α} {a b : α} {M : p → domTType α} :
@@ -666,14 +731,35 @@ theorem cspT_Rec_prefix_Renaming1_event_step_notin
    `cspT_Rec_prefix_Renaming1_event2_step_in`, and
    `cspT_Rec_prefix_Renaming1_event_step_notin`. -/
 
-axiom cspT_Rec_prefix_Renaming2_set_event_step_in
+theorem cspT_Rec_prefix_Renaming2_set_event_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       (∃ x, x ∈ X ∧ f x ∈ A) →
       eqT ((Rec_prefix f X Pf)[[A <<- a]]) M M
         ((a ~> Rep_int_choice_f f {x | x ∈ X ∧ f x ∈ A} fun x => (Pf x)[[A <<- a]]) [+]
-          Rec_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
+          Rec_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]]) := by
+  intro _ hex
+  have h1 : f '' {y | y ∈ X ∧ f y ∈ A} = (f '' X) ∩ A := by
+    ext y
+    constructor
+    · rintro ⟨z, ⟨hzX, hzA⟩, rfl⟩
+      exact ⟨⟨z, hzX, rfl⟩, hzA⟩
+    · rintro ⟨⟨z, hzX, rfl⟩, hyA⟩
+      exact ⟨z, ⟨hzX, hyA⟩, rfl⟩
+  have h2 : f '' (X \ {y | y ∈ X ∧ f y ∈ A}) = (f '' X) \ A := by
+    ext y
+    constructor
+    · rintro ⟨z, ⟨hzX, hz⟩, rfl⟩
+      exact ⟨⟨z, hzX, rfl⟩, fun hA => hz ⟨hzX, hA⟩⟩
+    · rintro ⟨⟨z, hzX, rfl⟩, hyA⟩
+      exact ⟨z, ⟨hzX, fun hz => hyA hz.2⟩, rfl⟩
+  have hne : (f '' X) ∩ A ≠ ∅ := by
+    obtain ⟨z, hzX, hzA⟩ := hex
+    intro hEq
+    exact Set.eq_empty_iff_forall_notMem.mp hEq (f z) ⟨⟨z, hzX, rfl⟩, hzA⟩
+  rw [Rec_prefix_def, Rec_prefix_def, Rep_int_choice_f_def, h1, h2]
+  exact cspT_Ext_pre_choice_Renaming2_set_event_step_in hne
 
 theorem cspT_Rec_prefix_Renaming2_set_event_step_notin
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
@@ -683,7 +769,7 @@ theorem cspT_Rec_prefix_Renaming2_set_event_step_notin
         (Rec_prefix f X fun x => (Pf x)[[A <<- b]]) := by
   cspT_auto_step_dist
 
-axiom cspT_Rec_prefix_Renaming2_set_event_step
+theorem cspT_Rec_prefix_Renaming2_set_event_step
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
@@ -691,7 +777,15 @@ axiom cspT_Rec_prefix_Renaming2_set_event_step
         (procIte (∃ x, x ∈ X ∧ f x ∈ A)
           ((a ~> Rep_int_choice_f f {x | x ∈ X ∧ f x ∈ A} fun x => (Pf x)[[A <<- a]]) [+]
             Rec_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
-          (Rec_prefix f X fun x => (Pf x)[[A <<- a]]))
+          (Rec_prefix f X fun x => (Pf x)[[A <<- a]])) := by
+  intro hinj
+  by_cases hex : ∃ x, x ∈ X ∧ f x ∈ A
+  · rw [procIte_pos hex]
+    exact cspT_Rec_prefix_Renaming2_set_event_step_in hinj hex
+  · rw [procIte_neg hex]
+    refine cspT_Rec_prefix_Renaming2_set_event_step_notin (Or.inl ?_)
+    intro z hzX hzA
+    exact hex ⟨z, hzX, hzA⟩
 
 theorem cspT_Rec_prefix_Renaming2_event_step_in
     {x : Type _} [Inhabited x] {f : x → α} {X : Set x} {Pf : x → proc p α}
@@ -827,14 +921,106 @@ theorem cspT_Nondet_send_prefix_Renaming1_event_step_notin
    `cspT_Nondet_send_prefix_Renaming1_event2_step_in`, and
    `cspT_Nondet_send_prefix_Renaming1_event_step_notin`. -/
 
-axiom cspT_Nondet_send_prefix_Renaming2_set_event_step_in
+/-- The `Int_pre_choice` counterpart of
+    `cspT_Ext_pre_choice_Renaming2_set_event_step_in`; this is what
+    `cspT_Nondet_send_prefix_Renaming2_set_event_step_in` unfolds to. -/
+private theorem Int_pre_choice_Renaming2_set_event_in [Inhabited α]
+    {Y A : Set α} {Qf : α → proc p α} {a : α} {M : p → domTType α} :
+    Y ∩ A ≠ ∅ →
+      eqT ((Int_pre_choice Y Qf)[[A <<- a]]) M M
+        ((a ~> Rep_int_choice_com (Y ∩ A) fun y => (Qf y)[[A <<- a]]) |~|
+          Rep_int_choice_com (Y \ A) fun y => y ~> (Qf y)[[A <<- a]]) := by
+  intro hYA
+  obtain ⟨c, hcY, hcA⟩ : ∃ c, c ∈ Y ∧ c ∈ A := by
+    by_contra hcon
+    exact hYA (Set.eq_empty_iff_forall_notMem.mpr fun z hz => hcon ⟨z, hz.1, hz.2⟩)
+  rw [Int_pre_choice_def, cspT_eqT_iff]
+  intro t
+  rw [in_traces_Renaming, in_traces_Int_choice, in_traces_Act_prefix,
+    in_traces_Rep_int_choice_com (X := Y \ A)]
+  constructor
+  · rintro ⟨s, hren, hs⟩
+    rw [in_traces_Rep_int_choice_com] at hs
+    rcases hs with rfl | ⟨y, hyY, hs⟩
+    · exact Or.inl (Or.inl (ren_tr_nil1.mp hren))
+    · rw [in_traces_Act_prefix] at hs
+      rcases hs with rfl | ⟨u, rfl, hu⟩
+      · exact Or.inl (Or.inl (ren_tr_nil1.mp hren))
+      · obtain ⟨b, tb, rfl, hab, hren'⟩ := ren_tr_decompo_left.mp hren
+        rw [mem_Renaming2_event] at hab
+        by_cases hyA : y ∈ A
+        · have hba : b = a := by rw [hab]; simp [Renaming2_event_fun, hyA]
+          subst hba
+          refine Or.inl (Or.inr ⟨tb, rfl, ?_⟩)
+          rw [in_traces_Rep_int_choice_com]
+          exact Or.inr ⟨y, ⟨hyY, hyA⟩, in_traces_Renaming.mpr ⟨u, hren', hu⟩⟩
+        · have hby : b = y := by rw [hab]; simp [Renaming2_event_fun, hyA]
+          subst hby
+          refine Or.inr (Or.inr ⟨b, ⟨hyY, hyA⟩, ?_⟩)
+          rw [in_traces_Act_prefix]
+          exact Or.inr ⟨tb, rfl, in_traces_Renaming.mpr ⟨u, hren', hu⟩⟩
+  · have hnil : ∃ s, ren_tr s (Renaming2_event A a) (<> : traceType α) ∧
+        s :t traces (Rep_int_choice_com Y fun y => y ~> Qf y) M :=
+      ⟨<>, ren_tr_nil, in_traces_Rep_int_choice_com.mpr (Or.inl rfl)⟩
+    rintro ((rfl | ⟨tb, rfl, hQ⟩) | (rfl | ⟨y, ⟨hyY, hyA⟩, hR⟩))
+    · exact hnil
+    · rw [in_traces_Rep_int_choice_com] at hQ
+      rcases hQ with rfl | ⟨y, ⟨hyY, hyA⟩, hR⟩
+      · refine ⟨Abs_trace [event.Ev c] ^^^ <>, ?_,
+          in_traces_Rep_int_choice_com.mpr (Or.inr ⟨c, hcY, ?_⟩)⟩
+        · refine ren_tr_decompo_left_if ?_ ren_tr_nil
+          rw [mem_Renaming2_event]
+          simp [Renaming2_event_fun, hcA]
+        · exact in_traces_Act_prefix.mpr (Or.inr ⟨<>, rfl, nilt_in_T⟩)
+      · obtain ⟨u, hren', hu⟩ := in_traces_Renaming.mp hR
+        refine ⟨Abs_trace [event.Ev y] ^^^ u, ?_,
+          in_traces_Rep_int_choice_com.mpr (Or.inr ⟨y, hyY, ?_⟩)⟩
+        · refine ren_tr_decompo_left_if ?_ hren'
+          rw [mem_Renaming2_event]
+          simp [Renaming2_event_fun, hyA]
+        · exact in_traces_Act_prefix.mpr (Or.inr ⟨u, rfl, hu⟩)
+    · exact hnil
+    · rw [in_traces_Act_prefix] at hR
+      rcases hR with rfl | ⟨tb, rfl, hR⟩
+      · exact hnil
+      · obtain ⟨u, hren', hu⟩ := in_traces_Renaming.mp hR
+        refine ⟨Abs_trace [event.Ev y] ^^^ u, ?_,
+          in_traces_Rep_int_choice_com.mpr (Or.inr ⟨y, hyY, ?_⟩)⟩
+        · refine ren_tr_decompo_left_if ?_ hren'
+          rw [mem_Renaming2_event]
+          simp [Renaming2_event_fun, hyA]
+        · exact in_traces_Act_prefix.mpr (Or.inr ⟨u, rfl, hu⟩)
+
+theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       (∃ x, x ∈ X ∧ f x ∈ A) →
       eqT ((Nondet_send_prefix f X Pf)[[A <<- a]]) M M
         ((a ~> Rep_int_choice_f f {x | x ∈ X ∧ f x ∈ A} fun x => (Pf x)[[A <<- a]]) |~|
-          Nondet_send_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
+          Nondet_send_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]]) := by
+  intro _ hex
+  have h1 : f '' {y | y ∈ X ∧ f y ∈ A} = (f '' X) ∩ A := by
+    ext y
+    constructor
+    · rintro ⟨z, ⟨hzX, hzA⟩, rfl⟩
+      exact ⟨⟨z, hzX, rfl⟩, hzA⟩
+    · rintro ⟨⟨z, hzX, rfl⟩, hyA⟩
+      exact ⟨z, ⟨hzX, hyA⟩, rfl⟩
+  have h2 : f '' (X \ {y | y ∈ X ∧ f y ∈ A}) = (f '' X) \ A := by
+    ext y
+    constructor
+    · rintro ⟨z, ⟨hzX, hz⟩, rfl⟩
+      exact ⟨⟨z, hzX, rfl⟩, fun hA => hz ⟨hzX, hA⟩⟩
+    · rintro ⟨⟨z, hzX, rfl⟩, hyA⟩
+      exact ⟨z, ⟨hzX, fun hz => hyA hz.2⟩, rfl⟩
+  have hne : (f '' X) ∩ A ≠ ∅ := by
+    obtain ⟨z, hzX, hzA⟩ := hex
+    intro hEq
+    exact Set.eq_empty_iff_forall_notMem.mp hEq (f z) ⟨⟨z, hzX, rfl⟩, hzA⟩
+  rw [Nondet_send_prefix_def, Nondet_send_prefix_def, Rep_int_choice_f_def, h1, h2,
+    Int_pre_choice_def]
+  exact Int_pre_choice_Renaming2_set_event_in hne
 
 theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_notin
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
@@ -844,7 +1030,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_notin
         (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]]) := by
   cspT_auto_step_dist
 
-axiom cspT_Nondet_send_prefix_Renaming2_set_event_step
+theorem cspT_Nondet_send_prefix_Renaming2_set_event_step
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
@@ -852,7 +1038,15 @@ axiom cspT_Nondet_send_prefix_Renaming2_set_event_step
         (procIte (∃ x, x ∈ X ∧ f x ∈ A)
           ((a ~> Rep_int_choice_f f {x | x ∈ X ∧ f x ∈ A} fun x => (Pf x)[[A <<- a]]) |~|
             Nondet_send_prefix f (X \ {x | x ∈ X ∧ f x ∈ A}) fun x => (Pf x)[[A <<- a]])
-          (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]]))
+          (Nondet_send_prefix f X fun x => (Pf x)[[A <<- a]])) := by
+  intro hinj
+  by_cases hex : ∃ x, x ∈ X ∧ f x ∈ A
+  · rw [procIte_pos hex]
+    exact cspT_Nondet_send_prefix_Renaming2_set_event_step_in hinj hex
+  · rw [procIte_neg hex]
+    refine cspT_Nondet_send_prefix_Renaming2_set_event_step_notin (Or.inl ?_)
+    intro z hzX hzA
+    exact hex ⟨z, hzX, hzA⟩
 
 theorem cspT_Nondet_send_prefix_Renaming2_event_step_in
     {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
