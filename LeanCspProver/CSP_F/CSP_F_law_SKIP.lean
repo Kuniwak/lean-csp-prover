@@ -46,29 +46,17 @@ noncomputable section
  *********************************************************)
 -/
 
-private theorem in_failures_SKIP_iff3 {s : traceType α} {W : Set (event α)}
-    {M : p → domFType α} :
-    ((s, W) :f failures (proc.SKIP : proc p α) M) ↔
-      ((s = <> ∧ W ⊆ Evset) ∨ s = (Abs_trace [Tick] : traceType α)) := by
-  rw [in_failures_SKIP]
-  constructor
-  · rintro (⟨V, hEq, hV⟩ | ⟨V, hEq⟩)
-    · exact Or.inl ⟨(Prod.mk.inj hEq).1, by rw [(Prod.mk.inj hEq).2]; exact hV⟩
-    · exact Or.inr (Prod.mk.inj hEq).1
-  · rintro (⟨rfl, hW⟩ | rfl)
-    · exact Or.inl ⟨W, rfl, hW⟩
-    · exact Or.inr ⟨W, rfl⟩
 
 theorem cspF_Parallel_term
     {X : Set α} {M1 : p → domFType α} {M2 : q → domFType α} :
     eqF (((proc.SKIP : proc p α) |[X]| proc.SKIP)) M1 M2 (proc.SKIP : proc q α) := by
   refine cspF_eqF_of_eqT cspT_Parallel_term ?_
   intro t W
-  rw [in_failures_Parallel, in_failures_SKIP_iff3]
+  rw [in_failures_Parallel, in_failures_SKIP_split]
   constructor
   · rintro ⟨u, Y, Z, hEq, hYZ, s, t1, hpar, hs, ht1⟩
     obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
-    rw [in_failures_SKIP_iff3] at hs ht1
+    rw [in_failures_SKIP_split] at hs ht1
     rcases hs with ⟨rfl, hY⟩ | rfl
     · rcases ht1 with ⟨rfl, hZ⟩ | rfl
       · rw [par_tr_nil2] at hpar
@@ -84,11 +72,11 @@ theorem cspF_Parallel_term
         exact Or.inr hpar
   · rintro (⟨rfl, hW⟩ | rfl)
     · exact ⟨<>, W, W, by rw [Set.union_self], rfl, <>, <>, par_tr_nil_nil,
-        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hW⟩),
-        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hW⟩)⟩
+        in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hW⟩),
+        in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hW⟩)⟩
     · exact ⟨Abs_trace [Tick], W, W, by rw [Set.union_self], rfl,
         Abs_trace [Tick], Abs_trace [Tick], par_tr_Tick_Tick,
-        in_failures_SKIP_iff3.mpr (Or.inr rfl), in_failures_SKIP_iff3.mpr (Or.inr rfl)⟩
+        in_failures_SKIP_split.mpr (Or.inr rfl), in_failures_SKIP_split.mpr (Or.inr rfl)⟩
 
 /-
 (*********************************************************
@@ -126,14 +114,6 @@ theorem cspF_Parallel_preterm_l_set1
   · intro he
     cases he
 
-private theorem Tick_notin_traces_Ext_pre_choice
-    {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
-    ¬ ((Abs_trace [Tick] : traceType α) :t traces (proc.Ext_pre_choice X Pf) M) := by
-  intro h
-  rw [in_traces_Ext_pre_choice] at h
-  rcases h with hnil | ⟨a, u, hu, -, -⟩
-  · simp at hnil
-  · simp at hu
 
 theorem cspF_Parallel_preterm_l
     {X Y : Set α} {Qf : α → proc p α} {M : p → domFType α} :
@@ -145,7 +125,7 @@ theorem cspF_Parallel_preterm_l
   constructor
   · rintro ⟨u, A, B, hEq, hAB, s, t1, hpar, hs, ht1⟩
     obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
-    rw [in_failures_SKIP_iff3] at hs
+    rw [in_failures_SKIP_split] at hs
     rw [in_failures_Ext_pre_choice] at ht1
     rcases hs with ⟨rfl, hA⟩ | rfl
     · rw [par_tr_nil_left] at hpar
@@ -179,7 +159,7 @@ theorem cspF_Parallel_preterm_l
         refine Or.inr ⟨a, t2, A ∪ B, rfl, ?_, ⟨haY, haX⟩⟩
         rw [in_failures_Parallel]
         refine ⟨t2, A, B, rfl, hAB, <>, t2, par_tr_nil_left.mpr ⟨rfl, ?_, ?_⟩,
-          in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hA⟩), hQ⟩
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hA⟩), hQ⟩
         · intro hTk
           exact hnoT (sett_Ev_head_mem.mpr (Or.inr hTk))
         · rw [Set.eq_empty_iff_forall_notMem]
@@ -204,7 +184,7 @@ theorem cspF_Parallel_preterm_l
         rw [in_failures_Parallel]
         refine ⟨t2, A, B, rfl, hAB, Abs_trace [Tick], t2,
           par_tr_Tick_left.mpr ⟨rfl, ?_, ?_⟩,
-          in_failures_SKIP_iff3.mpr (Or.inr rfl), hQ⟩
+          in_failures_SKIP_split.mpr (Or.inr rfl), hQ⟩
         · rcases sett_Ev_head_mem.mp hTk with hEq | h
           · exact absurd hEq (by simp)
           · exact h
@@ -217,7 +197,7 @@ theorem cspF_Parallel_preterm_l
   · rintro (⟨V, hEq, hdisj⟩ | ⟨a, v, V, hEq, hv, ha⟩)
     · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
       refine ⟨<>, W \ {Tick}, W \ (Ev '' Y), ?_, ?_, <>, <>, par_tr_nil_nil,
-        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, ?_⟩), ?_⟩
+        in_failures_SKIP_split.mpr (Or.inl ⟨rfl, ?_⟩), ?_⟩
       · congr 1
         ext e
         simp only [Set.mem_union, Set.mem_diff, Set.mem_singleton_iff]
@@ -257,13 +237,13 @@ theorem cspF_Parallel_preterm_l
       rw [in_failures_Parallel] at hv
       obtain ⟨v', A, B, hEqv, hAB, s, t1, hpar, hs, ht1⟩ := hv
       obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
-      rw [in_failures_SKIP_iff3] at hs
+      rw [in_failures_SKIP_split] at hs
       rcases hs with ⟨rfl, hA⟩ | rfl
       · rw [par_tr_nil_left] at hpar
         obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
         refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, <>, Abs_trace [Ev a] ^^^ v,
           par_tr_nil_left.mpr ⟨rfl, ?_, ?_⟩,
-          in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hA⟩), ?_⟩
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hA⟩), ?_⟩
         · intro hTk
           rcases sett_Ev_head_mem.mp hTk with hEq | h
           · exact absurd hEq (by simp)
@@ -282,7 +262,7 @@ theorem cspF_Parallel_preterm_l
         obtain ⟨rfl, hTk, hEmpty⟩ := hpar
         refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [Tick],
           Abs_trace [Ev a] ^^^ v, par_tr_Tick_left.mpr ⟨rfl, ?_, ?_⟩,
-          in_failures_SKIP_iff3.mpr (Or.inr rfl), ?_⟩
+          in_failures_SKIP_split.mpr (Or.inr rfl), ?_⟩
         · exact sett_Ev_head_mem.mpr (Or.inr hTk)
         · rw [Set.eq_empty_iff_forall_notMem]
           rintro e ⟨he1, he2⟩
@@ -326,11 +306,125 @@ theorem cspF_Parallel_preterm_r
 
 /- p.288 -/
 
-axiom cspF_SKIP_Parallel_Ext_choice_SKIP_l
+theorem cspF_SKIP_Parallel_Ext_choice_SKIP_l
     {X Y : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF ((((proc.Ext_pre_choice Y Pf) [+] proc.SKIP) |[X]| (proc.SKIP : proc p α))) M M
       (((proc.Ext_pre_choice (Y \ X) (fun x => (Pf x |[X]| (proc.SKIP : proc p α)))) [+]
-        proc.SKIP))
+        proc.SKIP)) := by
+  refine cspF_eqF_of_eqT cspT_SKIP_Parallel_Ext_choice_SKIP_l ?_
+  intro t W
+  rw [in_failures_Parallel, in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)]
+  constructor
+  · rintro ⟨u, A, B, hEq, hAB, s, t1, hpar, hs, ht1⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)] at hs
+    rw [in_failures_SKIP_split] at ht1
+    rcases hs with ⟨a, s', rfl, hPf, haY⟩ | ⟨-, rfl⟩ | ⟨-, rfl, hA⟩
+    · rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil_right] at hpar
+        obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (Ev a : event α) ∈ sett (Abs_trace [Ev a] ^^^ s') ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inl ⟨a, s', rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨s', A, B, rfl, hAB, s', <>, par_tr_nil_right.mpr ⟨rfl, ?_, ?_⟩, hPf,
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hB⟩)⟩
+        · intro hTk
+          exact hnoT (sett_Ev_head_mem.mpr (Or.inr hTk))
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [Ev a] ^^^ s') ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+      · rw [par_tr_Tick_right] at hpar
+        obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+        have haX : a ∉ X := by
+          intro ha
+          have hm : (Ev a : event α) ∈ sett (Abs_trace [Ev a] ^^^ s') ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inl rfl), ⟨a, ha, rfl⟩⟩
+          rw [hEmpty] at hm
+          exact hm
+        refine Or.inl ⟨a, s', rfl, ?_, ⟨haY, haX⟩⟩
+        rw [in_failures_Parallel]
+        refine ⟨s', A, B, rfl, hAB, s', Abs_trace [Tick],
+          par_tr_Tick_right.mpr ⟨rfl, ?_, ?_⟩, hPf,
+          in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+        · rcases sett_Ev_head_mem.mp hTk with hEq2 | h
+          · exact absurd hEq2 (by simp)
+          · exact h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          have hm : e ∈ sett (Abs_trace [Ev a] ^^^ s') ∩ Ev '' X :=
+            ⟨sett_Ev_head_mem.mpr (Or.inr he1), he2⟩
+          rw [hEmpty] at hm
+          exact hm
+    · rcases ht1 with ⟨rfl, -⟩ | rfl
+      · exact absurd hpar (by simp)
+      · rw [par_tr_Tick2] at hpar
+        subst hpar
+        exact Or.inr (Or.inl ⟨rfl, rfl⟩)
+    · rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil2] at hpar
+        subst hpar
+        refine Or.inr (Or.inr ⟨rfl, rfl, ?_⟩)
+        rintro e (he | he)
+        · exact hA he
+        · exact hB he
+      · exact absurd hpar (by simp)
+  · rintro (⟨a, v, rfl, hv, ⟨haY, haX⟩⟩ | ⟨-, rfl⟩ | ⟨-, rfl, hW⟩)
+    · rw [in_failures_Parallel] at hv
+      obtain ⟨v', A, B, hEqv, hAB, s, t1, hpar, hs, ht1⟩ := hv
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+      rw [in_failures_SKIP_split] at ht1
+      rcases ht1 with ⟨rfl, hB⟩ | rfl
+      · rw [par_tr_nil_right] at hpar
+        obtain ⟨rfl, hnoT, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [Ev a] ^^^ v, <>,
+          par_tr_nil_right.mpr ⟨rfl, ?_, ?_⟩, ?_,
+          in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hB⟩)⟩
+        · intro hTk
+          rcases sett_Ev_head_mem.mp hTk with hEq2 | h
+          · exact absurd hEq2 (by simp)
+          · exact hnoT h
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact haX (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · exact (in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)).mpr
+            (Or.inl ⟨a, v, rfl, hs, haY⟩)
+      · rw [par_tr_Tick_right] at hpar
+        obtain ⟨rfl, hTk, hEmpty⟩ := hpar
+        refine ⟨Abs_trace [Ev a] ^^^ v, A, B, rfl, hAB, Abs_trace [Ev a] ^^^ v,
+          Abs_trace [Tick], par_tr_Tick_right.mpr ⟨rfl, ?_, ?_⟩, ?_,
+          in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+        · exact sett_Ev_head_mem.mpr (Or.inr hTk)
+        · rw [Set.eq_empty_iff_forall_notMem]
+          rintro e ⟨he1, he2⟩
+          rcases sett_Ev_head_mem.mp he1 with rfl | h
+          · rcases he2 with ⟨b, hb, hEv⟩
+            exact haX (by rw [← (by cases hEv; rfl : a = b)] at hb; exact hb)
+          · have hm : e ∈ sett v ∩ Ev '' X := ⟨h, he2⟩
+            rw [hEmpty] at hm
+            exact hm
+        · exact (in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)).mpr
+            (Or.inl ⟨a, v, rfl, hs, haY⟩)
+    · exact ⟨Abs_trace [Tick], W, W, by rw [Set.union_self], rfl,
+        Abs_trace [Tick], Abs_trace [Tick], par_tr_Tick_Tick,
+        (in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)).mpr (Or.inr (Or.inl ⟨rfl, rfl⟩)),
+        in_failures_SKIP_split.mpr (Or.inr rfl)⟩
+    · exact ⟨<>, W, W, by rw [Set.union_self], rfl, <>, <>, par_tr_nil_nil,
+        (in_failures_Ext_pre_choice_Ext_choice (Or.inl rfl)).mpr
+          (Or.inr (Or.inr ⟨rfl, rfl, hW⟩)),
+        in_failures_SKIP_split.mpr (Or.inl ⟨rfl, hW⟩)⟩
 
 theorem cspF_SKIP_Parallel_Ext_choice_SKIP_r
     {X Y : Set α} {Pf : α → proc p α} {M : p → domFType α} :
@@ -437,11 +531,13 @@ theorem cspF_SKIP_Hiding_Id
                                |~| (! x:(Y Int X) .. (Pf x -- X)))"
 -/
 
-axiom cspF_SKIP_Hiding_step [Inhabited α]
+theorem cspF_SKIP_Hiding_step [Inhabited α]
     {X Y : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] (proc.SKIP : proc p α)) X) M M
       ((((proc.Ext_pre_choice (Y \ X) (fun x => proc.Hiding (Pf x) X)) [+] proc.SKIP) |~|
-        Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X)))
+        Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X))) :=
+  cspF_eqF_of_eqT cspT_SKIP_Hiding_step
+    (fun t W => in_failures_Hiding_Ext_pre_choice_Ext_choice (Or.inl rfl) t W)
 
 /-
 (*********************************************************
@@ -515,7 +611,7 @@ theorem cspF_Seq_compo_unit_l
   constructor
   · rintro (⟨t1, W1, hEq, hS, hno⟩ | ⟨s, t1, W1, hEq, hT, hQ, hno⟩)
     · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
-      rw [in_failures_SKIP_iff3] at hS
+      rw [in_failures_SKIP_split] at hS
       rcases hS with ⟨-, hsub⟩ | hTk
       · exact absurd (hsub (Or.inr rfl)) (by simp [Evset])
       · exact absurd (hTk ▸ hno) not_noTick_Tick
@@ -551,7 +647,7 @@ theorem cspF_Seq_compo_unit_r
     · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
       exact failures_F2 hP Set.subset_union_left
     · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
-      rw [in_failures_SKIP_iff3] at hS
+      rw [in_failures_SKIP_split] at hS
       rcases hS with ⟨rfl, hsub⟩ | rfl
       · rw [appt_nil_right]
         exact failures_F2_F4 hT hno hsub
@@ -574,7 +670,7 @@ theorem cspF_Seq_compo_unit_r
       · by_cases hTr : (t ^^^ (Abs_trace [Tick] : traceType α) : traceType α) :t
             traces P (fstF ∘ M)
         · refine Or.inr ⟨t, <>, W, by rw [appt_nil_right], hTr, ?_, hno⟩
-          refine in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, ?_⟩)
+          refine in_failures_SKIP_split.mpr (Or.inl ⟨rfl, ?_⟩)
           intro e he hTe
           exact hTk (hTe ▸ he)
         · refine Or.inl ⟨t, W, rfl, ?_, hno⟩
@@ -584,7 +680,7 @@ theorem cspF_Seq_compo_unit_r
           subst ha
           exact hTr
     · refine Or.inr ⟨t', Abs_trace [Tick], W, rfl, failures_T2 hf, ?_, hno'⟩
-      exact in_failures_SKIP_iff3.mpr (Or.inr rfl)
+      exact in_failures_SKIP_split.mpr (Or.inr rfl)
 
 /- The Isabelle theorem bundle `cspF_Seq_compo_unit` is represented by
    `cspF_Seq_compo_unit_l` and `cspF_Seq_compo_unit_r`. -/
@@ -609,7 +705,7 @@ theorem cspF_SKIP_Seq_compo_step
     · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
       rw [in_failures_Timeout1] at hP0
       rcases hP0 with hS | ⟨s1, V, hEq1, hne, hpre⟩ | ⟨V, hEq1, hsub, hTk⟩
-      · rw [in_failures_SKIP_iff3] at hS
+      · rw [in_failures_SKIP_split] at hS
         rcases hS with ⟨-, hsub⟩ | hTk
         · exact absurd (hsub (Or.inr rfl)) (by simp [Evset])
         · exact absurd (hTk ▸ hno) not_noTick_Tick

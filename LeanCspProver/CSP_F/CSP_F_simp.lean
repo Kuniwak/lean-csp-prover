@@ -495,4 +495,139 @@ macro "cspF_auto" : tactic =>
                     | cspF_grind
                     | (cspF_dist; first | done | itauto!))))
 
+
+/-! ## Failures of `SKIP` and of `(? :Y -> Pf) [+] (SKIP | DIV)` -/
+
+/-- Failures of `SKIP`, split by the trace. -/
+theorem in_failures_SKIP_split {s : traceType α} {W : Set (event α)}
+    {M : p → domFType α} :
+    ((s, W) :f failures (proc.SKIP : proc p α) M) ↔
+      ((s = <> ∧ W ⊆ Evset) ∨ s = (Abs_trace [event.Tick] : traceType α)) := by
+  rw [in_failures_SKIP]
+  constructor
+  · rintro (⟨V, hEq, hV⟩ | ⟨V, hEq⟩)
+    · exact Or.inl ⟨(Prod.mk.inj hEq).1, by rw [(Prod.mk.inj hEq).2]; exact hV⟩
+    · exact Or.inr (Prod.mk.inj hEq).1
+  · rintro (⟨rfl, hW⟩ | rfl)
+    · exact Or.inl ⟨W, rfl, hW⟩
+    · exact Or.inr ⟨W, rfl⟩
+
+theorem Tick_notin_traces_Ext_pre_choice {X : Set α} {Pf : α → proc p α}
+    {M : p → domTType α} :
+    ¬ ((Abs_trace [event.Tick] : traceType α) :t traces (proc.Ext_pre_choice X Pf) M) := by
+  intro h
+  rw [in_traces_Ext_pre_choice] at h
+  rcases h with hnil | ⟨a, u, hu, -, -⟩
+  · simp at hnil
+  · simp at hu
+
+/-- Failures of `(? :Y -> Pf) [+] Z` where `Z` is `SKIP` or `DIV`. -/
+theorem in_failures_Ext_pre_choice_Ext_choice
+    {Y : Set α} {Pf : α → proc p α} {Z : proc p α} {s : traceType α} {V : Set (event α)}
+    {M : p → domFType α} (hZ : Z = proc.SKIP ∨ Z = proc.DIV) :
+    ((s, V) :f failures ((proc.Ext_pre_choice Y Pf) [+] Z) M) ↔
+      ((∃ a s', s = Abs_trace [event.Ev a] ^^^ s' ∧ (s', V) :f failures (Pf a) M ∧ a ∈ Y) ∨
+        (Z = proc.SKIP ∧ s = (Abs_trace [event.Tick] : traceType α)) ∨
+        (Z = proc.SKIP ∧ s = <> ∧ V ⊆ Evset)) := by
+  rw [in_failures_Ext_choice]
+  rcases hZ with rfl | rfl
+  · constructor
+    · rintro (⟨⟨V1, hEq⟩, -, hS⟩ | ⟨s1, ⟨V1, hEq⟩, hor, hne⟩ | ⟨V1, hEq, -, hsub⟩)
+      · have hs : s = <> := (Prod.mk.inj hEq).1
+        rw [in_failures_SKIP_split] at hS
+        rcases hS with ⟨-, hW⟩ | hTk
+        · exact Or.inr (Or.inr ⟨rfl, hs, hW⟩)
+        · rw [hs] at hTk
+          simp at hTk
+      · have hs : s = s1 := (Prod.mk.inj hEq).1
+        rcases hor with hpre | hS
+        · rw [in_failures_Ext_pre_choice] at hpre
+          rcases hpre with ⟨V', hEqn, -⟩ | ⟨a, s', V', hEqn, hPf, ha⟩
+          · exact absurd ((Prod.mk.inj hEqn).1.symm.trans hs) (fun h => hne h.symm)
+          · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqn
+            exact Or.inl ⟨a, s', rfl, hPf, ha⟩
+        · rw [in_failures_SKIP_split] at hS
+          rcases hS with ⟨h0, -⟩ | hTk
+          · exact absurd (hs.symm.trans h0) (fun h => hne (hs ▸ h))
+          · exact Or.inr (Or.inl ⟨rfl, hTk⟩)
+      · refine Or.inr (Or.inr ⟨rfl, (Prod.mk.inj hEq).1, ?_⟩)
+        rw [(Prod.mk.inj hEq).2]
+        exact hsub
+    · rintro (⟨a, s', rfl, hPf, ha⟩ | ⟨-, rfl⟩ | ⟨-, rfl, hW⟩)
+      · refine Or.inr (Or.inl ⟨Abs_trace [event.Ev a] ^^^ s', ⟨V, rfl⟩, Or.inl ?_, by simp⟩)
+        rw [in_failures_Ext_pre_choice]
+        exact Or.inr ⟨a, s', V, rfl, hPf, ha⟩
+      · exact Or.inr (Or.inl ⟨Abs_trace [event.Tick], ⟨V, rfl⟩,
+          Or.inr (in_failures_SKIP_split.mpr (Or.inr rfl)), by simp⟩)
+      · exact Or.inr (Or.inr ⟨V, rfl, Or.inr (in_traces_SKIP.mpr (Or.inr rfl)), hW⟩)
+  · constructor
+    · rintro (⟨-, -, hD⟩ | ⟨s1, ⟨V1, hEq⟩, hor, hne⟩ | ⟨V1, hEq, hTk, -⟩)
+      · exact absurd hD in_failures_DIV
+      · have hs : s = s1 := (Prod.mk.inj hEq).1
+        have hpre := hor.resolve_right in_failures_DIV
+        rw [in_failures_Ext_pre_choice] at hpre
+        rcases hpre with ⟨V', hEqn, -⟩ | ⟨a, s', V', hEqn, hPf, ha⟩
+        · exact absurd ((Prod.mk.inj hEqn).1.symm.trans hs) (fun h => hne h.symm)
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqn
+          exact Or.inl ⟨a, s', rfl, hPf, ha⟩
+      · rcases hTk with hT | hT
+        · exact absurd hT Tick_notin_traces_Ext_pre_choice
+        · rw [in_traces_DIV] at hT
+          simp at hT
+    · rintro (⟨a, s', rfl, hPf, ha⟩ | ⟨hS, -⟩ | ⟨hS, -, -⟩)
+      · refine Or.inr (Or.inl ⟨Abs_trace [event.Ev a] ^^^ s', ⟨V, rfl⟩, Or.inl ?_, by simp⟩)
+        rw [in_failures_Ext_pre_choice]
+        exact Or.inr ⟨a, s', V, rfl, hPf, ha⟩
+      · exact absurd hS (by simp)
+      · exact absurd hS (by simp)
+
+
+/-- Failures of `((? :Y -> Pf) [+] Z) -- X` for `Z` equal to `SKIP` or `DIV`. -/
+theorem in_failures_Hiding_Ext_pre_choice_Ext_choice
+    [Inhabited α] {X Y : Set α} {Pf : α → proc p α} {Z : proc p α} {M : p → domFType α}
+    (hZ : Z = proc.SKIP ∨ Z = proc.DIV) (t : traceType α) (W : Set (event α)) :
+    ((t, W) :f failures (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] Z) X) M) ↔
+      ((t, W) :f failures
+        ((((proc.Ext_pre_choice (Y \ X) (fun x => proc.Hiding (Pf x) X)) [+] Z) |~|
+          Rep_int_choice_com (Y ∩ X) (fun x => proc.Hiding (Pf x) X))) M) := by
+  rw [in_failures_Hiding, in_failures_Int_choice,
+    in_failures_Ext_pre_choice_Ext_choice hZ, in_failures_Rep_int_choice_com]
+  constructor
+  · rintro ⟨s, V, hEq, hs⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_Ext_pre_choice_Ext_choice hZ] at hs
+    rcases hs with ⟨a, s', rfl, hPf, haY⟩ | ⟨hZS, hTk⟩ | ⟨hZS, hnil, hsub⟩
+    · by_cases haX : a ∈ X
+      · refine Or.inr ⟨a, ⟨haY, haX⟩, ?_⟩
+        rw [in_failures_Hiding, hide_tr_in haX]
+        exact ⟨s', W, rfl, hPf⟩
+      · refine Or.inl ?_
+        rw [hide_tr_notin_appt haX]
+        exact Or.inl ⟨a, hide_tr s' X, rfl,
+          in_failures_Hiding.mpr ⟨s', W, rfl, hPf⟩, ⟨haY, haX⟩⟩
+    · rw [hTk, hide_tr_Tick]
+      exact Or.inl (Or.inr (Or.inl ⟨hZS, rfl⟩))
+    · rw [hnil, hide_tr_nil]
+      refine Or.inl (Or.inr (Or.inr ⟨hZS, rfl, ?_⟩))
+      exact fun e he => hsub (Or.inr he)
+  · rintro (h | ⟨a, ⟨haY, haX⟩, hHide⟩)
+    · rcases h with ⟨a, v, rfl, hHide, ⟨haY, haX⟩⟩ | ⟨hZS, hTk⟩ | ⟨hZS, hnil, hsub⟩
+      · rw [in_failures_Hiding] at hHide
+        obtain ⟨s', V, hEqv, hPf⟩ := hHide
+        obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+        exact ⟨Abs_trace [event.Ev a] ^^^ s', W, by rw [hide_tr_notin_appt haX],
+          (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inl ⟨a, s', rfl, hPf, haY⟩)⟩
+      · exact ⟨Abs_trace [event.Tick], W, by rw [hTk, hide_tr_Tick],
+          (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inr (Or.inl ⟨hZS, rfl⟩))⟩
+      · refine ⟨<>, W, by rw [hnil, hide_tr_nil],
+          (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inr (Or.inr ⟨hZS, rfl, ?_⟩))⟩
+        rintro e (⟨b, -, rfl⟩ | he)
+        · simp [Evset]
+        · exact hsub he
+    · rw [in_failures_Hiding] at hHide
+      obtain ⟨s', V, hEqv, hPf⟩ := hHide
+      obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEqv
+      exact ⟨Abs_trace [event.Ev a] ^^^ s', W, by rw [hide_tr_in haX],
+        (in_failures_Ext_pre_choice_Ext_choice hZ).mpr (Or.inl ⟨a, s', rfl, hPf, haY⟩)⟩
+
 end
