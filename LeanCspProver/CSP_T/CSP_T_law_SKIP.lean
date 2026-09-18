@@ -314,10 +314,77 @@ theorem cspT_Seq_compo_unit_r
 
 /- p.141 -/
 
-axiom cspT_SKIP_Seq_compo_step
+theorem cspT_SKIP_Seq_compo_step
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domTType α} :
     eqT ((((proc.Ext_pre_choice X Pf) [> (proc.SKIP : proc p α)) ;; Q)) M M
-      (((proc.Ext_pre_choice X (fun x => Pf x ;; Q)) [> Q))
+      (((proc.Ext_pre_choice X (fun x => Pf x ;; Q)) [> Q)) := by
+  rw [cspT_eqT_semantics]
+  apply le_antisymm
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Seq_compo] at ht
+    rw [in_traces_Timeout1]
+    rcases ht with ⟨s, rfl, hs⟩ | ⟨s, t1, rfl, hs, ht1, hno⟩
+    · rw [in_traces_Timeout1, in_traces_Ext_pre_choice, in_traces_SKIP] at hs
+      rcases hs with (rfl | ⟨a, s', rfl, hs', ha⟩) | (rfl | rfl)
+      · exact Or.inl (in_traces_Ext_pre_choice.mpr (Or.inl (by simp)))
+      · refine Or.inl (in_traces_Ext_pre_choice.mpr (Or.inr ⟨a, rmTick s', ?_, ?_, ha⟩))
+        · rw [rmTick_appt_dist (noTick_Ev a)]
+        · exact in_traces_Seq_compo.mpr (Or.inl ⟨s', rfl, hs'⟩)
+      · exact Or.inl (in_traces_Ext_pre_choice.mpr (Or.inl (by simp)))
+      · exact Or.inl (in_traces_Ext_pre_choice.mpr (Or.inl (by simp)))
+    · rw [in_traces_Timeout1, in_traces_Ext_pre_choice, in_traces_SKIP] at hs
+      rcases hs with (hnil | ⟨a, u, hu, hu', ha⟩) | (hnil | hTk)
+      · exact absurd ((appt_nil hno).mp hnil).2 (by simp)
+      · rcases trace_nil_or_Tick_or_Ev s with rfl | rfl | ⟨b, s2, rfl⟩
+        · exfalso
+          rw [appt_nil_left] at hu
+          exact absurd hu.symm (by simp)
+        · exact absurd hno not_noTick_Tick
+        · have hno2 : noTick s2 := (decompo_appt_noTick_only_if (Or.inl (noTick_Ev b)) hno).2
+          rw [appt_assoc (Or.inl (noTick_Ev b)) (Or.inl hno2)] at hu
+          obtain ⟨rfl, hs2⟩ := appt_same_head.mp hu.symm
+          refine Or.inl (in_traces_Ext_pre_choice.mpr (Or.inr ⟨a, s2 ^^^ t1, ?_, ?_, ha⟩))
+          · rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno2)]
+          · exact in_traces_Seq_compo.mpr
+              (Or.inr ⟨s2, t1, rfl, by rw [← hs2]; exact hu', ht1, hno2⟩)
+      · exact absurd ((appt_nil hno).mp hnil).2 (by simp)
+      · have hs0 : s = <> := by
+          rcases trace_nil_or_Tick_or_Ev s with h | rfl | ⟨b, s2, rfl⟩
+          · exact h
+          · exact absurd hno not_noTick_Tick
+          · exfalso
+            have hno2 : noTick s2 := (decompo_appt_noTick_only_if (Or.inl (noTick_Ev b)) hno).2
+            rw [appt_assoc (Or.inl (noTick_Ev b)) (Or.inl hno2)] at hTk
+            simp at hTk
+        subst hs0
+        rw [appt_nil_left]
+        exact Or.inr ht1
+  · rw [subdomT_iff]
+    intro t ht
+    rw [in_traces_Timeout1] at ht
+    rw [in_traces_Seq_compo]
+    rcases ht with hpre | hQ
+    · rw [in_traces_Ext_pre_choice] at hpre
+      rcases hpre with rfl | ⟨a, v, rfl, hv, ha⟩
+      · exact Or.inl ⟨<>, by simp, in_traces_Timeout1.mpr (Or.inl
+          (in_traces_Ext_pre_choice.mpr (Or.inl rfl)))⟩
+      · rw [in_traces_Seq_compo] at hv
+        rcases hv with ⟨s', rfl, hs'⟩ | ⟨s'', t1, rfl, hs'', ht1, hno⟩
+        · refine Or.inl ⟨Abs_trace [Ev a] ^^^ s', (rmTick_appt_dist (noTick_Ev a)).symm, ?_⟩
+          exact in_traces_Timeout1.mpr (Or.inl
+            (in_traces_Ext_pre_choice.mpr (Or.inr ⟨a, s', rfl, hs', ha⟩)))
+        · refine Or.inr ⟨Abs_trace [Ev a] ^^^ s'', t1,
+            (appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno)).symm, ?_, ht1,
+            decompo_appt_noTick_if (noTick_Ev a) hno⟩
+          refine in_traces_Timeout1.mpr (Or.inl
+            (in_traces_Ext_pre_choice.mpr
+              (Or.inr ⟨a, (s'' ^^^ (Abs_trace [Tick] : traceType α) : traceType α), ?_,
+                hs'', ha⟩)))
+          rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hno)]
+    · refine Or.inr ⟨<>, t, by rw [appt_nil_left], ?_, hQ, noTick_nil⟩
+      rw [appt_nil_left]
+      exact in_traces_Timeout1.mpr (Or.inr (in_traces_SKIP.mpr (Or.inr rfl)))
 
 /-
 (*********************************************************

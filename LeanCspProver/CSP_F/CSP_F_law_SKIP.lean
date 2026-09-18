@@ -46,9 +46,49 @@ noncomputable section
  *********************************************************)
 -/
 
-axiom cspF_Parallel_term
+private theorem in_failures_SKIP_iff3 {s : traceType α} {W : Set (event α)}
+    {M : p → domFType α} :
+    ((s, W) :f failures (proc.SKIP : proc p α) M) ↔
+      ((s = <> ∧ W ⊆ Evset) ∨ s = (Abs_trace [Tick] : traceType α)) := by
+  rw [in_failures_SKIP]
+  constructor
+  · rintro (⟨V, hEq, hV⟩ | ⟨V, hEq⟩)
+    · exact Or.inl ⟨(Prod.mk.inj hEq).1, by rw [(Prod.mk.inj hEq).2]; exact hV⟩
+    · exact Or.inr (Prod.mk.inj hEq).1
+  · rintro (⟨rfl, hW⟩ | rfl)
+    · exact Or.inl ⟨W, rfl, hW⟩
+    · exact Or.inr ⟨W, rfl⟩
+
+theorem cspF_Parallel_term
     {X : Set α} {M1 : p → domFType α} {M2 : q → domFType α} :
-    eqF (((proc.SKIP : proc p α) |[X]| proc.SKIP)) M1 M2 (proc.SKIP : proc q α)
+    eqF (((proc.SKIP : proc p α) |[X]| proc.SKIP)) M1 M2 (proc.SKIP : proc q α) := by
+  refine cspF_eqF_of_eqT cspT_Parallel_term ?_
+  intro t W
+  rw [in_failures_Parallel, in_failures_SKIP_iff3]
+  constructor
+  · rintro ⟨u, Y, Z, hEq, hYZ, s, t1, hpar, hs, ht1⟩
+    obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+    rw [in_failures_SKIP_iff3] at hs ht1
+    rcases hs with ⟨rfl, hY⟩ | rfl
+    · rcases ht1 with ⟨rfl, hZ⟩ | rfl
+      · rw [par_tr_nil2] at hpar
+        subst hpar
+        refine Or.inl ⟨rfl, ?_⟩
+        rintro e (he | he)
+        · exact hY he
+        · exact hZ he
+      · exact absurd hpar (by simp)
+    · rcases ht1 with ⟨rfl, hZ⟩ | rfl
+      · exact absurd hpar (by simp)
+      · rw [par_tr_Tick2] at hpar
+        exact Or.inr hpar
+  · rintro (⟨rfl, hW⟩ | rfl)
+    · exact ⟨<>, W, W, by rw [Set.union_self], rfl, <>, <>, par_tr_nil_nil,
+        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hW⟩),
+        in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, hW⟩)⟩
+    · exact ⟨Abs_trace [Tick], W, W, by rw [Set.union_self], rfl,
+        Abs_trace [Tick], Abs_trace [Tick], par_tr_Tick_Tick,
+        in_failures_SKIP_iff3.mpr (Or.inr rfl), in_failures_SKIP_iff3.mpr (Or.inr rfl)⟩
 
 /-
 (*********************************************************
@@ -302,9 +342,33 @@ theorem cspF_SKIP_Renaming_Id
  *********************************************************)
 -/
 
-axiom cspF_Seq_compo_unit_l
+theorem cspF_Seq_compo_unit_l
     {P : proc p α} {M : p → domFType α} :
-    eqF (((proc.SKIP : proc p α) ;; P)) M M P
+    eqF (((proc.SKIP : proc p α) ;; P)) M M P := by
+  refine cspF_eqF_of_eqT cspT_Seq_compo_unit_l ?_
+  intro t W
+  rw [in_failures_Seq_compo]
+  constructor
+  · rintro (⟨t1, W1, hEq, hS, hno⟩ | ⟨s, t1, W1, hEq, hT, hQ, hno⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_SKIP_iff3] at hS
+      rcases hS with ⟨-, hsub⟩ | hTk
+      · exact absurd (hsub (Or.inr rfl)) (by simp [Evset])
+      · exact absurd (hTk ▸ hno) not_noTick_Tick
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_traces_SKIP] at hT
+      rcases hT with hnil | hTk
+      · exact absurd ((appt_nil hno).mp hnil).2 (by simp)
+      · have hs0 : s = <> := by
+          have := (appt_same_last hno noTick_nil).mp (by simpa using hTk)
+          exact this.1
+        subst hs0
+        rw [appt_nil_left]
+        exact hQ
+  · intro hf
+    refine Or.inr ⟨<>, t, W, by rw [appt_nil_left], ?_, hf, noTick_nil⟩
+    rw [appt_nil_left]
+    exact in_traces_SKIP.mpr (Or.inr rfl)
 
 /-
 (*********************************************************
@@ -312,9 +376,51 @@ axiom cspF_Seq_compo_unit_l
  *********************************************************)
 -/
 
-axiom cspF_Seq_compo_unit_r
+theorem cspF_Seq_compo_unit_r
     {P : proc p α} {M : p → domFType α} :
-    eqF ((P ;; (proc.SKIP : proc p α))) M M P
+    eqF ((P ;; (proc.SKIP : proc p α))) M M P := by
+  refine cspF_eqF_of_eqT cspT_Seq_compo_unit_r ?_
+  intro t W
+  rw [in_failures_Seq_compo]
+  constructor
+  · rintro (⟨t1, W1, hEq, hP, -⟩ | ⟨s, t1, W1, hEq, hT, hS, hno⟩)
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      exact failures_F2 hP Set.subset_union_left
+    · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+      rw [in_failures_SKIP_iff3] at hS
+      rcases hS with ⟨rfl, hsub⟩ | rfl
+      · rw [appt_nil_right]
+        exact failures_F2_F4 hT hno hsub
+      · exact failures_T3 hT hno
+  · intro hf
+    rcases trace_last_noTick_or_Tick t with hno | ⟨t', hno', rfl⟩
+    · by_cases hTk : (Tick : event α) ∈ W
+      · refine Or.inl ⟨t, W, rfl, ?_, hno⟩
+        have : W ∪ {Tick} = W := by
+          ext e
+          constructor
+          · rintro (he | he)
+            · exact he
+            · rw [Set.mem_singleton_iff] at he
+              rw [he]
+              exact hTk
+          · exact Or.inl
+        rw [this]
+        exact hf
+      · by_cases hTr : (t ^^^ (Abs_trace [Tick] : traceType α) : traceType α) :t
+            traces P (fstF ∘ M)
+        · refine Or.inr ⟨t, <>, W, by rw [appt_nil_right], hTr, ?_, hno⟩
+          refine in_failures_SKIP_iff3.mpr (Or.inl ⟨rfl, ?_⟩)
+          intro e he hTe
+          exact hTk (hTe ▸ he)
+        · refine Or.inl ⟨t, W, rfl, ?_, hno⟩
+          refine failures_F3 hf hno ?_
+          intro a ha
+          rw [Set.mem_singleton_iff] at ha
+          subst ha
+          exact hTr
+    · refine Or.inr ⟨t', Abs_trace [Tick], W, rfl, failures_T2 hf, ?_, hno'⟩
+      exact in_failures_SKIP_iff3.mpr (Or.inr rfl)
 
 /- The Isabelle theorem bundle `cspF_Seq_compo_unit` is represented by
    `cspF_Seq_compo_unit_l` and `cspF_Seq_compo_unit_r`. -/
