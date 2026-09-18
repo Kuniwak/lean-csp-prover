@@ -801,13 +801,106 @@ theorem cspF_Depth_rest_Ext_dist
  *---------------------------------------------------------*)
 -/
 
-axiom cspF_Rep_int_choice_sum_input_set
+/-- Membership in a `sub_sumset`-restricted index set. -/
+private theorem mem_sumset_sub_sumset {β γ : Type _} {C : sum (Set β) (Set γ)}
+    {f : sum β γ → Prop} {c : sum β γ} :
+    c ∈ sumset (sub_sumset C f) ↔ (c ∈ sumset C ∧ f c) := by
+  cases C with
+  | type1 X =>
+      cases c with
+      | type1 x =>
+          constructor
+          · rintro ⟨z, ⟨hzX, hz⟩, hEq⟩
+            have hzx : z = x := inj_type1 hEq
+            subst hzx
+            exact ⟨⟨z, hzX, rfl⟩, hz⟩
+          · rintro ⟨⟨z, hzX, hEq⟩, hf⟩
+            have hzx : z = x := inj_type1 hEq
+            subst hzx
+            exact ⟨z, ⟨hzX, hf⟩, rfl⟩
+      | type2 y =>
+          constructor
+          · rintro ⟨z, -, hEq⟩
+            simp at hEq
+          · rintro ⟨⟨z, -, hEq⟩, -⟩
+            simp at hEq
+  | type2 X =>
+      cases c with
+      | type1 x =>
+          constructor
+          · rintro ⟨z, -, hEq⟩
+            simp at hEq
+          · rintro ⟨⟨z, -, hEq⟩, -⟩
+            simp at hEq
+      | type2 y =>
+          constructor
+          · rintro ⟨z, ⟨hzX, hz⟩, hEq⟩
+            have hzy : z = y := inj_type2 hEq
+            subst hzy
+            exact ⟨⟨z, hzX, rfl⟩, hz⟩
+          · rintro ⟨⟨z, hzX, hEq⟩, hf⟩
+            have hzy : z = y := inj_type2 hEq
+            subst hzy
+            exact ⟨z, ⟨hzX, hf⟩, rfl⟩
+
+theorem cspF_Rep_int_choice_sum_input_set
     {C : sets_nats α} {Yf : aset_anat α → Set α} {Rff : aset_anat α → α → proc p α}
     {M : p → domFType α} :
     eqF (proc.Rep_int_choice C fun c => proc.Ext_pre_choice (Yf c) (Rff c)) M M
       (Rep_int_choice_set (Yf '' sumset C) fun Y =>
         proc.Ext_pre_choice Y fun a =>
-          proc.Rep_int_choice (sub_sumset C fun c => a ∈ Yf c) fun c => Rff c a)
+          proc.Rep_int_choice (sub_sumset C fun c => a ∈ Yf c) fun c => Rff c a) := by
+  rw [cspF_eqF_iff]
+  constructor
+  · intro t
+    rw [in_traces_Rep_int_choice_sum, in_traces_Rep_int_choice_set]
+    constructor
+    · rintro (rfl | ⟨c, hc, ht⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Ext_pre_choice] at ht
+        rcases ht with rfl | ⟨a, s, rfl, hs, ha⟩
+        · exact Or.inl rfl
+        · refine Or.inr ⟨Yf c, ⟨c, hc, rfl⟩, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          refine Or.inr ⟨a, s, rfl, ?_, ha⟩
+          rw [in_traces_Rep_int_choice_sum]
+          exact Or.inr ⟨c, mem_sumset_sub_sumset.mpr ⟨hc, ha⟩, hs⟩
+    · rintro (rfl | ⟨Y, ⟨c0, hc0, rfl⟩, ht⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Ext_pre_choice] at ht
+        rcases ht with rfl | ⟨a, s, rfl, hs, ha⟩
+        · exact Or.inl rfl
+        · rw [in_traces_Rep_int_choice_sum] at hs
+          rcases hs with rfl | ⟨c, hc, hs⟩
+          · refine Or.inr ⟨c0, hc0, ?_⟩
+            rw [in_traces_Ext_pre_choice]
+            exact Or.inr ⟨a, <>, rfl, nilt_in_T, ha⟩
+          · obtain ⟨hcC, hca⟩ := mem_sumset_sub_sumset.mp hc
+            refine Or.inr ⟨c, hcC, ?_⟩
+            rw [in_traces_Ext_pre_choice]
+            exact Or.inr ⟨a, s, rfl, hs, hca⟩
+  · intro u W
+    rw [in_failures_Rep_int_choice_sum, in_failures_Rep_int_choice_set]
+    constructor
+    · rintro ⟨c, hc, hf⟩
+      rw [in_failures_Ext_pre_choice] at hf
+      rcases hf with ⟨V, hE, hY⟩ | ⟨a, s, V, hE, hs, ha⟩
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        exact ⟨Yf c, ⟨c, hc, rfl⟩, in_failures_Ext_pre_choice.mpr (Or.inl ⟨W, rfl, hY⟩)⟩
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        refine ⟨Yf c, ⟨c, hc, rfl⟩, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s, W, rfl, ?_, ha⟩)⟩
+        rw [in_failures_Rep_int_choice_sum]
+        exact ⟨c, mem_sumset_sub_sumset.mpr ⟨hc, ha⟩, hs⟩
+    · rintro ⟨Y, ⟨c0, hc0, rfl⟩, hf⟩
+      rw [in_failures_Ext_pre_choice] at hf
+      rcases hf with ⟨V, hE, hY⟩ | ⟨a, s, V, hE, hs, ha⟩
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        exact ⟨c0, hc0, in_failures_Ext_pre_choice.mpr (Or.inl ⟨W, rfl, hY⟩)⟩
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        rw [in_failures_Rep_int_choice_sum] at hs
+        obtain ⟨c, hc, hs⟩ := hs
+        obtain ⟨hcC, hca⟩ := mem_sumset_sub_sumset.mp hc
+        exact ⟨c, hcC, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s, W, rfl, hs, hca⟩)⟩
 
 theorem cspF_Rep_int_choice_nat_input_set
     {N : Set Nat} {Yf : Nat → Set α} {Rff : Nat → α → proc p α} {M : p → domFType α} :
@@ -1074,29 +1167,180 @@ theorem cspF_Rep_int_choice_input_Dist
   · exact cspF_Rep_int_choice_input_Dist_SKIP
   · exact cspF_Rep_int_choice_input_Dist_DIV
 
-axiom cspF_Rep_int_choice_sum_Ext_choice
+/-- Two processes that agree on traces and on failures at non-empty traces become
+    equal once `SKIP` or `DIV` is added as an external choice. -/
+private theorem Ext_choice_SKIP_or_DIV_congr
+    {P1 P2 Q : proc p α} {M : p → domFType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (hT : ∀ t, t :t traces P1 (fstF ∘ M) ↔ t :t traces P2 (fstF ∘ M))
+    (hF : ∀ s W, s ≠ <> → (((s, W) :f failures P1 M) ↔ (s, W) :f failures P2 M)) :
+    eqF (P1 [+] Q) M M (P2 [+] Q) := by
+  rw [cspF_eqF_iff]
+  constructor
+  · intro t
+    rw [in_traces_Ext_choice, in_traces_Ext_choice, hT t]
+  · intro s W
+    rw [in_failures_Ext_choice_SKIP_or_DIV hQ, in_failures_Ext_choice_SKIP_or_DIV hQ,
+      hT (Abs_trace [event.Tick] : traceType α)]
+    constructor
+    · rintro (⟨hne, h | h⟩ | h)
+      · exact Or.inl ⟨hne, Or.inl ((hF s W hne).mp h)⟩
+      · exact Or.inl ⟨hne, Or.inr h⟩
+      · exact Or.inr h
+    · rintro (⟨hne, h | h⟩ | h)
+      · exact Or.inl ⟨hne, Or.inl ((hF s W hne).mpr h)⟩
+      · exact Or.inl ⟨hne, Or.inr h⟩
+      · exact Or.inr h
+
+theorem cspF_Rep_int_choice_sum_Ext_choice
     {C : sets_nats α} {Xf : aset_anat α → Set α} {Pf : aset_anat α → α → proc p α}
     {Q : proc p α} {M : p → domFType α} :
     Q = proc.SKIP ∨ Q = proc.DIV →
       eqF ((proc.Rep_int_choice C fun c => proc.Ext_pre_choice (Xf c) (Pf c)) [+] Q) M M
         ((proc.Ext_pre_choice (Set.sUnion (Xf '' sumset C)) fun x =>
-            proc.Rep_int_choice (sub_sumset C fun c => x ∈ Xf c) fun c => Pf c x) [+] Q)
+            proc.Rep_int_choice (sub_sumset C fun c => x ∈ Xf c) fun c => Pf c x) [+] Q) := by
+  intro hQ
+  refine Ext_choice_SKIP_or_DIV_congr hQ ?_ ?_
+  · intro t
+    rw [in_traces_Rep_int_choice_sum, in_traces_Ext_pre_choice]
+    constructor
+    · rintro (rfl | ⟨c, hc, ht⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Ext_pre_choice] at ht
+        rcases ht with rfl | ⟨a, s, rfl, hs, ha⟩
+        · exact Or.inl rfl
+        · refine Or.inr ⟨a, s, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+          rw [in_traces_Rep_int_choice_sum]
+          exact Or.inr ⟨c, mem_sumset_sub_sumset.mpr ⟨hc, ha⟩, hs⟩
+    · rintro (rfl | ⟨a, s, rfl, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Rep_int_choice_sum] at hs
+        rcases hs with rfl | ⟨c, hc, hs⟩
+        · refine Or.inr ⟨c0, hc0, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, <>, rfl, nilt_in_T, ha⟩
+        · obtain ⟨hcC, hca⟩ := mem_sumset_sub_sumset.mp hc
+          refine Or.inr ⟨c, hcC, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, s, rfl, hs, hca⟩
+  · intro u W hne
+    rw [in_failures_Rep_int_choice_sum, in_failures_Ext_pre_choice]
+    constructor
+    · rintro ⟨c, hc, hf⟩
+      rw [in_failures_Ext_pre_choice] at hf
+      rcases hf with ⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ha⟩
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        refine Or.inr ⟨a, s, W, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+        rw [in_failures_Rep_int_choice_sum]
+        exact ⟨c, mem_sumset_sub_sumset.mpr ⟨hc, ha⟩, hs⟩
+    · rintro (⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        rw [in_failures_Rep_int_choice_sum] at hs
+        obtain ⟨c, hc, hs⟩ := hs
+        obtain ⟨hcC, hca⟩ := mem_sumset_sub_sumset.mp hc
+        exact ⟨c, hcC, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s, W, rfl, hs, hca⟩)⟩
 
-axiom cspF_Rep_int_choice_nat_Ext_choice
+theorem cspF_Rep_int_choice_nat_Ext_choice
     {N : Set Nat} {Xf : Nat → Set α} {Pf : Nat → α → proc p α}
     {Q : proc p α} {M : p → domFType α} :
     Q = proc.SKIP ∨ Q = proc.DIV →
       eqF ((Rep_int_choice_nat N fun n => proc.Ext_pre_choice (Xf n) (Pf n)) [+] Q) M M
         ((proc.Ext_pre_choice (Set.sUnion (Xf '' N)) fun x =>
-            Rep_int_choice_nat {n | n ∈ N ∧ x ∈ Xf n} fun n => Pf n x) [+] Q)
+            Rep_int_choice_nat {n | n ∈ N ∧ x ∈ Xf n} fun n => Pf n x) [+] Q) := by
+  intro hQ
+  refine Ext_choice_SKIP_or_DIV_congr hQ ?_ ?_
+  · intro t
+    rw [in_traces_Rep_int_choice_nat, in_traces_Ext_pre_choice]
+    constructor
+    · rintro (rfl | ⟨c, hc, ht⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Ext_pre_choice] at ht
+        rcases ht with rfl | ⟨a, s, rfl, hs, ha⟩
+        · exact Or.inl rfl
+        · refine Or.inr ⟨a, s, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+          rw [in_traces_Rep_int_choice_nat]
+          exact Or.inr ⟨c, ⟨hc, ha⟩, hs⟩
+    · rintro (rfl | ⟨a, s, rfl, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Rep_int_choice_nat] at hs
+        rcases hs with rfl | ⟨c, hc, hs⟩
+        · refine Or.inr ⟨c0, hc0, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, <>, rfl, nilt_in_T, ha⟩
+        · obtain ⟨hcC, hca⟩ := hc
+          refine Or.inr ⟨c, hcC, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, s, rfl, hs, hca⟩
+  · intro u W hne
+    rw [in_failures_Rep_int_choice_nat, in_failures_Ext_pre_choice]
+    constructor
+    · rintro ⟨c, hc, hf⟩
+      rw [in_failures_Ext_pre_choice] at hf
+      rcases hf with ⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ha⟩
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        refine Or.inr ⟨a, s, W, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+        rw [in_failures_Rep_int_choice_nat]
+        exact ⟨c, ⟨hc, ha⟩, hs⟩
+    · rintro (⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        rw [in_failures_Rep_int_choice_nat] at hs
+        obtain ⟨c, hc, hs⟩ := hs
+        obtain ⟨hcC, hca⟩ := hc
+        exact ⟨c, hcC, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s, W, rfl, hs, hca⟩)⟩
 
-axiom cspF_Rep_int_choice_set_Ext_choice
+theorem cspF_Rep_int_choice_set_Ext_choice
     {Xs : Set (Set α)} {Xf : Set α → Set α} {Pf : Set α → α → proc p α}
     {Q : proc p α} {M : p → domFType α} :
     Q = proc.SKIP ∨ Q = proc.DIV →
       eqF ((Rep_int_choice_set Xs fun X => proc.Ext_pre_choice (Xf X) (Pf X)) [+] Q) M M
         ((proc.Ext_pre_choice (Set.sUnion (Xf '' Xs)) fun x =>
-            Rep_int_choice_set {X | X ∈ Xs ∧ x ∈ Xf X} fun X => Pf X x) [+] Q)
+            Rep_int_choice_set {X | X ∈ Xs ∧ x ∈ Xf X} fun X => Pf X x) [+] Q) := by
+  intro hQ
+  refine Ext_choice_SKIP_or_DIV_congr hQ ?_ ?_
+  · intro t
+    rw [in_traces_Rep_int_choice_set, in_traces_Ext_pre_choice]
+    constructor
+    · rintro (rfl | ⟨c, hc, ht⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Ext_pre_choice] at ht
+        rcases ht with rfl | ⟨a, s, rfl, hs, ha⟩
+        · exact Or.inl rfl
+        · refine Or.inr ⟨a, s, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+          rw [in_traces_Rep_int_choice_set]
+          exact Or.inr ⟨c, ⟨hc, ha⟩, hs⟩
+    · rintro (rfl | ⟨a, s, rfl, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact Or.inl rfl
+      · rw [in_traces_Rep_int_choice_set] at hs
+        rcases hs with rfl | ⟨c, hc, hs⟩
+        · refine Or.inr ⟨c0, hc0, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, <>, rfl, nilt_in_T, ha⟩
+        · obtain ⟨hcC, hca⟩ := hc
+          refine Or.inr ⟨c, hcC, ?_⟩
+          rw [in_traces_Ext_pre_choice]
+          exact Or.inr ⟨a, s, rfl, hs, hca⟩
+  · intro u W hne
+    rw [in_failures_Rep_int_choice_set, in_failures_Ext_pre_choice]
+    constructor
+    · rintro ⟨c, hc, hf⟩
+      rw [in_failures_Ext_pre_choice] at hf
+      rcases hf with ⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ha⟩
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        refine Or.inr ⟨a, s, W, rfl, ?_, ⟨Xf c, ⟨c, hc, rfl⟩, ha⟩⟩
+        rw [in_failures_Rep_int_choice_set]
+        exact ⟨c, ⟨hc, ha⟩, hs⟩
+    · rintro (⟨V, hE, -⟩ | ⟨a, s, V, hE, hs, ⟨Y, ⟨c0, hc0, rfl⟩, ha⟩⟩)
+      · exact absurd (Prod.mk.inj hE).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hE
+        rw [in_failures_Rep_int_choice_set] at hs
+        obtain ⟨c, hc, hs⟩ := hs
+        obtain ⟨hcC, hca⟩ := hc
+        exact ⟨c, hcC, in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s, W, rfl, hs, hca⟩)⟩
 
 /- The Isabelle theorem bundle `cspF_Rep_int_choice_Ext_choice` is
    represented by `cspF_Rep_int_choice_sum_Ext_choice`,
