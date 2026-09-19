@@ -20,10 +20,17 @@ noncomputable section
  *********************************************************)
 -/
 
+/- Isabelle: `? :A -> Pf =F[M,M] (? :A -> Pf [+] DIV) |~| ? a:A -> DIV`.
+   `? :_ -> _` has precedence 80 and binds its body at 80, while `[+]` has
+   precedence 72, so `? :A -> Pf [+] DIV` parses as `(? :A -> Pf) [+] DIV`.
+   The port originally pushed `[+] DIV` inside the prefix choice; that reading
+   is equal in the traces model but *false* in the stable-failures model
+   (take `A = {a}`, `Pf = %_. STOP`: `(<Ev a>, {})` is a failure of the
+   left-hand side but of neither summand on the right). -/
 axiom cspF_input_DIV
     {A : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Ext_pre_choice A Pf) M M
-      ((proc.Ext_pre_choice A (fun a => Pf a [+] (proc.DIV : proc p α))) |~|
+      (((proc.Ext_pre_choice A Pf) [+] (proc.DIV : proc p α)) |~|
         proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α)))
 
 /-

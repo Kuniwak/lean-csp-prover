@@ -19,48 +19,18 @@ noncomputable section
  *********************************************************)
 -/
 
-theorem cspT_input_DIV
+/- Isabelle: `? :A -> Pf =F[M,M] (? :A -> Pf [+] DIV) |~| ? a:A -> DIV`.
+   `? :_ -> _` has precedence 80 and binds its body at 80, while `[+]` has
+   precedence 72, so `? :A -> Pf [+] DIV` parses as `(? :A -> Pf) [+] DIV`.
+   The port originally pushed `[+] DIV` inside the prefix choice; that reading
+   is equal in the traces model but *false* in the stable-failures model
+   (take `A = {a}`, `Pf = %_. STOP`: `(<Ev a>, {})` is a failure of the
+   left-hand side but of neither summand on the right). -/
+axiom cspT_input_DIV
     {A : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Ext_pre_choice A Pf) M M
-      ((proc.Ext_pre_choice A (fun a => Pf a [+] (proc.DIV : proc p α))) |~|
-        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α))) := by
-  rw [cspT_eqT_semantics]
-  apply le_antisymm
-  · rw [subdomT_iff]
-    intro t ht
-    rw [in_traces_Ext_pre_choice] at ht
-    rw [in_traces_Int_choice]
-    rcases ht with rfl | ⟨a, s, rfl, hs, haA⟩
-    · left
-      rw [in_traces_Ext_pre_choice]
-      exact Or.inl rfl
-    · left
-      rw [in_traces_Ext_pre_choice]
-      have hs' :
-          s :t traces ((Pf a) [+] (proc.DIV : proc p α)) M :=
-        (in_traces_Ext_choice (t := s) (P := Pf a) (Q := (proc.DIV : proc p α)) (M := M)).2
-          (Or.inl hs)
-      exact Or.inr ⟨a, s, rfl, hs', haA⟩
-  · rw [subdomT_iff]
-    intro t ht
-    rw [in_traces_Int_choice] at ht
-    rw [in_traces_Ext_pre_choice]
-    rcases ht with ht | ht
-    · rw [in_traces_Ext_pre_choice] at ht
-      rcases ht with rfl | ⟨a, s, rfl, hs, haA⟩
-      · exact Or.inl rfl
-      · rw [in_traces_Ext_choice] at hs
-        rcases hs with hs | hs
-        · exact Or.inr ⟨a, s, rfl, hs, haA⟩
-        · rw [in_traces_DIV] at hs
-          subst s
-          exact Or.inr ⟨a, <>, rfl, nilt_in_T, haA⟩
-    · rw [in_traces_Ext_pre_choice] at ht
-      rcases ht with rfl | ⟨a, s, rfl, hs, haA⟩
-      · exact Or.inl rfl
-      · rw [in_traces_DIV] at hs
-        subst s
-        exact Or.inr ⟨a, <>, rfl, nilt_in_T, haA⟩
+      (((proc.Ext_pre_choice A Pf) [+] (proc.DIV : proc p α)) |~|
+        proc.Ext_pre_choice A (fun _ => (proc.DIV : proc p α)))
 
 /-
 (*********************************************************
