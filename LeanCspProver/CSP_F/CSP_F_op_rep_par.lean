@@ -34,14 +34,20 @@ noncomputable section
 
 /- (*** Inductive_parallel ***) -/
 
+/- Lean note: Isabelle's `{Y Int (insert Tick (Ev ` X)) |X Y. P}` binds the
+   `S = …` equation over the *whole* comprehension.  The port attached it to the
+   second disjunct only, so the first disjunct held for every `S` and the
+   right-hand side collapsed to `univ`, making the lemma false.  The equation is
+   now shared by both disjuncts. -/
 axiom in_failures_Inductive_parallel_lm1
     {a : proc p α × Set α} {Y : Set (event α)}
     {PXYs : List ((proc p α × Set α) × Set (event α))} :
     Set.inter Y (Set.insert Tick (Ev '' Prod.snd a)) ∪
         Set.sUnion {S | ∃ P X Ya, ((P, X), Ya) ∈ _root_.set PXYs ∧
           S = Set.inter Ya (Set.insert Tick (Ev '' X))} =
-      Set.sUnion {S | ∃ P X Ya, (P = Prod.fst a ∧ X = Prod.snd a ∧ Ya = Y) ∨
-        ((P, X), Ya) ∈ _root_.set PXYs ∧ S = Set.inter Ya (Set.insert Tick (Ev '' X))}
+      Set.sUnion {S | ∃ P X Ya,
+        ((P = Prod.fst a ∧ X = Prod.snd a ∧ Ya = Y) ∨ ((P, X), Ya) ∈ _root_.set PXYs) ∧
+          S = Set.inter Ya (Set.insert Tick (Ev '' X))}
 
 axiom in_failures_Inductive_parallel_lm2
     {s : List ((proc p α × Set α) × Set (event α))} {P : proc p α} {X : Set α} {Y : Set (event α)} :
