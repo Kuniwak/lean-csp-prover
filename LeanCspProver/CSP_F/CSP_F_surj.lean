@@ -42,6 +42,12 @@ theorem tail_failures_def (F : setFType α) :
       fun a => CollectF fun f => (Abs_trace [event.Ev a] ^^^ f.1, f.2) :f F :=
   rfl
 
+/- Isabelle: `Proc_F_rec (Suc n) = (%SF. (! a:(head_failures (sndF SF)) .. a ->
+   Proc_F_rec n (...)) [+] DIV)`, i.e. an *internal* choice over `a` whose branch
+   already performs `a`.  Inside `_ [+] DIV` the internal choice `! a:X .. a -> Q a`
+   and the external prefix choice `? a:X -> Q a` have the same traces and the same
+   failures, so the branch body must be `Q a`, not `a ~> Q a` -- exactly how
+   `Proc_T_rec` renders the very same Isabelle idiom. -/
 def Proc_F_rec : Nat → domFType α → proc p α
   | 0 =>
       fun SF =>
@@ -56,7 +62,7 @@ def Proc_F_rec : Nat → domFType α → proc p α
   | Nat.succ n =>
       fun SF =>
         ((proc.Ext_pre_choice (head_failures (sndF SF)) fun a =>
-            a ~> Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
+            Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
           proc.DIV)
 
 def Proc_F (SF : domFType α) : proc p α :=
