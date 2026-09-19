@@ -52,12 +52,23 @@ axiom in_traces_Inductive_parallel_lm
 
 /- (*** remove ALL ***) -/
 
+/- Lean note: the hypothesis has to stay *outside* the iff.  `→` (precedence 25)
+   binds tighter than `↔` (20), so
+
+       PXs ≠ [] →
+         (u :t traces (Inductive_parallel PXs) M) ↔ …
+
+   parses as `(PXs ≠ [] → u :t …) ↔ (…)`.  At `PXs = []` the left-hand side is
+   then vacuously true, so the statement asserts the right-hand conjunction --
+   in particular `sett u ⊆ {Tick}` -- for *every* trace, which is false.  The
+   outer parentheses below are load-bearing; likewise in
+   `in_traces_Inductive_parallel_nth_stmt` and `in_traces_Rep_parallel{,_pre}`. -/
 axiom in_traces_Inductive_parallel
     {PXs : List (proc p α × Set α)} {u : traceType α} {M : p → domTType α} :
     PXs ≠ [] →
-      (u :t traces (Inductive_parallel PXs) M) ↔
+      ((u :t traces (Inductive_parallel PXs) M) ↔
         (sett u ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' _root_.set PXs))) ∧
-          ∀ P X, (P, X) ∈ _root_.set PXs → memT (u rest-tr X) (traces P M))
+          ∀ P X, (P, X) ∈ _root_.set PXs → memT (u rest-tr X) (traces P M)))
 
 /- (*** Semantics for replicated alphabetized parallel on T ***) -/
 
@@ -90,10 +101,10 @@ private def nth_inductive_parallel_cond
 private def in_traces_Inductive_parallel_nth_stmt
     (PXs : List (proc p α × Set α)) (u : traceType α) (M : p → domTType α) : Prop :=
   PXs ≠ [] →
-    (u :t traces (Inductive_parallel PXs) M) ↔
+    ((u :t traces (Inductive_parallel PXs) M) ↔
       And
         (sett u ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' _root_.set PXs))))
-        (∀ i : Nat, (i < PXs.length) → nth_inductive_parallel_cond PXs u M i)
+        (∀ i : Nat, (i < PXs.length) → nth_inductive_parallel_cond PXs u M i))
 
 axiom in_traces_Inductive_parallel_nth
     {PXs : List (proc p α × Set α)} {u : traceType α} {M : p → domTType α} :
@@ -117,18 +128,19 @@ axiom to_index_style_T
 axiom in_traces_Rep_parallel_pre
     {I : Set ι} {PXf : ι → proc p α × Set α} {u : traceType α} {M : p → domTType α} :
     I ≠ ∅ → I.Finite →
-      (u :t traces (Rep_parallel I PXf) M) ↔
+      ((u :t traces (Rep_parallel I PXf) M) ↔
         (sett u ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) ∧
-          ∀ P X, (P, X) ∈ PXf '' I → memT (u rest-tr X) (traces P M))
+          ∀ P X, (P, X) ∈ PXf '' I → memT (u rest-tr X) (traces P M)))
 
 /- (*** in_traces_Rep_parallel ***) -/
 
 axiom in_traces_Rep_parallel
     {I : Set ι} {PXf : ι → proc p α × Set α} {u : traceType α} {M : p → domTType α} :
     I ≠ ∅ → I.Finite →
-      (u :t traces (Rep_parallel I PXf) M) ↔
+      ((u :t traces (Rep_parallel I PXf) M) ↔
         (sett u ⊆ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' (PXf '' I)))) ∧
-          ∀ i : ι, (i ∈ I) → memT (u rest-tr (Prod.snd (PXf i))) (traces (Prod.fst (PXf i)) M))
+          ∀ i : ι, (i ∈ I) →
+            memT (u rest-tr (Prod.snd (PXf i))) (traces (Prod.fst (PXf i)) M)))
 
 /- The Isabelle theorem bundle `in_traces_par` is represented by
    `in_traces_Alpha_parallel`, `in_traces_Inductive_parallel`, and
