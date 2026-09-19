@@ -153,10 +153,12 @@ private def nth_inductive_parallel_failure_cond
   let PX := nth PXs i
   memF ((u rest-tr PX.2), nth Ys i) (failures PX.1 M)
 
-private axiom nth_inductive_parallel_failure_all
-    (PXs : List (proc p α × Set α)) (Ys : List (Set (event α)))
-    (u : traceType α) (M : p → domFType α) : Prop
-
+/- Lean note: Isabelle states the last conjunct as
+   `ALL i < length PXs. (u rest-tr (snd (PXs!i)), Ys!i) :f failures (fst (PXs!i)) M`.
+   The port left a `private axiom … : Prop` placeholder in its place, i.e. an
+   opaque proposition, which made the whole definition vacuous as a
+   specification.  It is replaced by `nth_inductive_parallel_failure_cond`,
+   which was already defined just above and went unused. -/
 private def in_failures_Inductive_parallel_nth_stmt
     (PXs : List (proc p α × Set α)) (f : failure α) (M : p → domFType α) : Prop :=
   PXs ≠ [] →
@@ -171,7 +173,8 @@ private def in_failures_Inductive_parallel_nth_stmt
                   (And
                     (Z ∩ Set.insert Tick (Ev '' (Set.sUnion (Prod.snd '' _root_.set PXs))) =
                       Set.sUnion (inductive_parallel_nth_union PXs Ys))
-                    (nth_inductive_parallel_failure_all PXs Ys u M)))
+                    (∀ i : Nat, (i < PXs.length) →
+                      nth_inductive_parallel_failure_cond PXs Ys u M i)))
 
 axiom in_failures_Inductive_parallel_nth
     {PXs : List (proc p α × Set α)} {f : failure α} {M : p → domFType α} :
