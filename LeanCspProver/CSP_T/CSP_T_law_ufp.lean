@@ -122,77 +122,45 @@ theorem cspT_unwind_cms [HasPNfun p α] [HasFPmode]
 
 /- (*** left ***) -/
 
-axiom cspT_fp_induct_cms_ref_left_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      refT (f p0) MT MT Q →
-        (∀ p, refT ((Pf p) << f) MT MT (f p)) →
-          ∀ pn, refT (proc.Proc_name pn : proc p α) MT MT Q
+/- The Isabelle `_ALL` variants of the `fp_induct` laws differ from the plain
+   ones only in using an object-level `ALL` hypothesis instead of a
+   meta-level `!!`; in Lean both are `∀`, so the plain law below covers both.
+   The former Lean `axiom … _ALL` here mis-translated the conclusion as
+   `∀ pn, …`, quantifying the *conclusion* over all process names, which is
+   not sound.  It has been removed. -/
 
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refT (f p0) MT MT Q →
         (∀ p, refT ((Pf p) << f) MT MT (f p)) →
-          refT (proc.Proc_name p0 : proc p α) MT MT Q := by
-  intro hPf hguard hmode hp hfix
-  have hall :
-      ∀ pn, refT (proc.Proc_name pn : proc p α) MT MT Q :=
-    cspT_fp_induct_cms_ref_left_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hguard hmode hp hfix
-  exact hall p0
+          refT (proc.Proc_name p0 : proc p α) MT MT Q
 
 /- (*** right ***) -/
 
-axiom cspT_fp_induct_cms_ref_right_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      refT Q MT MT (f p0) →
-        (∀ p, refT (f p) MT MT ((Pf p) << f)) →
-          ∀ pn, refT Q MT MT (proc.Proc_name pn : proc p α)
-
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refT Q MT MT (f p0) →
         (∀ p, refT (f p) MT MT ((Pf p) << f)) →
-          refT Q MT MT (proc.Proc_name p0 : proc p α) := by
-  intro hPf hguard hmode hp hfix
-  have hall :
-      ∀ pn, refT Q MT MT (proc.Proc_name pn : proc p α) :=
-    cspT_fp_induct_cms_ref_right_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hguard hmode hp hfix
-  exact hall p0
+          refT Q MT MT (proc.Proc_name p0 : proc p α)
 
 /- ----------- equality ----------- -/
 
 /- (*** left ***) -/
 
-axiom cspT_fp_induct_cms_eq_left_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
-      eqT (f p0) MT MT Q →
-        (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
-          ∀ pn, eqT (proc.Proc_name pn : proc p α) MT MT Q
-
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       eqT (f p0) MT MT Q →
         (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
-          eqT (proc.Proc_name p0 : proc p α) MT MT Q := by
-  intro hPf hguard hmode hp hfix
-  have hall :
-      ∀ pn, eqT (proc.Proc_name pn : proc p α) MT MT Q :=
-    cspT_fp_induct_cms_eq_left_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hguard hmode hp hfix
-  exact hall p0
+          eqT (proc.Proc_name p0 : proc p α) MT MT Q
 
 theorem cspT_fp_induct_cms_eq_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
@@ -215,5 +183,12 @@ theorem cspT_fp_induct_cms_eq_right [HasPNfun p α] [HasFPmode]
 
 /- The Isabelle theorem bundle `cspT_fp_induct_cms_right` is represented by
    `cspT_fp_induct_cms_ref_right` and `cspT_fp_induct_cms_eq_right`. -/
+
+/- Isabelle-name aliases for the `_ALL` variants: their only difference is an
+   object-level `ALL` induction hypothesis instead of the meta-level `!!`,
+   which in Lean is the same `∀`, so they coincide with the plain laws. -/
+alias cspT_fp_induct_cms_ref_left_ALL := cspT_fp_induct_cms_ref_left
+alias cspT_fp_induct_cms_ref_right_ALL := cspT_fp_induct_cms_ref_right
+alias cspT_fp_induct_cms_eq_left_ALL := cspT_fp_induct_cms_eq_left
 
 end

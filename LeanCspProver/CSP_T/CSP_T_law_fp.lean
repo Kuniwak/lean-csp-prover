@@ -131,27 +131,21 @@ theorem cspT_unwind_cpo [HasPNfun p α] [HasFPmode]
 
 /- (*** right ***) -/
 
-axiom cspT_fp_induct_cpo_ref_right_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      refT Q MT MT (f p0) →
-        (∀ p, refT (f p) MT MT ((Pf p) << f)) →
-          ∀ pn, refT Q MT MT (proc.Proc_name pn : proc p α)
+/- The Isabelle `_ALL` variants of the `fp_induct` laws differ from the plain
+   ones only in using an object-level `ALL` hypothesis instead of a
+   meta-level `!!`; in Lean both are `∀`, so the plain law below covers both.
+   The former Lean `axiom … _ALL` here mis-translated the conclusion as
+   `∀ pn, …`, quantifying the *conclusion* over all process names, which is
+   not sound.  It has been removed. -/
 
 /-  csp law  -/
 
-theorem cspT_fp_induct_cpo_ref_right [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_cpo_ref_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → (FPmode = CPOmode ∨ FPmode = MIXmode) →
       refT Q MT MT (f p0) →
         (∀ p, refT (f p) MT MT ((Pf p) << f)) →
-          refT Q MT MT (proc.Proc_name p0 : proc p α) := by
-  intro hPf hmode hQ hfix
-  have hall :
-      ∀ pn, refT Q MT MT (proc.Proc_name pn : proc p α) :=
-    cspT_fp_induct_cpo_ref_right_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hmode hQ hfix
-  exact hall p0
+          refT Q MT MT (proc.Proc_name p0 : proc p α)
 
 /- The Isabelle theorem bundle `cspT_fp_induct_cpo_right` is represented by
    `cspT_fp_induct_cpo_ref_right`. -/
@@ -175,53 +169,27 @@ theorem semT_guarded_LFP_UFP [HasPNfun p α]
 
 /- (*** left ***) -/
 
-axiom cspT_fp_induct_mix_ref_left_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
-      refT (f p0) MT MT Q →
-        (∀ p, refT ((Pf p) << f) MT MT (f p)) →
-          ∀ pn, refT (proc.Proc_name pn : proc p α) MT MT Q
-
 /-  csp law  -/
 
-theorem cspT_fp_induct_mix_ref_left [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_mix_ref_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
       refT (f p0) MT MT Q →
         (∀ p, refT ((Pf p) << f) MT MT (f p)) →
-          refT (proc.Proc_name p0 : proc p α) MT MT Q := by
-  intro hPf hguard hmode hp hfix
-  have hall :
-      ∀ pn, refT (proc.Proc_name pn : proc p α) MT MT Q :=
-    cspT_fp_induct_mix_ref_left_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hguard hmode hp hfix
-  exact hall p0
+          refT (proc.Proc_name p0 : proc p α) MT MT Q
 
 /- ----------- equality ----------- -/
 
 /- (*** left ***) -/
 
-axiom cspT_fp_induct_mix_eq_left_ALL [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
-    Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
-      eqT (f p0) MT MT Q →
-        (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
-          ∀ pn, eqT (proc.Proc_name pn : proc p α) MT MT Q
-
 /-  csp law  -/
 
-theorem cspT_fp_induct_mix_eq_left [HasPNfun p α] [HasFPmode]
+axiom cspT_fp_induct_mix_eq_left [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
       eqT (f p0) MT MT Q →
         (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
-          eqT (proc.Proc_name p0 : proc p α) MT MT Q := by
-  intro hPf hguard hmode hp hfix
-  have hall :
-      ∀ pn, eqT (proc.Proc_name pn : proc p α) MT MT Q :=
-    cspT_fp_induct_mix_eq_left_ALL (Pf := Pf) (f := f) (Q := Q)
-      (p0 := p0) hPf hguard hmode hp hfix
-  exact hall p0
+          eqT (proc.Proc_name p0 : proc p α) MT MT Q
 
 theorem cspT_fp_induct_mix_eq_right [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
@@ -330,5 +298,12 @@ theorem cspT_fp_induct_eq_right [HasPNfun p α] [HasFPmode]
 
 /- The Isabelle theorem bundle `cspT_fp_induct_left` is represented by
    `cspT_fp_induct_ref_left` and `cspT_fp_induct_eq_left`. -/
+
+/- Isabelle-name aliases for the `_ALL` variants: their only difference is an
+   object-level `ALL` induction hypothesis instead of the meta-level `!!`,
+   which in Lean is the same `∀`, so they coincide with the plain laws. -/
+alias cspT_fp_induct_cpo_ref_right_ALL := cspT_fp_induct_cpo_ref_right
+alias cspT_fp_induct_mix_ref_left_ALL := cspT_fp_induct_mix_ref_left
+alias cspT_fp_induct_mix_eq_left_ALL := cspT_fp_induct_mix_eq_left
 
 end
