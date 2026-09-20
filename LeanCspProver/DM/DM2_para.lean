@@ -41,9 +41,174 @@ private abbrev Pref (e : Event) (P : proc ImpName Event) : proc ImpName Event :=
 
  ***************************************************************** -/
 
+/- *********************************************************
+        private lemmas used by the proved theorems below
+ ********************************************************* -/
+
+private theorem decide_self (a : Event) : decide (a = a) = true := by
+  simp
+
+private theorem decide_ne (a b : Event) (h : ¬a = b) : decide (a = b) = false := by
+  simp [h]
+
+/- computation lemmas for `getInt` -/
+
+private theorem getInt_RD0 (m : Int) : getInt (Event.RD0 m) = m := rfl
+
+private theorem getInt_RD1 (m : Int) : getInt (Event.RD1 m) = m := rfl
+
+private theorem getInt_WR0 (m : Int) : getInt (Event.WR0 m) = m := rfl
+
+private theorem getInt_WR1 (m : Int) : getInt (Event.WR1 m) = m := rfl
+
+/- `Function.invFun` computation for the receiving prefixes over `RD0`/`RD1` -/
+
+private theorem RD0_inj : Function.Injective Event.RD0 := by
+  intro a b h
+  injection h
+
+private theorem RD1_inj : Function.Injective Event.RD1 := by
+  intro a b h
+  injection h
+
+private theorem invFun_RD0 (m : Int) : Function.invFun Event.RD0 (Event.RD0 m) = m :=
+  Function.leftInverse_invFun RD0_inj m
+
+private theorem invFun_RD1 (m : Int) : Function.invFun Event.RD1 (Event.RD1 m) = m :=
+  Function.leftInverse_invFun RD1_inj m
+
+/- channel membership facts -/
+
+private theorem RD0_in_CH0 (m : Int) : Event.RD0 m ∈ CH0 := Or.inl ⟨m, rfl⟩
+
+private theorem WR0_in_CH0 (m : Int) : Event.WR0 m ∈ CH0 := Or.inr ⟨m, rfl⟩
+
+private theorem RD1_in_CH1 (m : Int) : Event.RD1 m ∈ CH1 := Or.inl ⟨m, rfl⟩
+
+private theorem WR1_in_CH1 (m : Int) : Event.WR1 m ∈ CH1 := Or.inr ⟨m, rfl⟩
+
+/- computation lemmas for the `decide`d `CH0`-membership test in `TH0_VAR` -/
+
+private theorem in_CH0_RD0 (m : Int) :
+    (by classical
+        exact decide
+          (Event.RD0 m ∈ Set.range Event.RD0 ∨ Event.RD0 m ∈ Set.range Event.WR0) : Bool)
+      = true := by
+  simp
+
+private theorem in_CH0_RD1 (m : Int) :
+    (by classical
+        exact decide
+          (Event.RD1 m ∈ Set.range Event.RD0 ∨ Event.RD1 m ∈ Set.range Event.WR0) : Bool)
+      = false := by
+  simp
+
+private theorem in_CH0_WR1 (m : Int) :
+    (by classical
+        exact decide
+          (Event.WR1 m ∈ Set.range Event.RD0 ∨ Event.WR1 m ∈ Set.range Event.WR0) : Bool)
+      = false := by
+  simp
+
+/- reduction of `proc.IF` under a literal condition -/
+
+private theorem IF_true (P Q : proc ImpName Event) :
+    eqF (IF true THEN P ELSE Q) MF MF P :=
+  cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+private theorem IF_false (P Q : proc ImpName Event) :
+    eqF (IF false THEN P ELSE Q) MF MF Q :=
+  cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+/- index set produced by `cspF_Parallel_step` for `$TH0 |[CH0]| $VAR n` -/
+
+private theorem idxA_TH0 (n : Int) :
+    ((CH0 ∩ Set.range Event.RD0 ∩
+          (Set.insert (Event.RD1 n)
+            (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1)))) ∪
+        (Set.range Event.RD0 \ CH0) ∪
+        ((Set.insert (Event.RD1 n)
+            (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1))) \ CH0)) =
+      Set.insert (Event.RD0 n) (Set.insert (Event.RD1 n) (Set.range Event.WR1)) := by
+  ext e
+  cases e <;> simp [Set.insert, Set.mem_setOf_eq, CH0, Set.mem_range]
+
+/- the index set produced by `cspF_Parallel_step` when both components offer
+   a single event that is not synchronised by `CH1` -/
+private theorem pair_free_index (a b : Event) (ha : a ∉ CH1) (hb : b ∉ CH1) :
+    ((CH1 ∩ ({a} : Set Event) ∩ ({b} : Set Event)) ∪ (({a} : Set Event) \ CH1) ∪
+        (({b} : Set Event) \ CH1)) = ({a, b} : Set Event) := by
+  ext e
+  simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff, Set.mem_singleton_iff,
+    Set.mem_insert_iff]
+  constructor
+  · rintro ((⟨⟨-, rfl⟩, -⟩ | ⟨rfl, -⟩) | ⟨rfl, -⟩)
+    · exact Or.inl rfl
+    · exact Or.inl rfl
+    · exact Or.inr rfl
+  · rintro (rfl | rfl)
+    · exact Or.inl (Or.inr ⟨rfl, ha⟩)
+    · exact Or.inr ⟨rfl, hb⟩
+
+private theorem pair_End1_Back0 :
+    ({Event.Back0, Event.End1} : Set Event) = ({Event.End1, Event.Back0} : Set Event) := by
+  ext e
+  simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
+  exact or_comm
+
+/- A prefixed left component pulls out of `|[CH1]|` when the right component
+   is (`eqF` to) a prefix choice over synchronised `CH1` events only: the
+   prefix blocks every synchronisation, so the right component cannot move. -/
+private theorem pull_left_prefix {Z : Set Event} {Qf : Event → proc ImpName Event}
+    (a : Event) (P R : proc ImpName Event)
+    (hR : eqF R MF MF (proc.Ext_pre_choice Z Qf))
+    (haC : a ∉ CH1) (hZC : Z ⊆ CH1) :
+    eqF ((proc.Ext_pre_choice ({a} : Set Event) (fun _ => P)) |[CH1]| R) MF MF
+      (a ~> (P |[CH1]| R)) := by
+  have hidx : ((CH1 ∩ ({a} : Set Event) ∩ Z) ∪ (({a} : Set Event) \ CH1) ∪ (Z \ CH1)) =
+      ({a} : Set Event) := by
+    ext e
+    simp only [Set.mem_union, Set.mem_inter_iff, Set.mem_diff, Set.mem_singleton_iff]
+    constructor
+    · rintro ((⟨⟨-, rfl⟩, -⟩ | ⟨rfl, -⟩) | ⟨heZ, heC⟩)
+      · rfl
+      · rfl
+      · exact absurd (hZC heZ) heC
+    · rintro rfl
+      exact Or.inl (Or.inr ⟨rfl, haC⟩)
+  have hstep := cspF_Parallel_step (X := CH1) (Y := ({a} : Set Event)) (Z := Z)
+    (Pf := fun _ => P) (Qf := Qf) (M := (MF : ImpName → domFType Event))
+  rw [hidx] at hstep
+  refine cspF_trans_left_eq (cspF_Parallel_cong rfl cspF_reflex_eq_P hR) ?_
+  refine cspF_trans_left_eq hstep ?_
+  refine cspF_trans_left_eq (cspF_Ext_pre_choice_cong rfl ?_) (cspF_sym cspF_Act_prefix_step)
+  intro x hx
+  rw [Set.mem_singleton_iff] at hx
+  subst hx
+  rw [procIte_neg haC, procIte_neg (fun h => haC (hZC h.2)),
+    procIte_pos (show x ∈ ({x} : Set Event) from rfl)]
+  exact cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hR)
+
+/- Lean note:
+   Isabelle's prefix `a -> P` binds *tighter* than the parallel operator
+   `|[X]|` (80 vs 76), so the original
+
+     THEN IF EVEN (getInt x)
+          THEN (Eat0  -> ($(EAT0 n)) |[CH0]| ($(VAR n)))
+          ELSE (Back0 -> ($TH0) |[CH0]| ($(VAR n)))
+
+   reads `(Eat0 -> $(EAT0 n)) |[CH0]| $(VAR n)`: after the synchronised
+   `RD0 n` only the TH0 component has moved, and `$(VAR n)` keeps running
+   in parallel (it can still perform its unsynchronised `RD1`/`WR1`
+   events). The port bracketed it as `Eat0 ~> ($(EAT0 n) |[CH0]| $(VAR n))`,
+   which would force the whole system to perform `Eat0` before `$(VAR n)`
+   may move again — a different (and false) proposition. Repaired to the
+   Isabelle parse; same precedence bug class as `Parallel_F3_lm1` in the
+   core. -/
+
 /- (*** TH0 VAR step 1 ***) -/
 
-axiom TH0_VAR (n : Int) :
+theorem TH0_VAR (n : Int) :
     eqF
       ((proc.Proc_name ImpName.TH0) |[CH0]| (proc.Proc_name (ImpName.VAR n)))
       MF MF
@@ -56,14 +221,92 @@ axiom TH0_VAR (n : Int) :
           THEN
             IF EVEN (getInt x)
             THEN
-              Event.Eat0 ~>
-                ((proc.Proc_name (ImpName.EAT0 n)) |[CH0]| (proc.Proc_name (ImpName.VAR n)))
+              (Event.Eat0 ~> proc.Proc_name (ImpName.EAT0 n)) |[CH0]|
+                (proc.Proc_name (ImpName.VAR n))
             ELSE
-              Event.Back0 ~>
-                ((proc.Proc_name ImpName.TH0) |[CH0]| (proc.Proc_name (ImpName.VAR n)))
+              (Event.Back0 ~> proc.Proc_name ImpName.TH0) |[CH0]|
+                (proc.Proc_name (ImpName.VAR n))
           ELSE
             ((proc.Proc_name ImpName.TH0) |[CH0]|
-              (proc.Proc_name (ImpName.VAR (getInt x))))))
+              (proc.Proc_name (ImpName.VAR (getInt x)))))) := by
+  -- unwind $TH0 into an external prefix choice over `range RD0`
+  have hTH0 : eqF (proc.Proc_name ImpName.TH0 : proc ImpName Event) MF MF
+      (proc.Ext_pre_choice (Set.range Event.RD0) fun x =>
+        IF EVEN (Function.invFun Event.RD0 x)
+        THEN Event.Eat0 ~> proc.Proc_name (ImpName.EAT0 (Function.invFun Event.RD0 x))
+        ELSE Event.Back0 ~> proc.Proc_name ImpName.TH0) := by
+    have h := «cspF_unwind» (Pf := Impfun) (p0 := ImpName.TH0) rfl
+      (Or.inr (Or.inl ⟨rfl, guarded_Imp⟩))
+    simpa [Impfun, Rec_prefix, Set.image_univ] using h
+  have hstep := cspF_Parallel_step
+    (X := CH0) (Y := Set.range Event.RD0)
+    (Z := Set.insert (Event.RD1 n)
+      (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1)))
+    (Pf := fun x =>
+      IF EVEN (Function.invFun Event.RD0 x)
+      THEN Event.Eat0 ~> proc.Proc_name (ImpName.EAT0 (Function.invFun Event.RD0 x))
+      ELSE Event.Back0 ~> proc.Proc_name ImpName.TH0)
+    (Qf := fun x =>
+      IF is_WR01 x
+      THEN proc.Proc_name (ImpName.VAR (getInt x))
+      ELSE proc.Proc_name (ImpName.VAR n))
+    (M := (MF : ImpName → domFType Event))
+  rw [idxA_TH0 n] at hstep
+  refine cspF_trans_left_eq (cspF_Parallel_cong rfl hTH0 (VAR n)) ?_
+  refine cspF_trans_left_eq hstep ?_
+  refine cspF_Ext_pre_choice_cong rfl (fun x hx => ?_)
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = RD0 n : synchronised, TH0 makes its internal decision
+    rw [procIte_pos (RD0_in_CH0 n), in_CH0_RD0 n, invFun_RD0 n, getInt_RD0 n]
+    refine cspF_trans_right_eq (cspF_sym (IF_true _ _)) ?_
+    have hQ : eqF
+        (IF is_WR01 (Event.RD0 n)
+          THEN proc.Proc_name (ImpName.VAR (getInt (Event.RD0 n)))
+          ELSE proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
+        (proc.Proc_name (ImpName.VAR n) : proc ImpName Event) := by
+      rw [is_WR01_RD0]
+      exact IF_false _ _
+    refine cspF_trans_left_eq (cspF_Parallel_cong rfl cspF_reflex_eq_P hQ) ?_
+    by_cases hE : EVEN n = true
+    · rw [hE]
+      refine cspF_trans_left_eq (cspF_Parallel_cong rfl (IF_true _ _) cspF_reflex_eq_P) ?_
+      exact cspF_sym (IF_true _ _)
+    · rw [Bool.not_eq_true] at hE
+      rw [hE]
+      refine cspF_trans_left_eq (cspF_Parallel_cong rfl (IF_false _ _) cspF_reflex_eq_P) ?_
+      exact cspF_sym (IF_false _ _)
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = RD1 n : not in CH0, only VAR moves; VAR keeps its value
+    rw [procIte_neg (by simp [CH0, Set.mem_range]),
+      procIte_neg (by simp [Set.mem_range]),
+      procIte_neg (by simp [Set.mem_range]),
+      in_CH0_RD1 n, getInt_RD1 n]
+    refine cspF_trans_right_eq (cspF_sym (IF_false _ _)) ?_
+    have hQ : eqF
+        (IF is_WR01 (Event.RD1 n)
+          THEN proc.Proc_name (ImpName.VAR (getInt (Event.RD1 n)))
+          ELSE proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
+        (proc.Proc_name (ImpName.VAR n) : proc ImpName Event) := by
+      rw [is_WR01_RD1]
+      exact IF_false _ _
+    exact cspF_Parallel_cong rfl (cspF_sym hTH0) hQ
+  · -- x = WR1 m : not in CH0, VAR takes the new value
+    rcases hx with ⟨m, rfl⟩
+    rw [procIte_neg (by simp [CH0, Set.mem_range]),
+      procIte_neg (by simp [Set.mem_range]),
+      procIte_neg (by simp [Set.mem_range]),
+      in_CH0_WR1 m, getInt_WR1 m]
+    refine cspF_trans_right_eq (cspF_sym (IF_false _ _)) ?_
+    have hQ : eqF
+        (IF is_WR01 (Event.WR1 m)
+          THEN proc.Proc_name (ImpName.VAR (getInt (Event.WR1 m)))
+          ELSE proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
+        (proc.Proc_name (ImpName.VAR m) : proc ImpName Event) := by
+      rw [is_WR01_WR1]
+      refine cspF_trans_left_eq (IF_true _ _) ?_
+      rw [getInt_WR1 m]
+      exact cspF_reflex_eq_P
+    exact cspF_Parallel_cong rfl (cspF_sym hTH0) hQ
 
 abbrev TH0_VAR_simp := TH0_VAR
 
