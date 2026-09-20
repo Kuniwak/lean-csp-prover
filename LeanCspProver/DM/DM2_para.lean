@@ -206,6 +206,125 @@ private theorem pull_left_prefix {Z : Set Event} {Qf : Event → proc ImpName Ev
    Isabelle parse; same precedence bug class as `Parallel_F3_lm1` in the
    core. -/
 
+
+/- Generic step for a prefixed TH0-side component running against `$(VAR n)`:
+   the prefix is not in `CH0`, so it and `$(VAR n)`'s own `RD1`/`WR1` events
+   interleave freely, and only after the prefix has occurred does the
+   left component continue. -/
+
+private theorem prefix_Par0_VAR (a : Event) (P : proc ImpName Event) (n : Int)
+    (haC0 : a ∉ CH0) (haC1 : a ∉ CH1) :
+    eqF ((a ~> P) |[CH0]| (proc.Proc_name (ImpName.VAR n))) MF MF
+      (proc.Ext_pre_choice
+        (Set.insert a (Set.insert (Event.RD1 n) (Set.range Event.WR1)))
+        (fun x =>
+          IF decide (x = a)
+          THEN (P |[CH0]| (proc.Proc_name (ImpName.VAR n)))
+          ELSE
+            IF decide (x = Event.RD1 n)
+            THEN ((a ~> P) |[CH0]| (proc.Proc_name (ImpName.VAR n)))
+            ELSE ((a ~> P) |[CH0]| (proc.Proc_name (ImpName.VAR (getInt x)))))) := by
+  have haRD1 : a ≠ Event.RD1 n := by
+    intro h
+    exact haC1 (h ▸ RD1_in_CH1 n)
+  have haWR1 : ∀ m : Int, a ≠ Event.WR1 m := by
+    intro m h
+    exact haC1 (h ▸ WR1_in_CH1 m)
+  have hidx :
+      ((CH0 ∩ ({a} : Set Event) ∩
+            (Set.insert (Event.RD1 n)
+              (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1)))) ∪
+          (({a} : Set Event) \ CH0) ∪
+          ((Set.insert (Event.RD1 n)
+              (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1))) \ CH0)) =
+        Set.insert a (Set.insert (Event.RD1 n) (Set.range Event.WR1)) := by
+    ext e
+    constructor
+    · rintro ((⟨⟨-, he⟩, -⟩ | ⟨he, -⟩) | ⟨he, heC⟩)
+      · exact Or.inl he
+      · exact Or.inl he
+      · rcases he with he | he
+        · exact Or.inr (Or.inl he)
+        rcases he with he | he
+        · exact absurd (he ▸ RD0_in_CH0 n) heC
+        rcases he with ⟨m, rfl⟩ | ⟨m, rfl⟩
+        · exact absurd (WR0_in_CH0 m) heC
+        · exact Or.inr (Or.inr ⟨m, rfl⟩)
+    · rintro (rfl | he)
+      · exact Or.inl (Or.inr ⟨rfl, haC0⟩)
+      · refine Or.inr ⟨?_, ?_⟩
+        · rcases he with rfl | ⟨m, rfl⟩
+          · exact Or.inl rfl
+          · exact Or.inr (Or.inr (Or.inr ⟨m, rfl⟩))
+        · rcases he with rfl | ⟨m, rfl⟩
+          · rintro (⟨k, hk⟩ | ⟨k, hk⟩) <;> exact Event.noConfusion hk
+          · rintro (⟨k, hk⟩ | ⟨k, hk⟩) <;> exact Event.noConfusion hk
+  have hstep := cspF_Parallel_step
+    (X := CH0) (Y := ({a} : Set Event))
+    (Z := Set.insert (Event.RD1 n)
+      (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1)))
+    (Pf := fun _ => P)
+    (Qf := fun x =>
+      IF is_WR01 x
+      THEN proc.Proc_name (ImpName.VAR (getInt x))
+      ELSE proc.Proc_name (ImpName.VAR n))
+    (M := (MF : ImpName → domFType Event))
+  rw [hidx] at hstep
+  refine cspF_trans_left_eq
+    (cspF_Parallel_cong rfl cspF_Act_prefix_step (VAR n)) ?_
+  refine cspF_trans_left_eq hstep ?_
+  refine cspF_Ext_pre_choice_cong rfl (fun x hx => ?_)
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = a : unsynchronised, the left component continues
+    rw [procIte_neg haC0,
+      procIte_neg (fun h => haRD1 (by
+        rcases h.2 with h' | h' | h'
+        · exact h'
+        · exact absurd (h' ▸ RD0_in_CH0 n) haC0
+        · rcases h' with ⟨m, rfl⟩ | ⟨m, rfl⟩
+          · exact absurd (WR0_in_CH0 m) haC0
+          · exact absurd rfl (haWR1 m))),
+      procIte_pos (show x ∈ ({x} : Set Event) from rfl), decide_self x]
+    refine cspF_trans_right_eq (cspF_sym (IF_true _ _)) ?_
+    exact cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym (VAR n))
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = RD1 n : only `$(VAR n)` moves, keeping its value
+    rw [procIte_neg (by simp [CH0, Set.mem_range]),
+      procIte_neg (by simp [Set.mem_singleton_iff, haRD1.symm]),
+      procIte_neg (by simp [Set.mem_singleton_iff, haRD1.symm]),
+      decide_ne _ _ haRD1.symm]
+    refine cspF_trans_right_eq (cspF_sym (IF_false _ _)) ?_
+    rw [decide_self (Event.RD1 n)]
+    refine cspF_trans_right_eq (cspF_sym (IF_true _ _)) ?_
+    have hQ : eqF
+        (IF is_WR01 (Event.RD1 n)
+          THEN proc.Proc_name (ImpName.VAR (getInt (Event.RD1 n)))
+          ELSE proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
+        (proc.Proc_name (ImpName.VAR n) : proc ImpName Event) := by
+      rw [is_WR01_RD1]
+      exact IF_false _ _
+    exact cspF_Parallel_cong rfl (cspF_sym cspF_Act_prefix_step) hQ
+  · -- x = WR1 m : only `$(VAR n)` moves, taking the new value
+    rcases hx with ⟨m, rfl⟩
+    rw [procIte_neg (by simp [CH0, Set.mem_range]),
+      procIte_neg (by simp [Set.mem_singleton_iff, (haWR1 m).symm]),
+      procIte_neg (by simp [Set.mem_singleton_iff, (haWR1 m).symm]),
+      decide_ne _ _ (haWR1 m).symm]
+    refine cspF_trans_right_eq (cspF_sym (IF_false _ _)) ?_
+    rw [decide_ne _ _ (by intro h; exact Event.noConfusion h)]
+    refine cspF_trans_right_eq (cspF_sym (IF_false _ _)) ?_
+    rw [getInt_WR1 m]
+    have hQ : eqF
+        (IF is_WR01 (Event.WR1 m)
+          THEN proc.Proc_name (ImpName.VAR (getInt (Event.WR1 m)))
+          ELSE proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
+        (proc.Proc_name (ImpName.VAR m) : proc ImpName Event) := by
+      rw [is_WR01_WR1]
+      refine cspF_trans_left_eq (IF_true _ _) ?_
+      rw [getInt_WR1 m]
+      exact cspF_reflex_eq_P
+    exact cspF_Parallel_cong rfl (cspF_sym cspF_Act_prefix_step) hQ
+
 /- (*** TH0 VAR step 1 ***) -/
 
 theorem TH0_VAR (n : Int) :
@@ -337,8 +456,15 @@ abbrev TH0_VAR_TH1_simp := TH0_VAR_TH1
 
 /- (*** Eat0 VAR step 2 ***) -/
 
-axiom Eat0_VAR (n : Int) :
-    eqF (Pref Event.Eat0 (Par0 (EAT0P n) (VARP n))) MF MF
+/- Lean note:
+   Isabelle's prefix binds tighter than `|[X]|` (80 vs 76), so
+   `(Eat0 -> ($(EAT0 n)) |[CH0]| ($(VAR n)))` is
+   `(Eat0 -> $(EAT0 n)) |[CH0]| $(VAR n)`; the port bracketed it as
+   `Eat0 ~> ($(EAT0 n) |[CH0]| $(VAR n))`. Repaired (same class as
+   `TH0_VAR` above). -/
+
+theorem Eat0_VAR (n : Int) :
+    eqF (Par0 (Pref Event.Eat0 (EAT0P n)) (VARP n)) MF MF
       (proc.Ext_pre_choice
         (Set.insert Event.Eat0 (Set.insert (Event.RD1 n) (Set.range Event.WR1)))
         (fun x =>
@@ -346,8 +472,10 @@ axiom Eat0_VAR (n : Int) :
           THEN Par0 (EAT0P n) (VARP n)
           ELSE
             IF decide (x = Event.RD1 n)
-            THEN Pref Event.Eat0 (Par0 (EAT0P n) (VARP n))
-            ELSE Pref Event.Eat0 (Par0 (EAT0P n) (VARP (getInt x)))))
+            THEN Par0 (Pref Event.Eat0 (EAT0P n)) (VARP n)
+            ELSE Par0 (Pref Event.Eat0 (EAT0P n)) (VARP (getInt x)))) :=
+  prefix_Par0_VAR Event.Eat0 (EAT0P n) n
+    (by simp [CH0, Set.mem_range]) (by simp [CH1, Set.mem_range])
 
 abbrev Eat0_VAR_simp := Eat0_VAR
 
@@ -357,8 +485,13 @@ abbrev Eat0_VAR_simp := Eat0_VAR
 
 /- (*** Back0 VAR step 2 ***) -/
 
-axiom Back0_VAR (n : Int) :
-    eqF (Pref Event.Back0 (Par0 TH0P (VARP n))) MF MF
+/- Lean note:
+   Same precedence repair as `Eat0_VAR`:
+   `(Back0 -> ($TH0) |[CH0]| ($(VAR n)))` is
+   `(Back0 -> $TH0) |[CH0]| $(VAR n)`. -/
+
+theorem Back0_VAR (n : Int) :
+    eqF (Par0 (Pref Event.Back0 TH0P) (VARP n)) MF MF
       (proc.Ext_pre_choice
         (Set.insert Event.Back0 (Set.insert (Event.RD1 n) (Set.range Event.WR1)))
         (fun x =>
@@ -366,8 +499,10 @@ axiom Back0_VAR (n : Int) :
           THEN Par0 TH0P (VARP n)
           ELSE
             IF decide (x = Event.RD1 n)
-            THEN Pref Event.Back0 (Par0 TH0P (VARP n))
-            ELSE Pref Event.Back0 (Par0 TH0P (VARP (getInt x)))))
+            THEN Par0 (Pref Event.Back0 TH0P) (VARP n)
+            ELSE Par0 (Pref Event.Back0 TH0P) (VARP (getInt x)))) :=
+  prefix_Par0_VAR Event.Back0 TH0P n
+    (by simp [CH0, Set.mem_range]) (by simp [CH1, Set.mem_range])
 
 abbrev Back0_VAR_simp := Back0_VAR
 
