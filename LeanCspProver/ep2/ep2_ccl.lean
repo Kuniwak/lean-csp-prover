@@ -54,35 +54,40 @@ theorem trigger_def (p : TerminalState × Trigger) :
   rfl
 
 /- Session start -/
-axiom sessionStart : Trigger → D_SI_Init_SessionStart
+/- Lean note:
+   Isabelle's unspecified `consts` were ported as `axiom`s; they are now
+   `noncomputable opaque` constants (the codomains are inhabited), the
+   same abstraction without extending the axiom base. -/
+
+noncomputable opaque sessionStart : Trigger → D_SI_Init_SessionStart
 
 /- ConfigDataRequest -/
-axiom configDataResponse :
+noncomputable opaque configDataResponse :
   D_SI_Init_ConfigDataRequest × TerminalState →
     D_SI_Init_ConfigDataResponse
 
 /- ConfigDataNotification -/
-axiom configDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
-axiom configData :
+noncomputable opaque configDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
+noncomputable opaque configData :
   D_SI_Init_ConfigDataNotification × TerminalState →
     TerminalState
 
 /- ConfigDataRemove -/
-axiom removeDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
-axiom removeData :
+noncomputable opaque removeDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
+noncomputable opaque removeData :
   D_SI_Init_RemoveConfigDataNotification × TerminalState →
     TerminalState
 
 /- ActivateConfigDataNotification -/
-axiom activateDataAcknowledge : D_SI_Init_ActivateConfigDataAcknowledge
-axiom activateData :
+noncomputable opaque activateDataAcknowledge : D_SI_Init_ActivateConfigDataAcknowledge
+noncomputable opaque activateData :
   D_SI_Init_ActivateConfigDataNotification × TerminalState →
     TerminalState
 
 /- Message -/
-axiom AcqConnectionFailed : Message
-axiom InitialisationFinished : Message
-axiom InitialisationFailed : Message
+noncomputable opaque AcqConnectionFailed : Message
+noncomputable opaque InitialisationFinished : Message
+noncomputable opaque InitialisationFailed : Message
 
 /- *********************************************************
          concrete component description level

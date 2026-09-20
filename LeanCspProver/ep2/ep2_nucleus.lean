@@ -41,15 +41,30 @@ private noncomputable def decideMem {α : Type _} (x : α) (X : Set α) : Bool :
               data type passed on channels
  ********************************************************* -/
 
-axiom init_d : Type
-axiom request_d : Type
-axiom response_d : Type
-axiom exit_d : Type
+/- Lean note:
+   Isabelle's `typedecl` (an unspecified nonempty type) and its unspecified
+   default elements were ported as `axiom`s. They are now `opaque`
+   `NonemptyType`s — the same abstraction without extending the axiom
+   base (cf. `diff_fun` in the core). -/
 
-axiom default_init_d : init_d
-axiom default_request_d : request_d
-axiom default_response_d : response_d
-axiom default_exit_d : exit_d
+private opaque init_d_spec : NonemptyType.{0}
+private opaque request_d_spec : NonemptyType.{0}
+private opaque response_d_spec : NonemptyType.{0}
+private opaque exit_d_spec : NonemptyType.{0}
+
+def init_d : Type := init_d_spec.type
+def request_d : Type := request_d_spec.type
+def response_d : Type := response_d_spec.type
+def exit_d : Type := exit_d_spec.type
+
+noncomputable def default_init_d : init_d :=
+  Classical.choice init_d_spec.property
+noncomputable def default_request_d : request_d :=
+  Classical.choice request_d_spec.property
+noncomputable def default_response_d : response_d :=
+  Classical.choice response_d_spec.property
+noncomputable def default_exit_d : exit_d :=
+  Classical.choice exit_d_spec.property
 
 instance : Inhabited init_d where
   default := default_init_d

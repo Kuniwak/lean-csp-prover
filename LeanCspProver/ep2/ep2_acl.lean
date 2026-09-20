@@ -46,29 +46,61 @@ private noncomputable def decideMem {α : Type _} (x : α) (X : Set α) : Bool :
               data type passed on channels
  ********************************************************* -/
 
-axiom D_SI_Init_SessionStart : Type
-axiom D_SI_Init_SessionEnd : Type
-axiom D_SI_Init_ConfigDataRequest : Type
-axiom D_SI_Init_ConfigDataResponse : Type
-axiom D_SI_Init_ConfigDataNotification : Type
-axiom D_SI_Init_ConfigDataAcknowledge : Type
-axiom D_SI_Init_RemoveConfigDataNotification : Type
-axiom D_SI_Init_RemoveConfigDataAcknowledge : Type
-axiom D_SI_Init_ActivateConfigDataNotification : Type
-axiom D_SI_Init_ActivateConfigDataAcknowledge : Type
+/- Lean note:
+   Isabelle's `typedecl` (an unspecified nonempty type) and its unspecified
+   default elements were ported as `axiom`s. They are now `opaque`
+   `NonemptyType`s — the same abstraction without extending the axiom
+   base. -/
 
-axiom default_D_SI_Init_SessionStart : D_SI_Init_SessionStart
-axiom default_D_SI_Init_SessionEnd : D_SI_Init_SessionEnd
-axiom default_D_SI_Init_ConfigDataRequest : D_SI_Init_ConfigDataRequest
-axiom default_D_SI_Init_ConfigDataResponse : D_SI_Init_ConfigDataResponse
-axiom default_D_SI_Init_ConfigDataNotification : D_SI_Init_ConfigDataNotification
-axiom default_D_SI_Init_ConfigDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
-axiom default_D_SI_Init_RemoveConfigDataNotification : D_SI_Init_RemoveConfigDataNotification
-axiom default_D_SI_Init_RemoveConfigDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
-axiom default_D_SI_Init_ActivateConfigDataNotification :
-  D_SI_Init_ActivateConfigDataNotification
-axiom default_D_SI_Init_ActivateConfigDataAcknowledge :
-  D_SI_Init_ActivateConfigDataAcknowledge
+private opaque D_SI_Init_SessionStart_spec : NonemptyType.{0}
+private opaque D_SI_Init_SessionEnd_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataRequest_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataResponse_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataAcknowledge_spec : NonemptyType.{0}
+private opaque D_SI_Init_RemoveConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_RemoveConfigDataAcknowledge_spec : NonemptyType.{0}
+private opaque D_SI_Init_ActivateConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_ActivateConfigDataAcknowledge_spec : NonemptyType.{0}
+
+def D_SI_Init_SessionStart : Type := D_SI_Init_SessionStart_spec.type
+def D_SI_Init_SessionEnd : Type := D_SI_Init_SessionEnd_spec.type
+def D_SI_Init_ConfigDataRequest : Type := D_SI_Init_ConfigDataRequest_spec.type
+def D_SI_Init_ConfigDataResponse : Type := D_SI_Init_ConfigDataResponse_spec.type
+def D_SI_Init_ConfigDataNotification : Type := D_SI_Init_ConfigDataNotification_spec.type
+def D_SI_Init_ConfigDataAcknowledge : Type := D_SI_Init_ConfigDataAcknowledge_spec.type
+def D_SI_Init_RemoveConfigDataNotification : Type :=
+  D_SI_Init_RemoveConfigDataNotification_spec.type
+def D_SI_Init_RemoveConfigDataAcknowledge : Type := D_SI_Init_RemoveConfigDataAcknowledge_spec.type
+def D_SI_Init_ActivateConfigDataNotification : Type :=
+  D_SI_Init_ActivateConfigDataNotification_spec.type
+def D_SI_Init_ActivateConfigDataAcknowledge : Type :=
+  D_SI_Init_ActivateConfigDataAcknowledge_spec.type
+
+noncomputable def default_D_SI_Init_SessionStart : D_SI_Init_SessionStart :=
+  Classical.choice D_SI_Init_SessionStart_spec.property
+noncomputable def default_D_SI_Init_SessionEnd : D_SI_Init_SessionEnd :=
+  Classical.choice D_SI_Init_SessionEnd_spec.property
+noncomputable def default_D_SI_Init_ConfigDataRequest : D_SI_Init_ConfigDataRequest :=
+  Classical.choice D_SI_Init_ConfigDataRequest_spec.property
+noncomputable def default_D_SI_Init_ConfigDataResponse : D_SI_Init_ConfigDataResponse :=
+  Classical.choice D_SI_Init_ConfigDataResponse_spec.property
+noncomputable def default_D_SI_Init_ConfigDataNotification : D_SI_Init_ConfigDataNotification :=
+  Classical.choice D_SI_Init_ConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_ConfigDataAcknowledge : D_SI_Init_ConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_ConfigDataAcknowledge_spec.property
+noncomputable def default_D_SI_Init_RemoveConfigDataNotification :
+    D_SI_Init_RemoveConfigDataNotification :=
+  Classical.choice D_SI_Init_RemoveConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_RemoveConfigDataAcknowledge :
+    D_SI_Init_RemoveConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_RemoveConfigDataAcknowledge_spec.property
+noncomputable def default_D_SI_Init_ActivateConfigDataNotification :
+    D_SI_Init_ActivateConfigDataNotification :=
+  Classical.choice D_SI_Init_ActivateConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_ActivateConfigDataAcknowledge :
+    D_SI_Init_ActivateConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_ActivateConfigDataAcknowledge_spec.property
 
 instance : Inhabited D_SI_Init_SessionStart where
   default := default_D_SI_Init_SessionStart
@@ -130,13 +162,26 @@ instance : Inhabited D_SI_Init where
 
 noncomputable instance : DecidableEq D_SI_Init := Classical.decEq _
 
-axiom TerminalState : Type
-axiom Trigger : Type
-axiom Message : Type
+/- Lean note:
+   Isabelle's `typedecl` (an unspecified nonempty type) and its unspecified
+   default elements were ported as `axiom`s. They are now `opaque`
+   `NonemptyType`s — the same abstraction without extending the axiom
+   base. -/
 
-axiom default_TerminalState : TerminalState
-axiom default_Trigger : Trigger
-axiom default_Message : Message
+private opaque TerminalState_spec : NonemptyType.{0}
+private opaque Trigger_spec : NonemptyType.{0}
+private opaque Message_spec : NonemptyType.{0}
+
+def TerminalState : Type := TerminalState_spec.type
+def Trigger : Type := Trigger_spec.type
+def Message : Type := Message_spec.type
+
+noncomputable def default_TerminalState : TerminalState :=
+  Classical.choice TerminalState_spec.property
+noncomputable def default_Trigger : Trigger :=
+  Classical.choice Trigger_spec.property
+noncomputable def default_Message : Message :=
+  Classical.choice Message_spec.property
 
 instance : Inhabited TerminalState where
   default := default_TerminalState
