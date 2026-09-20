@@ -263,8 +263,11 @@ theorem Set_PNRdef_def (pn : PNR) :
       guardedness
  * ------------------ -/
 
-@[simp] axiom guardedfun_PNR :
-    guardedfun PNRdef
+@[simp] theorem guardedfun_PNR :
+    guardedfun PNRdef := by
+  intro pn
+  cases pn
+  simp [PNRdef, Send_prefix, guarded, noHide]
 
 /- ------------------------------------------------------------ -/
 
@@ -337,8 +340,11 @@ theorem Set_PNSdef_def (pn : PNS) :
       guardedness
  * ------------------ -/
 
-@[simp] axiom guardedfun_PNS :
-    guardedfun PNSdef
+@[simp] theorem guardedfun_PNS :
+    guardedfun PNSdef := by
+  intro pn
+  cases pn
+  simp [PNSdef, Send_prefix, guarded, noHide]
 
 def Unstable : Nat → List Nat → proc PNS Event
   | 0, _ => proc.SKIP
