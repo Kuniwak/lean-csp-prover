@@ -123,13 +123,39 @@ def Abs_to_DF : AbsName → proc DFtickName NEvent
            a theorem for verifying Abs <=F AC
  ********************************************************* -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction from `DFtick`
-   to `Abs`. The current Lean port keeps this heterogeneous fixed-point
-   argument as an axiom for now. -/
+private theorem DFtick_unwound :
+    eqF (proc.Proc_name DFtickName.DFtick : proc DFtickName NEvent) MF MF
+      (Int_pre_choice Set.univ
+          (fun _ : NEvent => proc.Proc_name DFtickName.DFtick) |~| proc.SKIP) :=
+  «cspF_unwind» (Pf := DFtickfun) rfl (Or.inr (Or.inl ⟨rfl, guardedfun_DFtick⟩))
 
-axiom ep2_DF_Abs :
-    (proc.Proc_name DFtickName.DFtick : proc DFtickName NEvent) <=F Abs
+/-- `$DFtick <=F ! x:(c ` univ) -> $DFtick` — the reusable core step. -/
+private theorem DF_ref_send :
+    refF (proc.Proc_name DFtickName.DFtick : proc DFtickName NEvent) MF MF
+      (Nondet_send_prefix ep2_nucleus.Event.c Set.univ fun _ =>
+        proc.Proc_name DFtickName.DFtick) := by
+  refine cspF_rw_left_ref DFtick_unwound ?_
+  refine cspF_Int_choice_left1 ?_
+  rw [Nondet_send_prefix_def, Int_pre_choice, Int_pre_choice]
+  refine cspF_Rep_int_choice_com_right (fun a _ => ?_)
+  refine cspF_Rep_int_choice_com_left ⟨a, Set.mem_univ a, ?_⟩
+  exact cspF_Act_prefix_mono rfl cspF_reflex_ref_P
+
+theorem ep2_DF_Abs :
+    (proc.Proc_name DFtickName.DFtick : proc DFtickName NEvent) <=F Abs := by
+  rw [Abs_def]
+  refine cspF_fp_induct_cms_ref_right (Pf := Absfun) (f := Abs_to_DF)
+    rfl guardedfun_Abs rfl cspF_reflex_ref_P (fun pn => ?_)
+  cases pn with
+  | Abstract =>
+      simp only [Absfun, Subst_procfun_Nondet_send_prefix]
+      exact DF_ref_send
+  | Loop =>
+      simp only [Absfun, Subst_procfun, Subst_procfun_Nondet_send_prefix]
+      refine cspF_Int_choice_right ?_ ?_
+      · refine cspF_rw_left_ref DFtick_unwound ?_
+        exact cspF_Int_choice_left2 cspF_reflex_ref_P
+      · exact DF_ref_send
 
 /- -------------------------------------------------------*
  |                 AC is Deadlock-free.                  |
