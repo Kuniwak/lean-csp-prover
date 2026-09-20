@@ -91,8 +91,11 @@ theorem Set_PNRCdef_def (pn : PNRC) :
       guardedness
  * ------------------ -/
 
-@[simp] axiom guardedfun_PNRC :
-    guardedfun PNRCdef
+@[simp] theorem guardedfun_PNRC :
+    guardedfun PNRCdef := by
+  intro pn
+  rcases pn with ⟨n, s⟩ | ⟨n, s⟩ | ⟨n, s⟩ <;>
+    simp [PNRCdef, Send_prefix, guarded, noHide]
 
 /- -----------------------DF---------------------------------- -/
 
@@ -119,8 +122,12 @@ theorem Set_DFtickfun_def (pn : DFtickName) :
     PNfun pn = DFtickfun pn :=
   rfl
 
-@[simp] axiom guardedfun_DFtick :
-    guardedfun DFtickfun
+@[simp] theorem guardedfun_DFtick :
+    guardedfun DFtickfun := by
+  intro pn
+  cases pn
+  simp [DFtickfun, Nondet_send_prefix, Int_pre_choice,
+    Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
 
 def DF_to_PreCircSpecC : DFtickName → proc PNRC Event
   | DFtickName.DFtick =>
