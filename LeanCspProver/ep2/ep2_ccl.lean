@@ -180,8 +180,12 @@ theorem CC_def (p : TerminalState × Trigger) :
                 gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_CC :
-    guardedfun CCfun
+@[simp] theorem guarded_CC :
+    guardedfun CCfun := by
+  intro pn
+  cases pn <;>
+    simp [CCfun, Nondet_send_prefix, Int_pre_choice, Rec_prefix,
+      Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
 
 /- *********************************************************
         relating function between AbsName and ACName

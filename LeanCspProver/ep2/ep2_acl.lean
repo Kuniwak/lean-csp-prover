@@ -291,8 +291,12 @@ theorem AC_def :
               gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_AC :
-    guardedfun ACfun
+@[simp] theorem guarded_AC :
+    guardedfun ACfun := by
+  intro pn
+  cases pn <;>
+    simp [ACfun, Nondet_send_prefix, Int_pre_choice, Rec_prefix,
+      Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
 
 /- *********************************************************
                abstract level (deadlock free)
@@ -349,8 +353,12 @@ theorem Abs_def :
                gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_Abs :
-    guardedfun Absfun
+@[simp] theorem guarded_Abs :
+    guardedfun Absfun := by
+  intro pn
+  cases pn <;>
+    simp [Absfun, Nondet_send_prefix, Int_pre_choice,
+      Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
 
 /- *********************************************************
         relating function between AbsName and ACName
