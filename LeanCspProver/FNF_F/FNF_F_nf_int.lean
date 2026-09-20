@@ -143,10 +143,48 @@ theorem fnfF_Rep_int_choice_succ
  |                      in fnfF_rest                         |
  *===========================================================*) -/
 
-axiom fnfF_Rep_int_choice_in_lm
+/-- The union of all `Ysf`-families is below the union of all `Af`-families,
+    provided each `Ysf c` is below `Af c`. -/
+private theorem step_Ys_Union_subset_A
+    {C : sets_nats α} {Af : aset_anat α → Set α} {Ysf : aset_anat α → Set (Set α)}
+    (hUn : ∀ c, c ∈ sumset C → Set.sUnion (Ysf c) ⊆ Af c) :
+    Set.sUnion (Set.sUnion {Ys | ∃ c, c ∈ sumset C ∧ Ys = Ysf c}) ⊆
+      Set.sUnion {A | ∃ c, c ∈ sumset C ∧ A = Af c} := by
+  rintro x ⟨Y, ⟨Ys0, ⟨c, hc, rfl⟩, hY⟩, hxY⟩
+  exact ⟨Af c, ⟨c, hc, rfl⟩, hUn c hc ⟨Y, hY, hxY⟩⟩
+
+theorem fnfF_Rep_int_choice_in_lm
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
     (∀ c, c ∈ sumset C → fnfF_proc (SPf c)) →
-      fnfF_proc (fnfF_Rep_int_choice n C SPf)
+      fnfF_proc (fnfF_Rep_int_choice n C SPf) := by
+  induction n generalizing C SPf with
+  | zero =>
+      intro _
+      exact fnfF_NDIV
+  | succ n ih =>
+      intro h
+      rw [fnfF_Rep_int_choice_succ, dif_pos h]
+      unfold fnfF_Rep_int_choice_step fnfF_Rep_int_choice_step_A fnfF_Rep_int_choice_step_Ys
+      refine fnfF_proc.fnfF_proc_rule ?_ ?_ fnfF_set_completion_sat_condition ?_ ?_
+      · -- a ∈ ⋃₀ {A | ...} : the recursive call is in `fnfF_proc`
+        intro a ha
+        rw [if_pos ha]
+        refine ih ?_
+        intro c hc
+        rw [sumset_sub_sumset] at hc
+        exact fnfF_Pf_A (h c hc.1) hc.2
+      · -- a ∉ ⋃₀ {A | ...} : `DIV`
+        intro a ha
+        rw [if_neg ha]
+      · -- ⋃₀ (completion) ⊆ ⋃₀ {A | ...}
+        refine fnfF_set_completion_Union_subset ?_
+        exact step_Ys_Union_subset_A (fun c hc => fnfF_Union_Ys_A (h c hc))
+      · -- the `if`-term is `SKIP` or `DIV`
+        by_cases hex : ∃ c, c ∈ sumset C ∧ fnfF_Q (SPf c) = proc.SKIP
+        · rw [if_pos hex]
+          exact Or.inl rfl
+        · rw [if_neg hex]
+          exact Or.inr rfl
 
 /- (*------------------------------------*
  |                 in                 |
