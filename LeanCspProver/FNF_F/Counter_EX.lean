@@ -45,9 +45,17 @@ namespace Counter_EX
 
 /- there is a process which is not contained in fsfF_proc -/
 
-axiom nopn : Type
+/- Lean note:
+   Isabelle's `typedecl nopn` was ported as two axioms; it is now an
+   `opaque` `NonemptyType` — the same abstraction without extending the
+   axiom base. -/
 
-axiom nopn_inhabited : Inhabited nopn
+private opaque nopn_spec : NonemptyType.{0}
+
+def nopn : Type := nopn_spec.type
+
+@[reducible] noncomputable def nopn_inhabited : Inhabited nopn :=
+  ⟨Classical.choice nopn_spec.property⟩
 
 attribute [instance] nopn_inhabited
 
