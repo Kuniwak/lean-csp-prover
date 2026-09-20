@@ -76,8 +76,10 @@ theorem Set_PNdef_def (pn : PN) :
       guardedness
  * ------------------ -/
 
-@[simp] axiom guardedfun_PN :
-    guardedfun PNdef
+@[simp] theorem guardedfun_PN :
+    guardedfun PNdef := by
+  intro pn
+  cases pn <;> simp [PNdef, guarded, noHide]
 
 /- Lean note:
    Isabelle's overloaded constant `FPmode` is represented by a typeclass
