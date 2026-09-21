@@ -227,14 +227,14 @@ theorem in_traces_Rep_int_choice_set
   simpa [Rep_int_choice_traces_set] using
     (in_traces_Union_proc (t := t) (X := Xs) (Tf := fun X => traces (Pf X) M))
 
-theorem in_traces_Rep_int_choice_com [Inhabited α]
+theorem in_traces_Rep_int_choice_com
     {t : traceType α} {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     (t :t traces (Rep_int_choice_com X Pf) M) ↔
       (t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M) := by
   simpa [Rep_int_choice_traces_com] using
     (in_traces_Union_proc (t := t) (X := X) (Tf := fun a => traces (Pf a) M))
 
-theorem in_traces_Rep_int_choice_f [Inhabited α] [Inhabited β]
+theorem in_traces_Rep_int_choice_f [Inhabited β]
     {t : traceType α} {f : β → α} (hf : Function.Injective f)
     {X : Set β} {Pf : β → proc p α} {M : p → domTType α} :
     (t :t traces (Rep_int_choice_f f X Pf) M) ↔

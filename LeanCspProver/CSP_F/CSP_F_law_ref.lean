@@ -148,7 +148,7 @@ theorem cspF_Rep_int_choice_set_left_x
     refF (Rep_int_choice_set Xs Pf) M1 M2 Q := by
   exact cspF_Rep_int_choice_set_left ⟨X, hX, hPQ⟩
 
-theorem cspF_Rep_int_choice_com_left [Inhabited α]
+theorem cspF_Rep_int_choice_com_left
     {X : Set α} {Pf : α → proc p α} {Q : proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hPQ : ∃ a, a ∈ X ∧ refF (Pf a) M1 M2 Q) :
@@ -162,14 +162,14 @@ theorem cspF_Rep_int_choice_com_left [Inhabited α]
   rw [in_failures_Rep_int_choice_com]
   exact ⟨a, ha, hF hs⟩
 
-theorem cspF_Rep_int_choice_com_left_x [Inhabited α]
+theorem cspF_Rep_int_choice_com_left_x
     {X : Set α} {Pf : α → proc p α} {Q : proc q α}
     {a : α} {M1 : p → domFType α} {M2 : q → domFType α}
     (ha : a ∈ X) (hPQ : refF (Pf a) M1 M2 Q) :
     refF (Rep_int_choice_com X Pf) M1 M2 Q := by
   exact cspF_Rep_int_choice_com_left ⟨a, ha, hPQ⟩
 
-theorem cspF_Rep_int_choice_f_left [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_left [Inhabited β]
     {f : β → α} {X : Set β} {Pf : β → proc p α} {Q : proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hPQ : ∃ a, a ∈ X ∧ refF (Pf a) M1 M2 Q) :
@@ -183,7 +183,7 @@ theorem cspF_Rep_int_choice_f_left [Inhabited α] [Inhabited β]
   rw [in_failures_Rep_int_choice_f hf]
   exact ⟨a, ha, hF hs⟩
 
-theorem cspF_Rep_int_choice_f_left_x [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_left_x [Inhabited β]
     {f : β → α} {X : Set β} {Pf : β → proc p α} {Q : proc q α}
     {a : β} {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (ha : a ∈ X) (hPQ : refF (Pf a) M1 M2 Q) :
@@ -232,7 +232,7 @@ theorem cspF_Rep_int_choice_set_right
     rcases hs with ⟨X, hX, hs⟩
     exact (cspF_cspT_refF_semantics.mp (hPQ X hX)).2 hs
 
-theorem cspF_Rep_int_choice_com_right [Inhabited α]
+theorem cspF_Rep_int_choice_com_right
     {X : Set α} {P : proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hPQ : ∀ a, a ∈ X → refF P M1 M2 (Qf a)) :
@@ -248,7 +248,7 @@ theorem cspF_Rep_int_choice_com_right [Inhabited α]
     rcases hs with ⟨a, ha, hs⟩
     exact (cspF_cspT_refF_semantics.mp (hPQ a ha)).2 hs
 
-theorem cspF_Rep_int_choice_f_right [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_right [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hPQ : ∀ a, a ∈ X → refF P M1 M2 (Qf a)) :
@@ -302,7 +302,7 @@ theorem cspF_Rep_int_choice_set_rightE
   exact hF <| (in_failures_Rep_int_choice_set
     (f := ((s, Y) : failure α)) (Xs := Xs) (Pf := Qf) (M := M2)).2 ⟨X, hX, hs⟩
 
-theorem cspF_Rep_int_choice_com_rightE [Inhabited α]
+theorem cspF_Rep_int_choice_com_rightE
     {X : Set α} {P : proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α} {R : Prop}
     (hPQ : refF P M1 M2 (Rep_int_choice_com X Qf))
@@ -318,7 +318,7 @@ theorem cspF_Rep_int_choice_com_rightE [Inhabited α]
   exact hF <| (in_failures_Rep_int_choice_com
     (f := ((s, Y) : failure α)) (X := X) (Pf := Qf) (M := M2)).2 ⟨a, ha, hs⟩
 
-theorem cspF_Rep_int_choice_f_rightE [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_rightE [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α} {R : Prop}
     (hPQ : refF P M1 M2 (Rep_int_choice_f f X Qf)) (hf : Injective f)
@@ -376,7 +376,7 @@ theorem cspF_Rep_int_choice_set_subset
     rcases hs with ⟨X, hY, hs⟩
     exact ⟨X, hX hY, (cspF_cspT_refF_semantics.mp (hPQ X hY)).2 hs⟩
 
-theorem cspF_Rep_int_choice_com_subset [Inhabited α]
+theorem cspF_Rep_int_choice_com_subset
     {X Y : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hYX : Y ⊆ X) (hPQ : ∀ a, a ∈ Y → refF (Pf a) M1 M2 (Qf a)) :
@@ -393,7 +393,7 @@ theorem cspF_Rep_int_choice_com_subset [Inhabited α]
     rcases hs with ⟨a, ha, hs⟩
     exact ⟨a, hYX ha, (cspF_cspT_refF_semantics.mp (hPQ a ha)).2 hs⟩
 
-theorem cspF_Rep_int_choice_f_subset [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_subset [Inhabited β]
     {f : β → α} {X Y : Set β} {Pf : β → proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hYX : Y ⊆ X) (hPQ : ∀ a, a ∈ Y → refF (Pf a) M1 M2 (Qf a)) :
@@ -416,7 +416,7 @@ theorem cspF_Rep_int_choice_f_subset [Inhabited α] [Inhabited β]
 
 /- (*** ! x:X .. and ? -> ***) -/
 
-theorem cspF_Int_Ext_pre_choice_subset [Inhabited α]
+theorem cspF_Int_Ext_pre_choice_subset
     {X Y : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hY : Y ≠ ∅) (hYX : Y ⊆ X) (hPQ : ∀ a, a ∈ Y → refF (Pf a) M1 M2 (Qf a)) :

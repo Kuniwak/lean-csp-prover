@@ -320,7 +320,7 @@ theorem cspT_SKIP_or_DIV_Parallel
  *********************************************************)
 -/
 
-theorem cspT_SKIP_or_DIV_Hiding_step [Inhabited α]
+theorem cspT_SKIP_or_DIV_Hiding_step
     {Q : proc p α} {Y X : Set α} {Pf : α → proc p α} {M : p → domTType α}
     (hQ : Q = (proc.SKIP : proc p α) ∨ Q = proc.DIV) :
     eqT (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] Q) X) M M

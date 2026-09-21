@@ -44,11 +44,10 @@ theorem tail_failures_def (F : setFType α) :
   rfl
 
 /- Isabelle: `Proc_F_rec (Suc n) = (%SF. (! a:(head_failures (sndF SF)) .. a ->
-   Proc_F_rec n (...)) [+] DIV)`, i.e. an *internal* choice over `a` whose branch
-   already performs `a`.  Inside `_ [+] DIV` the internal choice `! a:X .. a -> Q a`
-   and the external prefix choice `? a:X -> Q a` have the same traces and the same
-   failures, so the branch body must be `Q a`, not `a ~> Q a` -- exactly how
-   `Proc_T_rec` renders the very same Isabelle idiom. -/
+   Proc_F_rec n (...)) [+] DIV)` -- a replicated *internal* choice (`Rep_int_choice_com`)
+   over `a` whose branch then performs `a`.  Transcribed literally.
+   `in_traces_Proc_F_rec_succ` / `in_failures_Proc_F_rec_succ` below show that, under
+   `_ [+] DIV`, this agrees with the external prefix choice `? a:X -> Q a`. -/
 def Proc_F_rec : Nat → domFType α → proc p α
   | 0 =>
       fun SF =>
@@ -62,8 +61,8 @@ def Proc_F_rec : Nat → domFType α → proc p α
           (fun X => proc.Ext_pre_choice X fun _ => proc.DIV)
   | Nat.succ n =>
       fun SF =>
-        ((proc.Ext_pre_choice (head_failures (sndF SF)) fun a =>
-            Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
+        ((Rep_int_choice_com (head_failures (sndF SF)) fun a =>
+            a ~> Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
           proc.DIV)
 
 def Proc_F (SF : domFType α) : proc p α :=
@@ -73,6 +72,107 @@ theorem Proc_F_def {p : Type _} {α : Type _} (SF : domFType α) :
     Proc_F (p := p) SF =
       Proc_T (fstF SF) |~| Rep_int_choice_nat Set.univ (fun n => Proc_F_rec n SF) :=
   rfl
+
+/- Under `_ [+] DIV`, the internal choice `! a:A .. a -> Q a` and the external prefix
+   choice `? a:A -> Q a` have the same traces and the same failures: `DIV` has no
+   stable failures, so the nil refusals in which the two differ are discarded, and
+   their non-nil failures and their traces coincide. -/
+
+theorem in_traces_Rep_int_choice_com_prefix_Ext_choice_DIV
+    {A : Set α} {Q : α → proc p α} {t : traceType α} {M : p → domTType α} :
+    (t :t traces ((Rep_int_choice_com A fun a => a ~> Q a) [+] proc.DIV) M) ↔
+      (t :t traces ((proc.Ext_pre_choice A Q) [+] proc.DIV) M) := by
+  rw [in_traces_Ext_choice, in_traces_Ext_choice, in_traces_Rep_int_choice_com,
+    in_traces_Ext_pre_choice, in_traces_DIV]
+  constructor
+  · rintro ((rfl | ⟨a, ha, hpre⟩) | rfl)
+    · exact Or.inl (Or.inl rfl)
+    · rw [in_traces_Act_prefix] at hpre
+      rcases hpre with rfl | ⟨s, rfl, hs⟩
+      · exact Or.inl (Or.inl rfl)
+      · exact Or.inl (Or.inr ⟨a, s, rfl, hs, ha⟩)
+    · exact Or.inl (Or.inl rfl)
+  · rintro ((rfl | ⟨a, s, rfl, hs, ha⟩) | rfl)
+    · exact Or.inl (Or.inl rfl)
+    · exact Or.inl (Or.inr ⟨a, ha, in_traces_Act_prefix.2 (Or.inr ⟨s, rfl, hs⟩)⟩)
+    · exact Or.inl (Or.inl rfl)
+
+private theorem Tick_notin_traces_Rep_int_choice_com_prefix
+    {A : Set α} {Q : α → proc p α} {M : p → domTType α} :
+    (Abs_trace [event.Tick] : traceType α) ~:t
+      traces (Rep_int_choice_com A fun a => a ~> Q a) M := by
+  intro h
+  rw [in_traces_Rep_int_choice_com] at h
+  rcases h with h | ⟨a, -, h⟩
+  · simp at h
+  · rw [in_traces_Act_prefix] at h
+    rcases h with h | ⟨s, h, -⟩ <;> simp at h
+
+private theorem Tick_notin_traces_Ext_pre_choice
+    {A : Set α} {Q : α → proc p α} {M : p → domTType α} :
+    (Abs_trace [event.Tick] : traceType α) ~:t traces (proc.Ext_pre_choice A Q) M := by
+  intro h
+  rw [in_traces_Ext_pre_choice] at h
+  rcases h with h | ⟨a, s, h, -, -⟩ <;> simp at h
+
+theorem in_failures_Rep_int_choice_com_prefix_Ext_choice_DIV
+    {A : Set α} {Q : α → proc p α} {f : failure α} {M : p → domFType α} :
+    (f :f failures ((Rep_int_choice_com A fun a => a ~> Q a) [+] proc.DIV) M) ↔
+      (f :f failures ((proc.Ext_pre_choice A Q) [+] proc.DIV) M) := by
+  rw [in_failures_Ext_choice, in_failures_Ext_choice]
+  constructor
+  · rintro (⟨-, -, hD⟩ | ⟨s, ⟨X, rfl⟩, hor, hne⟩ | ⟨X, rfl, hT, -⟩)
+    · exact absurd hD in_failures_DIV
+    · have hP := hor.resolve_right in_failures_DIV
+      rw [in_failures_Rep_int_choice_com] at hP
+      obtain ⟨a, ha, hpre⟩ := hP
+      rw [in_failures_Act_prefix] at hpre
+      rcases hpre with ⟨Y, hEq, -⟩ | ⟨s', Y, hEq, hs'⟩
+      · exact absurd (Prod.mk.inj hEq).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+        refine Or.inr (Or.inl ⟨_, ⟨_, rfl⟩, Or.inl ?_, hne⟩)
+        rw [in_failures_Ext_pre_choice]
+        exact Or.inr ⟨a, s', _, rfl, hs', ha⟩
+    · exfalso
+      rcases hT with hT | hT
+      · exact Tick_notin_traces_Rep_int_choice_com_prefix hT
+      · rw [in_traces_DIV] at hT
+        simp at hT
+  · rintro (⟨-, -, hD⟩ | ⟨s, ⟨X, rfl⟩, hor, hne⟩ | ⟨X, rfl, hT, -⟩)
+    · exact absurd hD in_failures_DIV
+    · have hP := hor.resolve_right in_failures_DIV
+      rw [in_failures_Ext_pre_choice] at hP
+      rcases hP with ⟨Y, hEq, -⟩ | ⟨a, s', Y, hEq, hs', ha⟩
+      · exact absurd (Prod.mk.inj hEq).1 hne
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+        refine Or.inr (Or.inl ⟨_, ⟨_, rfl⟩, Or.inl ?_, hne⟩)
+        rw [in_failures_Rep_int_choice_com]
+        exact ⟨a, ha, in_failures_Act_prefix.2 (Or.inr ⟨s', _, rfl, hs'⟩)⟩
+    · exfalso
+      rcases hT with hT | hT
+      · exact Tick_notin_traces_Ext_pre_choice hT
+      · rw [in_traces_DIV] at hT
+        simp at hT
+
+/- The successor case of `Proc_F_rec`, unfolded to the external-prefix-choice form. -/
+
+theorem in_traces_Proc_F_rec_succ
+    {n : Nat} {SF : domFType α} {t : traceType α} {M : p → domTType α} :
+    (t :t traces (Proc_F_rec (Nat.succ n) SF) M) ↔
+      (t :t traces ((proc.Ext_pre_choice (head_failures (sndF SF)) fun a =>
+          Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
+        proc.DIV) M) := by
+  simp only [Proc_F_rec]
+  exact in_traces_Rep_int_choice_com_prefix_Ext_choice_DIV
+
+theorem in_failures_Proc_F_rec_succ
+    {n : Nat} {SF : domFType α} {f : failure α} {M : p → domFType α} :
+    (f :f failures (Proc_F_rec (Nat.succ n) SF) M) ↔
+      (f :f failures ((proc.Ext_pre_choice (head_failures (sndF SF)) fun a =>
+          Proc_F_rec n (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a)) [+]
+        proc.DIV) M) := by
+  simp only [Proc_F_rec]
+  exact in_failures_Rep_int_choice_com_prefix_Ext_choice_DIV
 
 /-
 (*********************************************************
@@ -377,8 +477,7 @@ theorem Proc_F_to_T_lm {M : p → domTType α} :
           simpa using hall a haX
   | succ n ih =>
       intro SF t h
-      simp only [Proc_F_rec] at h
-      rw [in_traces_Ext_choice] at h
+      rw [in_traces_Proc_F_rec_succ, in_traces_Ext_choice] at h
       rcases h with hpre | hdiv
       · rw [in_traces_Ext_pre_choice] at hpre
         rcases hpre with rfl | ⟨a, u, rfl, hu, ha⟩
@@ -501,8 +600,7 @@ theorem Proc_F_to_F_lm {M : p → domFType α} :
       · exact absurd hu in_failures_DIV
   | succ n ih =>
       intro SF s X h
-      simp only [Proc_F_rec] at h
-      rw [in_failures_Ext_choice] at h
+      rw [in_failures_Proc_F_rec_succ, in_failures_Ext_choice] at h
       rcases h with ⟨-, -, hdiv⟩ | ⟨s', ⟨Y, hEq⟩, hor, hne⟩ | ⟨-, -, hTick, -⟩
       · exact absurd hdiv in_failures_DIV
       · have hpre := hor.resolve_right in_failures_DIV
@@ -636,9 +734,8 @@ theorem F_Proc_F_lm {M : p → domFType α} {s : traceType α} :
             apply h
             rw [appt_assoc (Or.inl (noTick_Ev a)) (Or.inl hNow)]
             exact (in_tail_traces (head_failures_traces ha)).1 hmem
-      rw [lengtht_app_event_Suc_head]
-      simp only [Proc_F_rec]
-      rw [in_failures_Ext_choice]
+      rw [lengtht_app_event_Suc_head, in_failures_Proc_F_rec_succ,
+        in_failures_Ext_choice]
       refine Or.inr (Or.inl ⟨Abs_trace [event.Ev a] ^^^ w, ⟨X, rfl⟩, Or.inl ?_, by simp⟩)
       rw [in_failures_Ext_pre_choice]
       exact Or.inr ⟨a, w, X, rfl, hrec, ha⟩
@@ -647,7 +744,8 @@ theorem F_Proc_F_lm {M : p → domFType α} {s : traceType α} :
 
 /- sndF SF => failures (Proc_F_rec) -/
 
-theorem F_Proc_F {M : p → domFType α} {SF : domFType α} {s : traceType α} {X : Set (event α)}
+theorem F_Proc_F {M : p → domFType α} {SF : domFType α} {s : traceType α}
+    {X : Set (event α)}
     (hs : (s, X) :f sndF SF) (hNo : noTick s)
     (hTick : event.Tick ∈ X ∨ (s ^^^ (Abs_trace [event.Tick] : traceType α)) ~:t fstF SF) :
     (s, X) :f failures (Proc_F_rec (lengtht s) SF) M :=
@@ -893,7 +991,8 @@ theorem traces_Proc_T_F {SF : domFType α} {M : p → domTType α} :
  |                                                          |
  *========================================================== -/
 
-def Gen_int_choice_F_plus [HasPNfun p α] [HasFPmode] (Ps : Set (proc p α)) : proc p α :=
+def Gen_int_choice_F_plus [HasPNfun p α] [HasFPmode] (Ps : Set (proc p α)) :
+    proc p α :=
   Proc_F
     (UnionT {T : domTType α | ∃ P, P ∈ Ps ∧ T = traces P (fstF ∘ MF)} ,,
       UnionF {F : setFType α | ∃ P, P ∈ Ps ∧ F = failures P MF})

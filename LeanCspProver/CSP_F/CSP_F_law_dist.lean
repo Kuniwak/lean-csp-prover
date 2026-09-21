@@ -95,13 +95,13 @@ theorem cspF_Rep_int_choice_set_dist
       ((Rep_int_choice_set Xs Pf) |~| (Rep_int_choice_set Xs Qf)) := by
   cspF_auto
 
-theorem cspF_Rep_int_choice_com_dist [Inhabited α]
+theorem cspF_Rep_int_choice_com_dist
     {X : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com X (fun a => Pf a |~| Qf a)) M M
       ((Rep_int_choice_com X Pf) |~| (Rep_int_choice_com X Qf)) := by
   cspF_auto
 
-theorem cspF_Rep_int_choice_f_dist [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_dist [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf Qf : β → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f X (fun a => Pf a |~| Qf a)) M M
       ((Rep_int_choice_f f X Pf) |~| (Rep_int_choice_f f X Qf)) := by
@@ -460,77 +460,77 @@ theorem cspF_Depth_rest_Dist_set
  *****************************************************************)
 -/
 
-theorem cspF_Ext_choice_Dist_com_l_nonempty [Inhabited α]
+theorem cspF_Ext_choice_Dist_com_l_nonempty
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     X ≠ ∅ → eqF ((Rep_int_choice_com X Pf) [+] Q) M M
       (Rep_int_choice_com X fun x => Pf x [+] Q) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_com_r_nonempty [Inhabited α]
+theorem cspF_Ext_choice_Dist_com_r_nonempty
     {X : Set α} {Qf : α → proc p α} {P : proc p α} {M : p → domFType α} :
     X ≠ ∅ → eqF (P [+] Rep_int_choice_com X Qf) M M
       (Rep_int_choice_com X fun x => P [+] Qf x) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_com_l_nonempty [Inhabited α]
+theorem cspF_Parallel_Dist_com_l_nonempty
     {Y : Set α} {Pf : α → proc p α} {Q : proc p α} {X : Set α} {M : p → domFType α} :
     Y ≠ ∅ → eqF (Rep_int_choice_com Y Pf |[X]| Q) M M
       (Rep_int_choice_com Y fun x => Pf x |[X]| Q) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_com_r_nonempty [Inhabited α]
+theorem cspF_Parallel_Dist_com_r_nonempty
     {Y : Set α} {Qf : α → proc p α} {P : proc p α} {X : Set α} {M : p → domFType α} :
     Y ≠ ∅ → eqF (P |[X]| Rep_int_choice_com Y Qf) M M
       (Rep_int_choice_com Y fun x => P |[X]| Qf x) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_com_l [Inhabited α]
+theorem cspF_Ext_choice_Dist_com_l
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     eqF ((Rep_int_choice_com X Pf) [+] Q) M M
       (procIte (X = ∅) ((proc.DIV : proc p α) [+] Q)
         (Rep_int_choice_com X fun x => Pf x [+] Q)) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_com_r [Inhabited α]
+theorem cspF_Ext_choice_Dist_com_r
     {X : Set α} {Qf : α → proc p α} {P : proc p α} {M : p → domFType α} :
     eqF (P [+] Rep_int_choice_com X Qf) M M
       (procIte (X = ∅) (P [+] (proc.DIV : proc p α))
         (Rep_int_choice_com X fun x => P [+] Qf x)) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_com_l [Inhabited α]
+theorem cspF_Parallel_Dist_com_l
     {Y : Set α} {Pf : α → proc p α} {Q : proc p α} {X : Set α} {M : p → domFType α} :
     eqF (Rep_int_choice_com Y Pf |[X]| Q) M M
       (procIte (Y = ∅) (((proc.DIV : proc p α) |[X]| Q))
         (Rep_int_choice_com Y fun x => Pf x |[X]| Q)) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_com_r [Inhabited α]
+theorem cspF_Parallel_Dist_com_r
     {Y : Set α} {Qf : α → proc p α} {P : proc p α} {X : Set α} {M : p → domFType α} :
     eqF (P |[X]| Rep_int_choice_com Y Qf) M M
       (procIte (Y = ∅) (P |[X]| (proc.DIV : proc p α))
         (Rep_int_choice_com Y fun x => P |[X]| Qf x)) := by
   cspF_auto
 
-theorem cspF_Hiding_Dist_com [Inhabited α]
+theorem cspF_Hiding_Dist_com
     {Y : Set α} {Pf : α → proc p α} {X : Set α} {M : p → domFType α} :
     eqF (proc.Hiding (Rep_int_choice_com Y Pf) X) M M
       (Rep_int_choice_com Y fun x => proc.Hiding (Pf x) X) := by
   cspF_auto
 
-theorem cspF_Renaming_Dist_com [Inhabited α]
+theorem cspF_Renaming_Dist_com
     {X : Set α} {Pf : α → proc p α} {r : Set (α × α)} {M : p → domFType α} :
     eqF ((Rep_int_choice_com X Pf)[[r]]) M M
       (Rep_int_choice_com X fun x => (Pf x)[[r]]) := by
   cspF_auto
 
-theorem cspF_Seq_compo_Dist_com [Inhabited α]
+theorem cspF_Seq_compo_Dist_com
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domFType α} :
     eqF ((Rep_int_choice_com X Pf) ;; Q) M M
       (Rep_int_choice_com X fun x => Pf x ;; Q) := by
   cspF_auto
 
-theorem cspF_Depth_rest_Dist_com [Inhabited α]
+theorem cspF_Depth_rest_Dist_com
     {X : Set α} {Pf : α → proc p α} {n : Nat} {M : p → domFType α} :
     eqF ((Rep_int_choice_com X Pf) |. n) M M
       (Rep_int_choice_com X fun x => Pf x |. n) := by
@@ -566,35 +566,35 @@ theorem cspF_Depth_rest_Dist_com [Inhabited α]
  *****************************************************************)
 -/
 
-theorem cspF_Ext_choice_Dist_f_l_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Ext_choice_Dist_f_l_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {Q : proc p α}
     {M : p → domFType α} :
     X ≠ ∅ → eqF ((Rep_int_choice_f f X Pf) [+] Q) M M
       (Rep_int_choice_f f X fun x => Pf x [+] Q) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_f_r_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Ext_choice_Dist_f_r_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Qf : β → proc p α} {P : proc p α}
     {M : p → domFType α} :
     X ≠ ∅ → eqF (P [+] Rep_int_choice_f f X Qf) M M
       (Rep_int_choice_f f X fun x => P [+] Qf x) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_f_l_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Parallel_Dist_f_l_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {Y : Set β} {Pf : β → proc p α} {Q : proc p α}
     {X : Set α} {M : p → domFType α} :
     Y ≠ ∅ → eqF (Rep_int_choice_f f Y Pf |[X]| Q) M M
       (Rep_int_choice_f f Y fun x => Pf x |[X]| Q) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_f_r_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Parallel_Dist_f_r_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {Y : Set β} {Qf : β → proc p α} {P : proc p α}
     {X : Set α} {M : p → domFType α} :
     Y ≠ ∅ → eqF (P |[X]| Rep_int_choice_f f Y Qf) M M
       (Rep_int_choice_f f Y fun x => P |[X]| Qf x) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_f_l [Inhabited α] [Inhabited β]
+theorem cspF_Ext_choice_Dist_f_l [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {Q : proc p α}
     {M : p → domFType α} :
     eqF ((Rep_int_choice_f f X Pf) [+] Q) M M
@@ -602,7 +602,7 @@ theorem cspF_Ext_choice_Dist_f_l [Inhabited α] [Inhabited β]
         (Rep_int_choice_f f X fun x => Pf x [+] Q)) := by
   cspF_auto
 
-theorem cspF_Ext_choice_Dist_f_r [Inhabited α] [Inhabited β]
+theorem cspF_Ext_choice_Dist_f_r [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Qf : β → proc p α} {P : proc p α}
     {M : p → domFType α} :
     eqF (P [+] Rep_int_choice_f f X Qf) M M
@@ -610,7 +610,7 @@ theorem cspF_Ext_choice_Dist_f_r [Inhabited α] [Inhabited β]
         (Rep_int_choice_f f X fun x => P [+] Qf x)) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_f_l [Inhabited α] [Inhabited β]
+theorem cspF_Parallel_Dist_f_l [Inhabited β]
     {f : β → α} (hf : Injective f) {Y : Set β} {Pf : β → proc p α} {Q : proc p α}
     {X : Set α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f Y Pf |[X]| Q) M M
@@ -618,7 +618,7 @@ theorem cspF_Parallel_Dist_f_l [Inhabited α] [Inhabited β]
         (Rep_int_choice_f f Y fun x => Pf x |[X]| Q)) := by
   cspF_auto
 
-theorem cspF_Parallel_Dist_f_r [Inhabited α] [Inhabited β]
+theorem cspF_Parallel_Dist_f_r [Inhabited β]
     {f : β → α} (hf : Injective f) {Y : Set β} {Qf : β → proc p α} {P : proc p α}
     {X : Set α} {M : p → domFType α} :
     eqF (P |[X]| Rep_int_choice_f f Y Qf) M M
@@ -626,28 +626,28 @@ theorem cspF_Parallel_Dist_f_r [Inhabited α] [Inhabited β]
         (Rep_int_choice_f f Y fun x => P |[X]| Qf x)) := by
   cspF_auto
 
-theorem cspF_Hiding_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Hiding_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {Y : Set β} {Pf : β → proc p α} {X : Set α}
     {M : p → domFType α} :
     eqF (proc.Hiding (Rep_int_choice_f f Y Pf) X) M M
       (Rep_int_choice_f f Y fun x => proc.Hiding (Pf x) X) := by
   cspF_auto
 
-theorem cspF_Renaming_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Renaming_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {r : Set (α × α)}
     {M : p → domFType α} :
     eqF ((Rep_int_choice_f f X Pf)[[r]]) M M
       (Rep_int_choice_f f X fun x => (Pf x)[[r]]) := by
   cspF_auto
 
-theorem cspF_Seq_compo_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Seq_compo_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {Q : proc p α}
     {M : p → domFType α} :
     eqF ((Rep_int_choice_f f X Pf) ;; Q) M M
       (Rep_int_choice_f f X fun x => Pf x ;; Q) := by
   cspF_auto
 
-theorem cspF_Depth_rest_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Depth_rest_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {n : Nat}
     {M : p → domFType α} :
     eqF ((Rep_int_choice_f f X Pf) |. n) M M
@@ -730,21 +730,21 @@ theorem cspF_Ext_pre_choice_Dist_set
         (Rep_int_choice_set Ys fun Y => proc.Ext_pre_choice X (Pf Y)) := by
   cspF_auto
 
-theorem cspF_Act_prefix_Dist_com [Inhabited α]
+theorem cspF_Act_prefix_Dist_com
     {X : Set α} {a : α} {Pf : α → proc p α} {M : p → domFType α} :
     X ≠ ∅ →
       eqF (a ~> Rep_int_choice_com X Pf) M M
         (Rep_int_choice_com X fun x => a ~> Pf x) := by
   cspF_auto
 
-theorem cspF_Ext_pre_choice_Dist_com [Inhabited α]
+theorem cspF_Ext_pre_choice_Dist_com
     {X Y : Set α} {Pf : α → α → proc p α} {M : p → domFType α} :
     Y ≠ ∅ →
       eqF (proc.Ext_pre_choice X fun x => Rep_int_choice_com Y fun y => Pf y x) M M
         (Rep_int_choice_com Y fun y => proc.Ext_pre_choice X (Pf y)) := by
   cspF_auto
 
-theorem cspF_Act_prefix_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Act_prefix_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {a : α} {Pf : β → proc p α}
     {M : p → domFType α} :
     X ≠ ∅ →
@@ -752,7 +752,7 @@ theorem cspF_Act_prefix_Dist_f [Inhabited α] [Inhabited β]
         (Rep_int_choice_f f X fun x => a ~> Pf x) := by
   cspF_auto
 
-theorem cspF_Ext_pre_choice_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Ext_pre_choice_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set α} {Y : Set β} {Pf : β → α → proc p α}
     {M : p → domFType α} :
     Y ≠ ∅ →
@@ -1085,21 +1085,33 @@ theorem cspF_Rep_int_choice_Ext_Dist_set
     (Qf := fun c => Qf (Function.invFun type1 c))
     (fun c hc => P_inv_type1 hQ hc)
 
-theorem cspF_Rep_int_choice_Ext_Dist_com [Inhabited α]
+theorem cspF_Rep_int_choice_Ext_Dist_com
     {X : Set α} {Pf Qf : α → proc p α} {M : p → domFType α} :
     (∀ a, a ∈ X → Qf a = proc.SKIP ∨ Qf a = proc.DIV) →
       eqF (Rep_int_choice_com X fun a => Pf a [+] Qf a) M M
         ((Rep_int_choice_com X Pf) [+] (Rep_int_choice_com X Qf)) := by
   intro hQ
-  refine cspF_Rep_int_choice_Ext_Dist_set
+  have hstep := cspF_Rep_int_choice_Ext_Dist_set (M := M)
     (Xs := {S : Set α | ∃ a, a ∈ X ∧ S = ({a} : Set α)})
-    (Pf := fun S => Pf (the_elem S)) (Qf := fun S => Qf (the_elem S)) ?_
+    (Pf := fun S => (the_elem S).elim proc.DIV Pf)
+    (Qf := fun S => (the_elem S).elim proc.DIV Qf)
+    (by
+      rintro S ⟨a, ha, rfl⟩
+      dsimp only
+      rw [the_elem_singleton, Option.elim_some]
+      exact hQ a ha)
+  -- `Rep_int_choice_com X (fun a => Pf a [+] Qf a)` is not definitionally the left-hand
+  -- side of `hstep` (the `none` branch of `the_elem` is `DIV`, not `DIV [+] DIV`); on the
+  -- index set every `S` is a singleton, so the two agree pointwise.
+  refine cspF_trans_left_eq ?_ hstep
+  rw [Rep_int_choice_com]
+  apply cspF_Rep_int_choice_cong_set rfl
   rintro S ⟨a, ha, rfl⟩
   dsimp only
-  rw [the_elem_singleton]
-  exact hQ a ha
+  rw [the_elem_singleton, Option.elim_some]
+  exact cspF_reflex_eq_P
 
-theorem cspF_Rep_int_choice_Ext_Dist_f [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_Ext_Dist_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf Qf : β → proc p α} {M : p → domFType α} :
     (∀ a, a ∈ X → Qf a = proc.SKIP ∨ Qf a = proc.DIV) →
       eqF (Rep_int_choice_f f X fun a => Pf a [+] Qf a) M M
@@ -1808,27 +1820,27 @@ theorem cspF_Ext_pre_choice_delay_set
         (proc.Ext_pre_choice X fun x => Rep_int_choice_set Xs fun Y => Pf Y x)) := by
   cspF_auto
 
-theorem cspF_Act_prefix_delay_com [Inhabited α]
+theorem cspF_Act_prefix_delay_com
     {X : Set α} {a : α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com X fun x => a ~> Pf x) M M
       (procIte (X = ∅) (proc.DIV : proc p α) (a ~> Rep_int_choice_com X Pf)) := by
   cspF_auto
 
-theorem cspF_Ext_pre_choice_delay_com [Inhabited α]
+theorem cspF_Ext_pre_choice_delay_com
     {X Y : Set α} {Pf : α → α → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com Y fun y => proc.Ext_pre_choice X (Pf y)) M M
       (procIte (Y = ∅) (proc.DIV : proc p α)
         (proc.Ext_pre_choice X fun x => Rep_int_choice_com Y fun y => Pf y x)) := by
   cspF_auto
 
-theorem cspF_Act_prefix_delay_f [Inhabited α] [Inhabited β]
+theorem cspF_Act_prefix_delay_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {a : α} {Pf : β → proc p α}
     {M : p → domFType α} :
     eqF (Rep_int_choice_f f X fun x => a ~> Pf x) M M
       (procIte (X = ∅) (proc.DIV : proc p α) (a ~> Rep_int_choice_f f X Pf)) := by
   cspF_auto
 
-theorem cspF_Ext_pre_choice_delay_f [Inhabited α] [Inhabited β]
+theorem cspF_Ext_pre_choice_delay_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set α} {Y : Set β} {Pf : β → α → proc p α}
     {M : p → domFType α} :
     eqF (Rep_int_choice_f f Y fun y => proc.Ext_pre_choice X (Pf y)) M M
@@ -2019,7 +2031,7 @@ theorem cspF_Alpha_Parallel_Dist_set_r
   · simp only [procIte, if_neg h]
     exact cspF_Alpha_Parallel_Dist_set_r_nonempty h
 
-theorem cspF_Alpha_Parallel_Dist_com_l_nonempty [Inhabited α]
+theorem cspF_Alpha_Parallel_Dist_com_l_nonempty
     {A : Set α} {Pf : α → proc p α} {Q : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     A ≠ ∅ →
@@ -2031,7 +2043,7 @@ theorem cspF_Alpha_Parallel_Dist_com_l_nonempty [Inhabited α]
     (cspF_Parallel_cong rfl (cspF_Parallel_Dist_com_l_nonempty h) cspF_reflex_eq_P)
   exact cspF_Parallel_Dist_com_l_nonempty h
 
-theorem cspF_Alpha_Parallel_Dist_com_l [Inhabited α]
+theorem cspF_Alpha_Parallel_Dist_com_l
     {A : Set α} {Pf : α → proc p α} {Q : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     eqF (Rep_int_choice_com A Pf |[X,Y]| Q) M M
@@ -2044,7 +2056,7 @@ theorem cspF_Alpha_Parallel_Dist_com_l [Inhabited α]
   · simp only [procIte, if_neg h]
     exact cspF_Alpha_Parallel_Dist_com_l_nonempty h
 
-theorem cspF_Alpha_Parallel_Dist_com_r_nonempty [Inhabited α]
+theorem cspF_Alpha_Parallel_Dist_com_r_nonempty
     {A : Set α} {Qf : α → proc p α} {P : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     A ≠ ∅ →
@@ -2056,7 +2068,7 @@ theorem cspF_Alpha_Parallel_Dist_com_r_nonempty [Inhabited α]
     (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_Parallel_Dist_com_l_nonempty h))
   exact cspF_Parallel_Dist_com_r_nonempty h
 
-theorem cspF_Alpha_Parallel_Dist_com_r [Inhabited α]
+theorem cspF_Alpha_Parallel_Dist_com_r
     {A : Set α} {Qf : α → proc p α} {P : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     eqF (P |[X,Y]| Rep_int_choice_com A Qf) M M
@@ -2069,7 +2081,7 @@ theorem cspF_Alpha_Parallel_Dist_com_r [Inhabited α]
   · simp only [procIte, if_neg h]
     exact cspF_Alpha_Parallel_Dist_com_r_nonempty h
 
-theorem cspF_Alpha_Parallel_Dist_f_l_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Alpha_Parallel_Dist_f_l_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {A : Set β} {Pf : β → proc p α} {Q : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     A ≠ ∅ →
@@ -2081,7 +2093,7 @@ theorem cspF_Alpha_Parallel_Dist_f_l_nonempty [Inhabited α] [Inhabited β]
     (cspF_Parallel_cong rfl (cspF_Parallel_Dist_f_l_nonempty hf h) cspF_reflex_eq_P)
   exact cspF_Parallel_Dist_f_l_nonempty hf h
 
-theorem cspF_Alpha_Parallel_Dist_f_l [Inhabited α] [Inhabited β]
+theorem cspF_Alpha_Parallel_Dist_f_l [Inhabited β]
     {f : β → α} (hf : Injective f) {A : Set β} {Pf : β → proc p α} {Q : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f A Pf |[X,Y]| Q) M M
@@ -2094,7 +2106,7 @@ theorem cspF_Alpha_Parallel_Dist_f_l [Inhabited α] [Inhabited β]
   · simp only [procIte, if_neg h]
     exact cspF_Alpha_Parallel_Dist_f_l_nonempty hf h
 
-theorem cspF_Alpha_Parallel_Dist_f_r_nonempty [Inhabited α] [Inhabited β]
+theorem cspF_Alpha_Parallel_Dist_f_r_nonempty [Inhabited β]
     {f : β → α} (hf : Injective f) {A : Set β} {Qf : β → proc p α} {P : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     A ≠ ∅ →
@@ -2106,7 +2118,7 @@ theorem cspF_Alpha_Parallel_Dist_f_r_nonempty [Inhabited α] [Inhabited β]
     (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_Parallel_Dist_f_l_nonempty hf h))
   exact cspF_Parallel_Dist_f_r_nonempty hf h
 
-theorem cspF_Alpha_Parallel_Dist_f_r [Inhabited α] [Inhabited β]
+theorem cspF_Alpha_Parallel_Dist_f_r [Inhabited β]
     {f : β → α} (hf : Injective f) {A : Set β} {Qf : β → proc p α} {P : proc p α}
     {X Y : Set α} {M : p → domFType α} :
     eqF (P |[X,Y]| Rep_int_choice_f f A Qf) M M

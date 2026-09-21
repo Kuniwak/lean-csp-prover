@@ -257,7 +257,7 @@ unconditional primed versions are the fallback for non-injective uses. -/
   rw [Rec_prefix_def, in_traces_Ext_pre_choice]
 
 @[csp_T 1100] theorem in_traces_Nondet_send_prefix {x α : Type _} {p : Type _}
-    [Inhabited α] [Inhabited x]
+    [Inhabited x]
     {f : x → α} (hf : Function.Injective f) {X : Set x} {Pf : x → proc p α}
     {t : traceType α} {M : p → domTType α} :
     (t :t traces (Nondet_send_prefix f X Pf) M) ↔
@@ -279,7 +279,7 @@ unconditional primed versions are the fallback for non-injective uses. -/
       exact Or.inr ⟨s, rfl, by rw [invFun_comp_self hf]; exact hs⟩
 
 @[csp_T] theorem in_traces_Nondet_send_prefix' {x α : Type _} {p : Type _}
-    [Inhabited α] [Inhabited x]
+    [Inhabited x]
     {f : x → α} {X : Set x} {Pf : x → proc p α}
     {t : traceType α} {M : p → domTType α} :
     (t :t traces (Nondet_send_prefix f X Pf) M) ↔

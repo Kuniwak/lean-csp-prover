@@ -525,7 +525,7 @@ private theorem in_failures_Hiding_Ext_pre_choice'
     · exact ⟨Abs_trace [Ev a] ^^^ s', W, rfl,
         in_failures_Ext_pre_choice.mpr (Or.inr ⟨a, s', Ev '' X ∪ W, rfl, hPf, haY⟩)⟩
 
-theorem cspF_Hiding_step [Inhabited α]
+theorem cspF_Hiding_step
     {X Y : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (proc.Hiding (proc.Ext_pre_choice Y Pf) X) M M
       (procIte (Y ∩ X = ∅)
@@ -651,7 +651,7 @@ theorem cspF_Hiding_step [Inhabited α]
  |      csp law     |
  *------------------*) -/
 
-theorem cspF_Renaming_step [Inhabited α]
+theorem cspF_Renaming_step
     {X : Set α} {Pf : α → proc p α} {r : Set (α × α)} {M : p → domFType α} :
     eqF ((proc.Ext_pre_choice X Pf)[[r]]) M M
       (proc.Ext_pre_choice {y | ∃ x, x ∈ X ∧ (x, y) ∈ r} fun y =>

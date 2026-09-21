@@ -241,12 +241,12 @@ theorem cspT_Rep_int_choice_set_DIV {Pf : Set α → proc p α}
     eqT (Rep_int_choice_set (∅ : Set (Set α)) Pf) M1 M2 (proc.DIV : proc q α) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_DIV [Inhabited α] {Pf : α → proc p α}
+theorem cspT_Rep_int_choice_com_DIV {Pf : α → proc p α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     eqT (Rep_int_choice_com (∅ : Set α) Pf) M1 M2 (proc.DIV : proc q α) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_DIV [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_DIV [Inhabited β]
     {f : β → α} (hf : Injective f) {Pf : β → proc p α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     eqT (Rep_int_choice_f f (∅ : Set β) Pf) M1 M2 (proc.DIV : proc q α) := by
@@ -264,11 +264,11 @@ theorem cspT_Rep_int_choice_set_unit {Xs : Set (Set α)} {P : proc p α} {M : p 
     Xs ≠ ∅ → eqT (Rep_int_choice_set Xs (fun _ => P)) M M P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_unit [Inhabited α] {X : Set α} {P : proc p α} {M : p → domTType α} :
+theorem cspT_Rep_int_choice_com_unit {X : Set α} {P : proc p α} {M : p → domTType α} :
     X ≠ ∅ → eqT (Rep_int_choice_com X (fun _ => P)) M M P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_unit [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_unit [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {M : p → domTType α} :
     X ≠ ∅ → eqT (Rep_int_choice_f f X (fun _ => P)) M M P := by
   -- `in_traces_Rep_int_choice_f` needs `Injective f`; go through the `_com` form
@@ -296,14 +296,14 @@ theorem cspT_Rep_int_choice_set_const {Xs : Set (Set α)} {Pf : Set α → proc 
         eqT (Rep_int_choice_set Xs Pf) M M P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_const [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem cspT_Rep_int_choice_com_const {X : Set α} {Pf : α → proc p α}
     {P : proc p α} {M : p → domTType α} :
     X ≠ ∅ →
       (∀ a, a ∈ X → Pf a = P) →
         eqT (Rep_int_choice_com X Pf) M M P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_const [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_const [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α}
     {P : proc p α} {M : p → domTType α} :
     X ≠ ∅ →
@@ -339,7 +339,7 @@ theorem cspT_Int_Rep_int_choice_set_union
           (procIte (X ∈ Xs1) (P1f X) (P2f X))) := by
   cspT_auto
 
-theorem cspT_Int_Rep_int_choice_com_union [Inhabited α]
+theorem cspT_Int_Rep_int_choice_com_union
     {X1 X2 : Set α} {P1f P2f : α → proc p α} {M : p → domTType α} :
     eqT
       ((Rep_int_choice_com X1 P1f) |~| (Rep_int_choice_com X2 P2f)) M M
@@ -348,7 +348,7 @@ theorem cspT_Int_Rep_int_choice_com_union [Inhabited α]
           (procIte (a ∈ X1) (P1f a) (P2f a))) := by
   cspT_auto
 
-theorem cspT_Int_Rep_int_choice_f_union [Inhabited α] [Inhabited β]
+theorem cspT_Int_Rep_int_choice_f_union [Inhabited β]
     {f : β → α} (hf : Injective f) {X1 X2 : Set β} {P1f P2f : β → proc p α} {M : p → domTType α} :
     eqT
       ((Rep_int_choice_f f X1 P1f) |~| (Rep_int_choice_f f X2 P2f)) M M
@@ -379,14 +379,14 @@ theorem cspT_Rep_int_choice_set_union_Int
       ((Rep_int_choice_set Xs1 Pf) |~| (Rep_int_choice_set Xs2 Pf)) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_union_Int [Inhabited α]
+theorem cspT_Rep_int_choice_com_union_Int
     {X1 X2 : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT
       (Rep_int_choice_com (X1 ∪ X2) Pf) M M
       ((Rep_int_choice_com X1 Pf) |~| (Rep_int_choice_com X2 Pf)) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_union_Int [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_union_Int [Inhabited β]
     {f : β → α} (hf : Injective f) {X1 X2 : Set β} {Pf : β → proc p α} {M : p → domTType α} :
     eqT
       (Rep_int_choice_f f (X1 ∪ X2) Pf) M M
@@ -468,13 +468,13 @@ theorem cspT_Rep_int_choice_set_partial
       (Rep_int_choice_set Xs fun X => procIte (X ∈ Xs) (Pf X) proc.DIV) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_partial [Inhabited α]
+theorem cspT_Rep_int_choice_com_partial
     {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_com X Pf) M M
       (Rep_int_choice_com X fun a => procIte (a ∈ X) (Pf a) proc.DIV) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_partial [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_partial [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : β → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_f f X Pf) M M
       (Rep_int_choice_f f X fun a => procIte (a ∈ X) (Pf a) proc.DIV) := by
@@ -517,13 +517,13 @@ theorem cspT_first_Rec_prefix {x : Type _} [Inhabited x] {a : x → α} {X : Set
       (proc.Ext_pre_choice (a '' X) fun x => Pf (Function.invFun a x)) := by
   cspT_auto
 
-theorem cspT_first_Int_pre_choice [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem cspT_first_Int_pre_choice {X : Set α} {Pf : α → proc p α}
     {M : p → domTType α} :
     eqT (Int_pre_choice X Pf) M M
       (Rep_int_choice_com X fun x => x ~> Pf x) := by
   cspT_auto
 
-theorem cspT_first_Nondet_send_prefix {x : Type _} [Inhabited α] [Inhabited x]
+theorem cspT_first_Nondet_send_prefix {x : Type _} [Inhabited x]
     {a : x → α} {X : Set x} {Pf : x → proc p α} {M : p → domTType α} :
     eqT (Nondet_send_prefix a X Pf) M M
       (Int_pre_choice (a '' X) fun x => Pf (Function.invFun a x)) := by
@@ -623,7 +623,7 @@ theorem cspT_Rep_int_choice_set_eq_right
         eqT P M1 M2 (Rep_int_choice_set Xs Qf) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_eq_right [Inhabited α]
+theorem cspT_Rep_int_choice_com_eq_right
     {X : Set α} {P : proc p α} {Qf : α → proc q α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     X ≠ ∅ →
@@ -631,7 +631,7 @@ theorem cspT_Rep_int_choice_com_eq_right [Inhabited α]
         eqT P M1 M2 (Rep_int_choice_com X Qf) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_eq_right [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_eq_right [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {P : proc p α} {Qf : β → proc q α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     X ≠ ∅ →
@@ -670,7 +670,7 @@ theorem cspT_Rep_int_choice_set_eq_left
         eqT (Rep_int_choice_set Xs Qf) M1 M2 P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_eq_left [Inhabited α]
+theorem cspT_Rep_int_choice_com_eq_left
     {X : Set α} {P : proc q α} {Qf : α → proc p α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     X ≠ ∅ →
@@ -678,7 +678,7 @@ theorem cspT_Rep_int_choice_com_eq_left [Inhabited α]
         eqT (Rep_int_choice_com X Qf) M1 M2 P := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_eq_left [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_eq_left [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {P : proc q α} {Qf : β → proc p α}
     {M1 : p → domTType α} {M2 : q → domTType α} :
     X ≠ ∅ →
@@ -697,13 +697,13 @@ theorem cspT_Rep_int_choice_set_Un
       ((Rep_int_choice_set Xs2 Pf) |~| (Rep_int_choice_set Xs1 Pf)) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_Un [Inhabited α]
+theorem cspT_Rep_int_choice_com_Un
     {X1 X2 : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_com (X1 ∪ X2) Pf) M M
       ((Rep_int_choice_com X1 Pf) |~| (Rep_int_choice_com X2 Pf)) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_Un [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_Un [Inhabited β]
     {f : β → α} (hf : Injective f) {X1 X2 : Set β} {Pf : β → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_f f (X1 ∪ X2) Pf) M M
       ((Rep_int_choice_f f X1 Pf) |~| (Rep_int_choice_f f X2 Pf)) := by
@@ -721,25 +721,25 @@ theorem cspT_Rep_int_choice_set_insert
       (Pf Y |~| Rep_int_choice_set Xs Pf) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_insert [Inhabited α]
+theorem cspT_Rep_int_choice_com_insert
     {a : α} {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_com (insert a X) Pf) M M
       (Pf a |~| Rep_int_choice_com X Pf) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_insert [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_f_insert [Inhabited β]
     {f : β → α} (hf : Injective f) {a : β} {X : Set β} {Pf : β → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_f f (insert a X) Pf) M M
       (Pf a |~| Rep_int_choice_f f X Pf) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_com_map_f [Inhabited α] [Inhabited β]
+theorem cspT_Rep_int_choice_com_map_f [Inhabited β]
     {f : β → α} (hf : Injective f) {X : Set β} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_com (f '' X) Pf) M M
       (Rep_int_choice_f f X fun x => Pf (f x)) := by
   cspT_auto
 
-theorem cspT_Rep_int_choice_f_map_f [Inhabited α] [Inhabited β] [Inhabited γ]
+theorem cspT_Rep_int_choice_f_map_f [Inhabited β] [Inhabited γ]
     {f : β → α} {g : γ → β} (hf : Injective f) (hg : Injective g)
     {X : Set γ} {Pf : β → proc p α} {M : p → domTType α} :
     eqT (Rep_int_choice_f f (g '' X) Pf) M M

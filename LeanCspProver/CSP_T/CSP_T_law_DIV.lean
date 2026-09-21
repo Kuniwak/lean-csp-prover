@@ -237,7 +237,7 @@ theorem cspT_DIV_Hiding_Id
 
 /- (*** div-hide-step ***) -/
 
-theorem cspT_DIV_Hiding_step [Inhabited α]
+theorem cspT_DIV_Hiding_step
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] (proc.DIV : proc p α)) X) M M
       ((((proc.Ext_pre_choice (Y \ X) (fun x => proc.Hiding (Pf x) X)) [+] proc.DIV) |~|

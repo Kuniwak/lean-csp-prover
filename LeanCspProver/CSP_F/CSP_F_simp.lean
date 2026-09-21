@@ -257,7 +257,7 @@ Mirrors `in_traces_Rec_prefix` / `in_traces_Nondet_send_prefix` in
   rw [Rec_prefix_def, in_failures_Ext_pre_choice]
 
 @[csp_F 1100] theorem in_failures_Nondet_send_prefix {x α : Type _} {p : Type _}
-    [Inhabited α] [Inhabited x]
+    [Inhabited x]
     {f : x → α} (hf : Function.Injective f) {X : Set x} {Pf : x → proc p α}
     {t : traceType α} {Xa : Set (event α)} {M : p → domFType α} :
     ((t, Xa) :f failures (Nondet_send_prefix f X Pf) M) ↔
@@ -282,7 +282,7 @@ Mirrors `in_traces_Rec_prefix` / `in_traces_Nondet_send_prefix` in
           (Or.inr ⟨u, Xa, rfl, by rw [invFun_comp_self hf]; exact hF⟩)⟩
 
 @[csp_F] theorem in_failures_Nondet_send_prefix' {x α : Type _} {p : Type _}
-    [Inhabited α] [Inhabited x]
+    [Inhabited x]
     {f : x → α} {X : Set x} {Pf : x → proc p α}
     {t : traceType α} {Xa : Set (event α)} {M : p → domFType α} :
     ((t, Xa) :f failures (Nondet_send_prefix f X Pf) M) ↔
@@ -584,7 +584,7 @@ theorem in_failures_Ext_pre_choice_Ext_choice
 
 /-- Failures of `((? :Y -> Pf) [+] Z) -- X` for `Z` equal to `SKIP` or `DIV`. -/
 theorem in_failures_Hiding_Ext_pre_choice_Ext_choice
-    [Inhabited α] {X Y : Set α} {Pf : α → proc p α} {Z : proc p α} {M : p → domFType α}
+    {X Y : Set α} {Pf : α → proc p α} {Z : proc p α} {M : p → domFType α}
     (hZ : Z = proc.SKIP ∨ Z = proc.DIV) (t : traceType α) (W : Set (event α)) :
     ((t, W) :f failures (proc.Hiding ((proc.Ext_pre_choice Y Pf) [+] Z) X) M) ↔
       ((t, W) :f failures
