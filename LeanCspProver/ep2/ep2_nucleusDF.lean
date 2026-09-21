@@ -78,8 +78,10 @@ theorem Abs_def :
  ********************************************************* -/
 
 @[simp]
-axiom guardedfun_Abs :
-    guardedfun Absfun
+theorem guardedfun_Abs :
+    guardedfun Absfun := by
+  intro pn
+  cases pn <;> simp [Absfun, guarded, noHide]
 
 /- *********************************************************
         relating function between ACName and AbsName

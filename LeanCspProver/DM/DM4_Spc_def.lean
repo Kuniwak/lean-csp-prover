@@ -140,7 +140,9 @@ def Spc_to_Imp : SpcName → proc ImpName Event
  ********************************************************* -/
 
 @[simp]
-axiom guarded_Spc :
-    guardedfun (p := SpcName) (q := SpcName) (α := Event) Spcfun
+theorem guarded_Spc :
+    guardedfun (p := SpcName) (q := SpcName) (α := Event) Spcfun := by
+  intro pn
+  cases pn <;> simp [Spcfun, guarded, noHide]
 
 end DM4_Spc_def

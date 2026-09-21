@@ -41,15 +41,24 @@ theorem FIX_def (Pf : p → proc p α) :
  *-----------*)
 -/
 
-axiom noPNfun_FIXn {n : Nat} {Pf : p → proc p α} :
-    noPNfun (FIXn n Pf)
+theorem noPNfun_FIXn {n : Nat} {Pf : p → proc p α} :
+    noPNfun (FIXn n Pf) := by
+  induction n with
+  | zero => intro p0; trivial
+  | succ n ih =>
+      intro p0
+      rw [FIXn_def, Function.iterate_succ_apply']
+      exact noPN_Subst_Pf (Pf p0) (FIXn n Pf) ih
 
 theorem noPN_FIXn {n : Nat} {Pf : p → proc p α} {p0 : p} :
     noPN (FIXn n Pf p0) :=
   noPNfun_FIXn (n := n) (Pf := Pf) p0
 
-axiom noPN_FIX {Pf : p → proc p α} {p0 : p} :
-    noPN (FIX Pf p0)
+theorem noPN_FIX {Pf : p → proc p α} {p0 : p} :
+    noPN (FIX Pf p0) := by
+  rw [FIX_def, noPN_Rep_int_choice_nat]
+  intro n
+  exact noPN_FIXn
 
 /-
 (*-----------*
@@ -112,18 +121,50 @@ theorem traces_iteration_semTfun_Bot
       rw [FIXn_succ, Function.iterate_succ_apply', Subst_procfun_prod_p, traces_subst, hfun]
       simp [semTfun_def, semTf_def]
 
-axiom traces_FIX
+theorem traces_FIX
     {Pf : p → proc p α} {p0 : p} {M : p → domTType α} :
-    traces (FIX Pf p0) M = UnionT {u | ∃ n, u = ((semTfun Pf)^[n]) Bot p0}
+    traces (FIX Pf p0) M = UnionT {u | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} := by
+  have hne : {u : domTType α | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} ≠ ∅ := by
+    intro hEq
+    exact Set.eq_empty_iff_forall_notMem.mp hEq (((semTfun Pf)^[0]) Bot p0) ⟨0, rfl⟩
+  have hiff : ∀ t : traceType α,
+      (t :t traces (FIX Pf p0) M) ↔ t :t UnionT {u | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} := by
+    intro t
+    rw [FIX_def, in_traces_Rep_int_choice_nat, memT_UnionT hne]
+    constructor
+    · rintro (rfl | ⟨n, -, ht⟩)
+      · exact ⟨((semTfun Pf)^[0]) Bot p0, ⟨0, rfl⟩, nilt_in_T⟩
+      · exact ⟨((semTfun Pf)^[n]) Bot p0, ⟨n, rfl⟩,
+          by rw [← traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0]; exact ht⟩
+    · rintro ⟨T, ⟨n, rfl⟩, ht⟩
+      refine Or.inr ⟨n, trivial, ?_⟩
+      rw [traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0]
+      exact ht
+  exact le_antisymm (subdomT_iff.mpr fun t ht => (hiff t).mp ht)
+    (subdomT_iff.mpr fun t ht => (hiff t).mpr ht)
 
 theorem semT_FIX [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {p0 : p} :
     semT (FIX Pf p0) = UnionT {u | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} := by
   simpa [semT_def, semTf_def] using (traces_FIX (Pf := Pf) (p0 := p0) (M := MT))
 
-axiom semT_FIX_isLUB [HasPNfun p α] [HasFPmode]
+theorem semT_FIX_isLUB [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
-    isLUB (fun p0 => semT (FIX Pf p0)) {x | ∃ n, x = ((semTfun Pf)^[n]) Bot}
+    isLUB (fun p0 => semT (FIX Pf p0)) {x | ∃ n, x = ((semTfun Pf)^[n]) Bot} := by
+  refine prod_LUB_decompo_if fun p0 => ?_
+  have himg : proj_fun p0 '' {x : p → domTType α | ∃ n, x = ((semTfun Pf)^[n]) Bot} =
+      {u : domTType α | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} := by
+    ext u
+    constructor
+    · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+      exact ⟨n, rfl⟩
+    · rintro ⟨n, rfl⟩
+      exact ⟨((semTfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
+  have hne : {u : domTType α | ∃ n, u = ((semTfun Pf)^[n]) Bot p0} ≠ ∅ := by
+    intro hEq
+    exact Set.eq_empty_iff_forall_notMem.mp hEq (((semTfun Pf)^[0]) Bot p0) ⟨0, rfl⟩
+  rw [himg]
+  exact (isLUB_UnionT hne).mpr semT_FIX
 
 theorem semT_FIX_LUB [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
@@ -228,15 +269,48 @@ def rmPN [HasPNfun p α] : proc p α → proc p α
   | .Depth_rest P n => .Depth_rest (rmPN P) n
   | .Proc_name p0 => FIX PNfun p0
 
-axiom noPN_rmPN [HasPNfun p α] {P : proc p α} :
-    noPN (rmPN P)
+theorem noPN_rmPN [HasPNfun p α] {P : proc p α} :
+    noPN (rmPN P) := by
+  induction P with
+  | STOP => trivial
+  | SKIP => trivial
+  | DIV => trivial
+  | Act_prefix a P ih => exact ih
+  | Ext_pre_choice X Qf ih => exact fun a => ih a
+  | Ext_choice P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Int_choice P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Rep_int_choice C Qf ih => exact fun c => ih c
+  | «IF» b P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Parallel P X Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Hiding P X ih => exact ih
+  | Renaming P r ih => exact ih
+  | Seq_compo P Q ihP ihQ => exact ⟨ihP, ihQ⟩
+  | Depth_rest P n ih => exact ih
+  | Proc_name p0 => exact noPN_FIX
 
-axiom cspT_rmPN_eqT [HasPNfun p α] [HasFPmode]
+theorem cspT_rmPN_eqT [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨
       (FPmode = CMSmode ∧ guardedfun (PNfun : p → proc p α)) ∨
       FPmode = MIXmode) →
-        eqT P MT MT (rmPN P)
+        eqT P MT MT (rmPN P) := by
+  intro hmode
+  induction P with
+  | STOP => exact cspT_reflex_eq_P
+  | SKIP => exact cspT_reflex_eq_P
+  | DIV => exact cspT_reflex_eq_P
+  | Act_prefix a P ih => exact cspT_Act_prefix_cong rfl ih
+  | Ext_pre_choice X Qf ih => exact cspT_Ext_pre_choice_cong rfl fun a _ => ih a
+  | Ext_choice P Q ihP ihQ => exact cspT_Ext_choice_cong ihP ihQ
+  | Int_choice P Q ihP ihQ => exact cspT_Int_choice_cong ihP ihQ
+  | Rep_int_choice C Qf ih => exact cspT_Rep_int_choice_cong_sum rfl fun c _ => ih c
+  | «IF» b P Q ihP ihQ => exact cspT_IF_cong rfl ihP ihQ
+  | Parallel P X Q ihP ihQ => exact cspT_Parallel_cong rfl ihP ihQ
+  | Hiding P X ih => exact cspT_Hiding_cong rfl ih
+  | Renaming P r ih => exact cspT_Renaming_cong rfl ih
+  | Seq_compo P Q ihP ihQ => exact cspT_Seq_compo_cong ihP ihQ
+  | Depth_rest P n ih => exact cspT_Depth_rest_cong rfl ih
+  | Proc_name p0 => exact cspT_FIX rfl hmode
 
 /-
 (*-------------------------------------------------------*
@@ -246,9 +320,25 @@ axiom cspT_rmPN_eqT [HasPNfun p α] [HasFPmode]
  *-------------------------------------------------------*)
 -/
 
-axiom traces_FIXn_plus_sub_lm
+/-- The iterates of `semTfun Pf` from `Bot` form an increasing chain. -/
+private theorem iterate_Bot_mono {Pf : p → proc p α} :
+    ∀ n m : Nat, ((semTfun Pf)^[n]) Bot ≤ ((semTfun Pf)^[n + m]) Bot := by
+  intro n
+  induction n with
+  | zero => intro m; exact bottom_bot _
+  | succ n ih =>
+      intro m
+      rw [Function.iterate_succ_apply', show n + 1 + m = (n + m) + 1 by omega,
+        Function.iterate_succ_apply']
+      exact mono_semTf (ih m)
+
+theorem traces_FIXn_plus_sub_lm
     {Pf : p → proc p α} {M : p → domTType α} :
-    ∀ n m p0, traces (FIXn n Pf p0) M <= traces (FIXn (n + m) Pf p0) M
+    ∀ n m p0, traces (FIXn n Pf p0) M <= traces (FIXn (n + m) Pf p0) M := by
+  intro n m p0
+  rw [traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0,
+    traces_iteration_semTfun_Bot (Pf := Pf) (n := n + m) (M := M) p0]
+  exact iterate_Bot_mono n m p0
 
 theorem traces_FIXn_plus_sub
     {Pf : p → proc p α} {M : p → domTType α} {n m : Nat} {p0 : p} :
@@ -273,9 +363,25 @@ theorem in_traces_FIXn_plus_sub
  *-----------------------------------------------------*)
 -/
 
-axiom cspT_FIX_plus_eq
+theorem cspT_FIX_plus_eq
     {Pf : p → proc p α} {M : p → domTType α} :
     ∀ f : Nat → Nat, ∀ p0,
-      eqT (FIX Pf p0) M M (Rep_int_choice_nat Set.univ (fun n => FIXn (n + f n) Pf p0))
+      eqT (FIX Pf p0) M M (Rep_int_choice_nat Set.univ (fun n => FIXn (n + f n) Pf p0)) := by
+  intro f p0
+  have hiff : ∀ t : traceType α,
+      (t :t traces (FIX Pf p0) M) ↔
+        t :t traces (Rep_int_choice_nat Set.univ (fun n => FIXn (n + f n) Pf p0)) M := by
+    intro t
+    rw [FIX_def, in_traces_Rep_int_choice_nat, in_traces_Rep_int_choice_nat]
+    constructor
+    · rintro (rfl | ⟨n, -, ht⟩)
+      · exact Or.inl rfl
+      · exact Or.inr ⟨n, trivial, in_traces_FIXn_plus_sub ht⟩
+    · rintro (rfl | ⟨n, -, ht⟩)
+      · exact Or.inl rfl
+      · exact Or.inr ⟨n + f n, trivial, ht⟩
+  rw [cspT_eqT_semantics]
+  exact le_antisymm (subdomT_iff.mpr fun t ht => (hiff t).mp ht)
+    (subdomT_iff.mpr fun t ht => (hiff t).mpr ht)
 
 end

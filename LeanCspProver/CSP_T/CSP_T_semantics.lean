@@ -80,32 +80,112 @@ def traces (P : proc p α) (M : p → domTType α) : domTType α :=
 (*** for dealing with both !nat and !set ***)
 -/
 
-axiom traces_inv_inj [Inhabited β] {f : β → γ} (hf : Function.Injective f)
+theorem traces_inv_inj [Inhabited β] {f : β → γ} (hf : Function.Injective f)
     {N : Set β} {Pf : β → proc p α} {t : traceType α} {x : p → domTType α} :
     (∃ c : γ, (∃ n, c = f n ∧ n ∈ N) ∧ t :t traces (Pf (Function.invFun f c)) x) ↔
-      ∃ z, z ∈ N ∧ t :t traces (Pf z) x
+      ∃ z, z ∈ N ∧ t :t traces (Pf z) x := by
+  constructor
+  · rintro ⟨c, ⟨n, rfl, hn⟩, ht⟩
+    rw [Function.leftInverse_invFun hf n] at ht
+    exact ⟨n, hn, ht⟩
+  · rintro ⟨z, hz, ht⟩
+    refine ⟨f z, ⟨z, rfl, hz⟩, ?_⟩
+    rw [Function.leftInverse_invFun hf z]
+    exact ht
 
-axiom Rep_int_choice_traces_nat (N : Set Nat) (Pf : Nat → proc p α) :
+theorem Rep_int_choice_traces_nat (N : Set Nat) (Pf : Nat → proc p α) :
     traces (Rep_int_choice_nat N Pf) =
-      fun M => Abs_domT {t | t = <> ∨ ∃ n, n ∈ N ∧ t :t traces (Pf n) M}
+      fun M => Abs_domT {t | t = <> ∨ ∃ n, n ∈ N ∧ t :t traces (Pf n) M} := by
+  funext M
+  rw [Rep_int_choice_nat_def]
+  simp only [traces, sumset]
+  congr 1
+  ext t
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro (rfl | ⟨c, hc, ht⟩)
+    · exact Or.inl rfl
+    · obtain ⟨n, hn, rfl⟩ := hc
+      rw [Function.leftInverse_invFun inj_type2 n] at ht
+      exact Or.inr ⟨n, hn, ht⟩
+  · rintro (rfl | ⟨n, hn, ht⟩)
+    · exact Or.inl rfl
+    · refine Or.inr ⟨type2 n, ⟨n, hn, rfl⟩, ?_⟩
+      rw [Function.leftInverse_invFun inj_type2 n]
+      exact ht
 
-axiom Rep_int_choice_traces_set (Xs : Set (Set α)) (Pf : Set α → proc p α) :
+theorem Rep_int_choice_traces_set (Xs : Set (Set α)) (Pf : Set α → proc p α) :
     traces (Rep_int_choice_set Xs Pf) =
-      fun M => Abs_domT {t | t = <> ∨ ∃ X, X ∈ Xs ∧ t :t traces (Pf X) M}
+      fun M => Abs_domT {t | t = <> ∨ ∃ X, X ∈ Xs ∧ t :t traces (Pf X) M} := by
+  funext M
+  rw [Rep_int_choice_set_def]
+  simp only [traces, sumset]
+  congr 1
+  ext t
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro (rfl | ⟨c, hc, ht⟩)
+    · exact Or.inl rfl
+    · obtain ⟨X, hX, rfl⟩ := hc
+      rw [Function.leftInverse_invFun inj_type1 X] at ht
+      exact Or.inr ⟨X, hX, ht⟩
+  · rintro (rfl | ⟨X, hX, ht⟩)
+    · exact Or.inl rfl
+    · refine Or.inr ⟨type1 X, ⟨X, hX, rfl⟩, ?_⟩
+      rw [Function.leftInverse_invFun inj_type1 X]
+      exact ht
 
-axiom Rep_int_choice_traces_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem Rep_int_choice_traces_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
     {t : traceType α} {M : p → domTType α} :
     (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧ t :t traces (Pf (the_elem z)) M) ↔
-      ∃ a, a ∈ X ∧ t :t traces (Pf a) M
+      ∃ a, a ∈ X ∧ t :t traces (Pf a) M := by
+  constructor
+  · rintro ⟨z, ⟨a, rfl, ha⟩, ht⟩
+    rw [the_elem_singleton] at ht
+    exact ⟨a, ha, ht⟩
+  · rintro ⟨a, ha, ht⟩
+    refine ⟨{a}, ⟨a, rfl, ha⟩, ?_⟩
+    rw [the_elem_singleton]
+    exact ht
 
-axiom Rep_int_choice_traces_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
+theorem Rep_int_choice_traces_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
     traces (Rep_int_choice_com X Pf) =
-      fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M}
+      fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M} := by
+  rw [Rep_int_choice_com_def, Rep_int_choice_traces_set]
+  funext M
+  congr 1
+  ext t
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro (rfl | ⟨Y, ⟨a, ha, rfl⟩, ht⟩)
+    · exact Or.inl rfl
+    · rw [the_elem_singleton] at ht
+      exact Or.inr ⟨a, ha, ht⟩
+  · rintro (rfl | ⟨a, ha, ht⟩)
+    · exact Or.inl rfl
+    · refine Or.inr ⟨{a}, ⟨a, ha, rfl⟩, ?_⟩
+      rw [the_elem_singleton]
+      exact ht
 
-axiom Rep_int_choice_traces_f [Inhabited α] [Inhabited β]
+theorem Rep_int_choice_traces_f [Inhabited α] [Inhabited β]
     {f : β → α} (hf : Function.Injective f) (X : Set β) (Pf : β → proc p α) :
     traces (Rep_int_choice_f f X Pf) =
-      fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M}
+      fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M} := by
+  rw [Rep_int_choice_f_def, Rep_int_choice_traces_com]
+  funext M
+  congr 1
+  ext t
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro (rfl | ⟨a, ⟨b, hb, rfl⟩, ht⟩)
+    · exact Or.inl rfl
+    · rw [Function.leftInverse_invFun hf b] at ht
+      exact Or.inr ⟨b, hb, ht⟩
+  · rintro (rfl | ⟨b, hb, ht⟩)
+    · exact Or.inl rfl
+    · refine Or.inr ⟨f b, ⟨b, hb, rfl⟩, ?_⟩
+      rw [Function.leftInverse_invFun hf b]
+      exact ht
 
 /- The Isabelle theorem bundle `Rep_int_choice_traces` is represented by
    `Rep_int_choice_traces_nat`, `Rep_int_choice_traces_set`,
@@ -251,14 +331,24 @@ theorem cspT_refT_semantics
 /- The Isabelle theorem bundle `cspT_semantics` is represented by
    `cspT_eqT_semantics` and `cspT_refT_semantics`. -/
 
-axiom cspT_eq_ref_iff {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
-    eqT P1 M1 M2 P2 ↔ (refT P1 M1 M2 P2 ∧ refT P2 M2 M1 P1)
+theorem cspT_eq_ref_iff {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α}
+    {M2 : q → domTType α} :
+    eqT P1 M1 M2 P2 ↔ (refT P1 M1 M2 P2 ∧ refT P2 M2 M1 P1) := by
+  constructor
+  · intro h
+    exact ⟨le_of_eq (Eq.symm h), le_of_eq h⟩
+  · rintro ⟨h1, h2⟩
+    exact le_antisymm h2 h1
 
-axiom cspT_eq_ref {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
-    eqT P1 M1 M2 P2 → refT P1 M1 M2 P2
+theorem cspT_eq_ref {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
+    eqT P1 M1 M2 P2 → refT P1 M1 M2 P2 := by
+  intro h
+  exact le_of_eq (Eq.symm h)
 
-axiom cspT_ref_eq {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
-    refT P1 M1 M2 P2 → refT P2 M2 M1 P1 → eqT P1 M1 M2 P2
+theorem cspT_ref_eq {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
+    refT P1 M1 M2 P2 → refT P2 M2 M1 P1 → eqT P1 M1 M2 P2 := by
+  intro h1 h2
+  exact le_antisymm h2 h1
 
 theorem cspT_reflex_eq_P {P : proc p α} {M : p → domTType α} :
     eqT P M M P := by
@@ -303,145 +393,197 @@ theorem cspT_reflex_ref_DIV {M1 : p → domTType α} {M2 : q → domTType α} :
 /- The Isabelle theorem bundle `cspT_reflex` is represented by
    `cspT_reflex_eq` and `cspT_reflex_ref`. -/
 
-axiom cspT_sym {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
-    eqT P1 M1 M2 P2 → eqT P2 M2 M1 P1
+theorem cspT_sym {P1 : proc p α} {P2 : proc q α} {M1 : p → domTType α} {M2 : q → domTType α} :
+    eqT P1 M1 M2 P2 → eqT P2 M2 M1 P1 := by
+  intro h
+  exact Eq.symm h
 
-axiom cspT_symE
+theorem cspT_symE
     {P1 : proc p α} {P2 : proc q α}
     {M1 : p → domTType α} {M2 : q → domTType α} {Z : Prop} :
-    eqT P1 M1 M2 P2 → (eqT P2 M2 M1 P1 → Z) → Z
+    eqT P1 M1 M2 P2 → (eqT P2 M2 M1 P1 → Z) → Z := by
+  intro h hZ
+  exact hZ (Eq.symm h)
 
-axiom cspT_trans_left_eq
+theorem cspT_trans_left_eq
     {P1 : proc p α} {P2 : proc q α} {P3 : proc r α}
     {M1 : p → domTType α} {M2 : q → domTType α} {M3 : r → domTType α} :
-    eqT P1 M1 M2 P2 → eqT P2 M2 M3 P3 → eqT P1 M1 M3 P3
+    eqT P1 M1 M2 P2 → eqT P2 M2 M3 P3 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h1 h2
 
-axiom cspT_trans_left_ref
+theorem cspT_trans_left_ref
     {P1 : proc p α} {P2 : proc q α} {P3 : proc r α}
     {M1 : p → domTType α} {M2 : q → domTType α} {M3 : r → domTType α} :
-    refT P1 M1 M2 P2 → refT P2 M2 M3 P3 → refT P1 M1 M3 P3
+    refT P1 M1 M2 P2 → refT P2 M2 M3 P3 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_trans h2 h1
 
 /- The Isabelle theorem bundles `cspT_trans_left` and `cspT_trans` are
    represented by `cspT_trans_left_eq` and `cspT_trans_left_ref`. -/
 
-axiom cspT_trans_right_eq
+theorem cspT_trans_right_eq
     {P1 : proc p α} {P2 : proc q α} {P3 : proc r α}
     {M1 : p → domTType α} {M2 : q → domTType α} {M3 : r → domTType α} :
-    eqT P2 M2 M3 P3 → eqT P1 M1 M2 P2 → eqT P1 M1 M3 P3
+    eqT P2 M2 M3 P3 → eqT P1 M1 M2 P2 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h2 h1
 
-axiom cspT_trans_right_ref
+theorem cspT_trans_right_ref
     {P1 : proc p α} {P2 : proc q α} {P3 : proc r α}
     {M1 : p → domTType α} {M2 : q → domTType α} {M3 : r → domTType α} :
-    refT P2 M2 M3 P3 → refT P1 M1 M2 P2 → refT P1 M1 M3 P3
+    refT P2 M2 M3 P3 → refT P1 M1 M2 P2 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_trans h1 h2
 
 /- The Isabelle theorem bundle `cspT_trans_right` is represented by
    `cspT_trans_right_eq` and `cspT_trans_right_ref`. -/
 
-axiom cspT_rw_left_eq_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
-    eqTfix P1 P2 → eqTfix P2 P3 → eqTfix P1 P3
+theorem cspT_rw_left_eq_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
+    eqTfix P1 P2 → eqTfix P2 P3 → eqTfix P1 P3 := by
+  intro h1 h2
+  exact Eq.trans h1 h2
 
-axiom cspT_rw_left_eq
+theorem cspT_rw_left_eq
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P1 M1 M1 P2 → eqT P2 M1 M3 P3 → eqT P1 M1 M3 P3
+    eqT P1 M1 M1 P2 → eqT P2 M1 M3 P3 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h1 h2
 
-axiom cspT_rw_left_ref_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
-    eqTfix P1 P2 → refTfix P2 P3 → refTfix P1 P3
+theorem cspT_rw_left_ref_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
+    eqTfix P1 P2 → refTfix P2 P3 → refTfix P1 P3 := by
+  intro h1 h2
+  exact le_of_le_of_eq h2 (Eq.symm h1)
 
-axiom cspT_rw_left_ref
+theorem cspT_rw_left_ref
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P1 M1 M1 P2 → refT P2 M1 M3 P3 → refT P1 M1 M3 P3
+    eqT P1 M1 M1 P2 → refT P2 M1 M3 P3 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_of_le_of_eq h2 (Eq.symm h1)
 
 /- The Isabelle theorem bundle `cspT_rw_left` is represented by
    `cspT_rw_left_eq_MT`, `cspT_rw_left_ref_MT`, `cspT_rw_left_eq`,
    and `cspT_rw_left_ref`. -/
 
-axiom cspT_rw_right_eq
+theorem cspT_rw_right_eq
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P3 M3 M3 P2 → eqT P1 M1 M3 P2 → eqT P1 M1 M3 P3
+    eqT P3 M3 M3 P2 → eqT P1 M1 M3 P2 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h2 (Eq.symm h1)
 
-axiom cspT_rw_right_eq_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
-    eqTfix P3 P2 → eqTfix P1 P2 → eqTfix P1 P3
+theorem cspT_rw_right_eq_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
+    eqTfix P3 P2 → eqTfix P1 P2 → eqTfix P1 P3 := by
+  intro h1 h2
+  exact Eq.trans h2 (Eq.symm h1)
 
-axiom cspT_rw_right_ref
+theorem cspT_rw_right_ref
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P3 M3 M3 P2 → refT P1 M1 M3 P2 → refT P1 M1 M3 P3
+    eqT P3 M3 M3 P2 → refT P1 M1 M3 P2 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_of_eq_of_le h1 h2
 
-axiom cspT_rw_right_ref_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
-    eqTfix P3 P2 → refTfix P1 P2 → refTfix P1 P3
+theorem cspT_rw_right_ref_MT [HasPNfun p α] [HasFPmode] {P1 P2 P3 : proc p α} :
+    eqTfix P3 P2 → refTfix P1 P2 → refTfix P1 P3 := by
+  intro h1 h2
+  exact le_of_eq_of_le h1 h2
 
 /- The Isabelle theorem bundle `cspT_rw_right` is represented by
    `cspT_rw_right_eq_MT`, `cspT_rw_right_ref_MT`, `cspT_rw_right_eq`,
    and `cspT_rw_right_ref`. -/
 
-axiom cspT_tr_left_eq
+theorem cspT_tr_left_eq
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P1 M1 M1 P2 → eqT P2 M1 M3 P3 → eqT P1 M1 M3 P3
+    eqT P1 M1 M1 P2 → eqT P2 M1 M3 P3 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h1 h2
 
-axiom cspT_tr_left_ref
+theorem cspT_tr_left_ref
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    refT P1 M1 M1 P2 → refT P2 M1 M3 P3 → refT P1 M1 M3 P3
+    refT P1 M1 M1 P2 → refT P2 M1 M3 P3 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_trans h2 h1
 
 /- The Isabelle theorem bundle `cspT_tr_left` is represented by
    `cspT_tr_left_eq` and `cspT_tr_left_ref`. -/
 
-axiom cspT_tr_right_eq
+theorem cspT_tr_right_eq
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    eqT P2 M3 M3 P3 → eqT P1 M1 M3 P2 → eqT P1 M1 M3 P3
+    eqT P2 M3 M3 P3 → eqT P1 M1 M3 P2 → eqT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact Eq.trans h2 h1
 
-axiom cspT_tr_right_ref
+theorem cspT_tr_right_ref
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} :
-    refT P2 M3 M3 P3 → refT P1 M1 M3 P2 → refT P1 M1 M3 P3
+    refT P2 M3 M3 P3 → refT P1 M1 M3 P2 → refT P1 M1 M3 P3 := by
+  intro h1 h2
+  exact le_trans h1 h2
 
 /- The Isabelle theorem bundle `cspT_tr_right` is represented by
    `cspT_tr_right_eq` and `cspT_tr_right_ref`. -/
 
-axiom cspT_rw_left_eqE_MF [HasPNfun p α] [HasFPmode]
+theorem cspT_rw_left_eqE_MF [HasPNfun p α] [HasFPmode]
     {P1 P2 P3 : proc p α} {R : Prop} :
-    eqTfix P1 P3 → eqTfix P1 P2 → (eqTfix P2 P3 → R) → R
+    eqTfix P1 P3 → eqTfix P1 P2 → (eqTfix P2 P3 → R) → R := by
+  intro h1 h2 hR
+  exact hR (Eq.trans (Eq.symm h2) h1)
 
-axiom cspT_rw_left_eqE
+theorem cspT_rw_left_eqE
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} {R : Prop} :
-    eqT P1 M1 M3 P3 → eqT P1 M1 M1 P2 → (eqT P2 M1 M3 P3 → R) → R
+    eqT P1 M1 M3 P3 → eqT P1 M1 M1 P2 → (eqT P2 M1 M3 P3 → R) → R := by
+  intro h1 h2 hR
+  exact hR (Eq.trans (Eq.symm h2) h1)
 
-axiom cspT_rw_left_refE_MF [HasPNfun p α] [HasFPmode]
+theorem cspT_rw_left_refE_MF [HasPNfun p α] [HasFPmode]
     {P1 P2 P3 : proc p α} {R : Prop} :
-    refTfix P1 P3 → eqTfix P1 P2 → (refTfix P2 P3 → R) → R
+    refTfix P1 P3 → eqTfix P1 P2 → (refTfix P2 P3 → R) → R := by
+  intro h1 h2 hR
+  exact hR (le_of_le_of_eq h1 h2)
 
-axiom cspT_rw_left_refE
+theorem cspT_rw_left_refE
     {P1 P2 : proc p α} {P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} {R : Prop} :
-    refT P1 M1 M3 P3 → eqT P1 M1 M1 P2 → (refT P2 M1 M3 P3 → R) → R
+    refT P1 M1 M3 P3 → eqT P1 M1 M1 P2 → (refT P2 M1 M3 P3 → R) → R := by
+  intro h1 h2 hR
+  exact hR (le_of_le_of_eq h1 h2)
 
 /- The Isabelle theorem bundle `cspT_rw_leftE` is represented by
    `cspT_rw_left_eqE_MF`, `cspT_rw_left_refE_MF`, `cspT_rw_left_eqE`,
    and `cspT_rw_left_refE`. -/
 
-axiom cspT_rw_right_eqE_MF [HasPNfun p α] [HasFPmode]
+theorem cspT_rw_right_eqE_MF [HasPNfun p α] [HasFPmode]
     {P1 P2 P3 : proc p α} {R : Prop} :
-    eqTfix P1 P3 → eqTfix P3 P2 → (eqTfix P1 P2 → R) → R
+    eqTfix P1 P3 → eqTfix P3 P2 → (eqTfix P1 P2 → R) → R := by
+  intro h1 h2 hR
+  exact hR (Eq.trans h1 h2)
 
-axiom cspT_rw_right_eqE
+theorem cspT_rw_right_eqE
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} {R : Prop} :
-    eqT P1 M1 M3 P3 → eqT P3 M3 M3 P2 → (eqT P1 M1 M3 P2 → R) → R
+    eqT P1 M1 M3 P3 → eqT P3 M3 M3 P2 → (eqT P1 M1 M3 P2 → R) → R := by
+  intro h1 h2 hR
+  exact hR (Eq.trans h1 h2)
 
-axiom cspT_rw_right_refE_MF [HasPNfun p α] [HasFPmode]
+theorem cspT_rw_right_refE_MF [HasPNfun p α] [HasFPmode]
     {P1 P2 P3 : proc p α} {R : Prop} :
-    refTfix P1 P3 → eqTfix P3 P2 → (refTfix P1 P2 → R) → R
+    refTfix P1 P3 → eqTfix P3 P2 → (refTfix P1 P2 → R) → R := by
+  intro h1 h2 hR
+  exact hR (le_of_eq_of_le (Eq.symm h2) h1)
 
-axiom cspT_rw_right_refE
+theorem cspT_rw_right_refE
     {P1 : proc p α} {P2 P3 : proc q α}
     {M1 : p → domTType α} {M3 : q → domTType α} {R : Prop} :
-    refT P1 M1 M3 P3 → eqT P3 M3 M3 P2 → (refT P1 M1 M3 P2 → R) → R
+    refT P1 M1 M3 P3 → eqT P3 M3 M3 P2 → (refT P1 M1 M3 P2 → R) → R := by
+  intro h1 h2 hR
+  exact hR (le_of_eq_of_le (Eq.symm h2) h1)
 
 /- The Isabelle theorem bundle `cspT_rw_rightE` is represented by
    `cspT_rw_right_eqE_MF`, `cspT_rw_right_refE_MF`, `cspT_rw_right_eqE`,
@@ -453,16 +595,114 @@ axiom cspT_rw_right_refE
  *-----------------------------------------*)
 -/
 
-axiom traces_noPN_Constant_lm_EC {X : Set α} {Pf : α → proc p α} :
+theorem traces_noPN_Constant_lm_EC {X : Set α} {Pf : α → proc p α} :
     (∀ P ∈ Set.range Pf, ∃ T, traces P = fun _ => T) →
-      ∃ T2, traces (proc.Ext_pre_choice X Pf) = fun _ => T2
+      ∃ T2, traces (proc.Ext_pre_choice X Pf) = fun _ => T2 := by
+  intro h
+  choose T hT using fun a => h (Pf a) ⟨a, rfl⟩
+  refine ⟨Abs_domT {t | t = <> ∨ ∃ a s, t = Abs_trace [event.Ev a] ^^^ s ∧ s :t T a ∧ a ∈ X}, ?_⟩
+  funext M
+  simp only [traces, hT]
 
-axiom traces_noPN_Constant_lm_RIC {C : sets_nats α} {Pf : aset_anat α → proc p α} :
+theorem traces_noPN_Constant_lm_RIC {C : sets_nats α} {Pf : aset_anat α → proc p α} :
     (∀ P ∈ Set.range Pf, ∃ T, traces P = fun _ => T) →
-      ∃ T2, traces (proc.Rep_int_choice C Pf) = fun _ => T2
+      ∃ T2, traces (proc.Rep_int_choice C Pf) = fun _ => T2 := by
+  intro h
+  choose T hT using fun c => h (Pf c) ⟨c, rfl⟩
+  refine ⟨Abs_domT {t | t = <> ∨ ∃ c, c ∈ sumset C ∧ t :t T c}, ?_⟩
+  funext M
+  simp only [traces, hT]
 
-axiom traces_noPN_Constant_lm {P : proc p α} :
-  noPN P → ∃ T, traces P = fun _ => T
+theorem traces_noPN_Constant_lm {P : proc p α} :
+  noPN P → ∃ T, traces P = fun _ => T := by
+  induction P with
+  | STOP =>
+      intro _
+      exact ⟨_, rfl⟩
+  | SKIP =>
+      intro _
+      exact ⟨_, rfl⟩
+  | DIV =>
+      intro _
+      exact ⟨_, rfl⟩
+  | Act_prefix a P ih =>
+      intro hn
+      obtain ⟨T, hT⟩ := ih hn
+      refine ⟨Abs_domT {t | t = <> ∨ ∃ s, t = Abs_trace [event.Ev a] ^^^ s ∧ s :t T}, ?_⟩
+      funext M
+      simp only [traces, hT]
+  | Ext_pre_choice X Pf ih =>
+      intro hn
+      refine traces_noPN_Constant_lm_EC ?_
+      rintro P ⟨a, rfl⟩
+      exact ih a (hn a)
+  | Ext_choice P Q ihP ihQ =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ihP hn.1
+      obtain ⟨TQ, hQ⟩ := ihQ hn.2
+      refine ⟨TP UnT TQ, ?_⟩
+      funext M
+      simp only [traces, hP, hQ]
+  | Int_choice P Q ihP ihQ =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ihP hn.1
+      obtain ⟨TQ, hQ⟩ := ihQ hn.2
+      refine ⟨TP UnT TQ, ?_⟩
+      funext M
+      simp only [traces, hP, hQ]
+  | Rep_int_choice C Pf ih =>
+      intro hn
+      refine traces_noPN_Constant_lm_RIC ?_
+      rintro P ⟨c, rfl⟩
+      exact ih c (hn c)
+  | «IF» b P Q ihP ihQ =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ihP hn.1
+      obtain ⟨TQ, hQ⟩ := ihQ hn.2
+      refine ⟨if b then TP else TQ, ?_⟩
+      funext M
+      simp only [traces, hP, hQ]
+  | Parallel P X Q ihP ihQ =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ihP hn.1
+      obtain ⟨TQ, hQ⟩ := ihQ hn.2
+      refine ⟨Abs_domT {u | ∃ s t, u ∈ par_tr s X t ∧ s :t TP ∧ t :t TQ}, ?_⟩
+      funext M
+      simp only [traces, hP, hQ]
+  | Hiding P X ih =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ih hn
+      refine ⟨Abs_domT {t | ∃ s, t = hide_tr s X ∧ s :t TP}, ?_⟩
+      funext M
+      simp only [traces, hP]
+  | Renaming P r ih =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ih hn
+      refine ⟨Abs_domT {t | ∃ s, ren_tr s r t ∧ s :t TP}, ?_⟩
+      funext M
+      simp only [traces, hP]
+  | Seq_compo P Q ihP ihQ =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ihP hn.1
+      obtain ⟨TQ, hQ⟩ := ihQ hn.2
+      refine ⟨Abs_domT {u |
+        (∃ s, u = rmTick s ∧ s :t TP) ∨
+        (∃ s t : traceType α,
+          u = s ^^^ t ∧
+          s ^^^ (Abs_trace [event.Tick] : traceType α) :t TP ∧
+          t :t TQ ∧
+          noTick s)}, ?_⟩
+      funext M
+      simp only [traces, hP, hQ]
+  | Depth_rest P n ih =>
+      intro hn
+      obtain ⟨TP, hP⟩ := ih hn
+      refine ⟨TP .|. n, ?_⟩
+      funext M
+      simp only [traces, hP]
+  | Proc_name x =>
+      intro hn
+      exact False.elim hn
 
 theorem traces_noPN_Constant {P : proc p α} :
     noPN P → ∃ T, traces P = fun _ => T :=
@@ -474,13 +714,32 @@ theorem traces_noPN_Constant {P : proc p α} :
  *-----------------------------------------*)
 -/
 
-axiom semT_subst [HasPNfun q α] [HasFPmode] {P : proc p α} {f : p → proc q α} :
-    semT (P << f) = semTf P (fun q => semT (f q))
+theorem traces_subst {P : proc p α} {f : p → proc q α} {M : q → domTType α} :
+    traces (P << f) M = traces P (fun q => traces (f q) M) := by
+  induction P with
+  | STOP => rfl
+  | SKIP => rfl
+  | DIV => rfl
+  | Act_prefix a P ih => simp only [Subst_procfun, traces, ih]
+  | Ext_pre_choice X Pf ih => simp only [Subst_procfun, traces, ih]
+  | Ext_choice P Q ihP ihQ => simp only [Subst_procfun, traces, ihP, ihQ]
+  | Int_choice P Q ihP ihQ => simp only [Subst_procfun, traces, ihP, ihQ]
+  | Rep_int_choice C Pf ih => simp only [Subst_procfun, traces, ih]
+  | «IF» b P Q ihP ihQ => simp only [Subst_procfun, traces, ihP, ihQ]
+  | Parallel P X Q ihP ihQ => simp only [Subst_procfun, traces, ihP, ihQ]
+  | Hiding P X ih => simp only [Subst_procfun, traces, ih]
+  | Renaming P r ih => simp only [Subst_procfun, traces, ih]
+  | Seq_compo P Q ihP ihQ => simp only [Subst_procfun, traces, ihP, ihQ]
+  | Depth_rest P n ih => simp only [Subst_procfun, traces, ih]
+  | Proc_name x => rfl
 
-axiom semT_subst_semTfun [HasPNfun q α] [HasFPmode] {Pf : p → proc p α} {f : p → proc q α} :
-    (fun q => semT ((Pf q) << f)) = semTfun Pf (fun q => semT (f q))
+theorem semT_subst [HasPNfun q α] [HasFPmode] {P : proc p α} {f : p → proc q α} :
+    semT (P << f) = semTf P (fun q => semT (f q)) := by
+  exact traces_subst
 
-axiom traces_subst {P : proc p α} {f : p → proc q α} {M : q → domTType α} :
-    traces (P << f) M = traces P (fun q => traces (f q) M)
+theorem semT_subst_semTfun [HasPNfun q α] [HasFPmode] {Pf : p → proc p α} {f : p → proc q α} :
+    (fun q => semT ((Pf q) << f)) = semTfun Pf (fun q => semT (f q)) := by
+  funext x
+  exact semT_subst
 
 end

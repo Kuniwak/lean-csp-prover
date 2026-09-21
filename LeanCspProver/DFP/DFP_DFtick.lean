@@ -82,12 +82,27 @@ theorem Set_RDFtickfun_def (pn : RDFtickName) :
  *********************************************************) -/
 
 @[simp]
-axiom guardedfun_DFtick :
-    guardedfun (p := DFtickName) (q := DFtickName) (α := α) (DFtickfun (α := α))
+theorem guardedfun_DFtick :
+    guardedfun (p := DFtickName) (q := DFtickName) (α := α) (DFtickfun (α := α)) := by
+  intro pn
+  cases pn
+  simp [DFtickfun, guarded, noHide]
+
+private theorem noHide_NatDFtick {P : proc RDFtickName α} {n : Nat} (hP : noHide P) :
+    noHide (NatDFtick n P) := by
+  induction n with
+  | zero => exact hP
+  | succ n ih => exact ⟨⟨fun _ => ih, trivial⟩, hP⟩
 
 @[simp]
-axiom guardedfun_RDFtick :
-    guardedfun (p := RDFtickName) (q := RDFtickName) (α := α) (RDFtickfun (α := α))
+theorem guardedfun_RDFtick :
+    guardedfun (p := RDFtickName) (q := RDFtickName) (α := α) (RDFtickfun (α := α)) := by
+  intro pn
+  cases pn
+  refine fun a => ⟨?_, trivial⟩
+  rw [noHide_Rep_int_choice_nat]
+  intro n
+  exact noHide_NatDFtick trivial
 
 /- -------------------------------------------------*
  |                                                  |

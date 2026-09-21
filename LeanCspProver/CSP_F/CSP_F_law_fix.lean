@@ -114,27 +114,110 @@ theorem semF_iteration_semFfun_Bot_sndF [HasPNfun p α] [HasFPmode]
 
 /- (*** FIX ***) -/
 
-axiom semF_FIX_LUB_domF_T
+theorem semF_FIX_LUB_domF_T
     {Pf : p → proc p α} {p0 : p} :
     (fun y => Prod.fst (Rep_domF y)) '' {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} =
-      {t | ∃ n, t = fstF ((((semFfun Pf)^[n]) Bot) p0)}
+      {t | ∃ n, t = fstF ((((semFfun Pf)^[n]) Bot) p0)} := by
+  ext t
+  constructor
+  · rintro ⟨y, ⟨x, ⟨n, rfl⟩, rfl⟩, rfl⟩
+    exact ⟨n, rfl⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨((semFfun Pf)^[n]) Bot p0, ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩, rfl⟩
 
-axiom semF_FIX_LUB_domF_F
+/- Lean note: the Isabelle original is
+     `Union (Rep_setF ` snd ` Rep_domF ` {...}) = {f. EX n. f :f sndF (...)}`,
+   where `Union` is the set-theoretic `⋃₀`.  A bare `Union` in Lean resolves
+   to Mathlib's `Union` *type class* and would turn the proposition into an
+   equality of types, so the transcription below spells it `⋃₀`. -/
+theorem semF_FIX_LUB_domF_F
     {Pf : p → proc p α} {p0 : p} :
-    Union ((fun y => Rep_setF (Prod.snd (Rep_domF y))) ''
+    ⋃₀ ((fun y => Rep_setF (Prod.snd (Rep_domF y))) ''
       {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0}) =
-      {f | ∃ n, f :f sndF ((((semFfun Pf)^[n]) Bot) p0)}
+      {f | ∃ n, f :f sndF ((((semFfun Pf)^[n]) Bot) p0)} := by
+  ext f
+  constructor
+  · rintro ⟨A, ⟨y, ⟨x, ⟨n, rfl⟩, rfl⟩, rfl⟩, hf⟩
+    exact ⟨n, hf⟩
+  · rintro ⟨n, hf⟩
+    exact ⟨Rep_setF (Prod.snd (Rep_domF (((semFfun Pf)^[n]) Bot p0))),
+      ⟨((semFfun Pf)^[n]) Bot p0, ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩, rfl⟩, hf⟩
 
-axiom semF_FIX [HasPNfun p α] [HasFPmode]
+private theorem semF_FIXn_le_FIX [HasPNfun p α] [HasFPmode]
+    {Pf : p → proc p α} {p0 : p} {n : Nat} :
+    semF (FIXn n Pf p0) ≤ semF (FIX Pf p0) := by
+  rw [subdomF_decompo]
+  constructor
+  · rw [← semF_decompo_fstF (P := FIXn n Pf p0) rfl,
+      ← semF_decompo_fstF (P := FIX Pf p0) rfl]
+    refine subdomT_iff.mpr fun t ht => ?_
+    rw [FIX_def, in_traces_Rep_int_choice_nat]
+    exact Or.inr ⟨n, trivial, ht⟩
+  · rw [← semF_decompo_sndF (P := FIXn n Pf p0) rfl,
+      ← semF_decompo_sndF (P := FIX Pf p0) rfl]
+    refine subsetF_iff.mpr fun s X hf => ?_
+    rw [FIX_def, in_failures_Rep_int_choice_nat]
+    exact ⟨n, trivial, hf⟩
+
+private theorem semF_FIX_isLUB_p [HasPNfun p α] [HasFPmode]
+    {Pf : p → proc p α} {p0 : p} :
+    isLUB (semF (FIX Pf p0)) {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} := by
+  constructor
+  · rintro y ⟨x, ⟨n, rfl⟩, rfl⟩
+    rw [← semF_iteration_semFfun_Bot (Pf := Pf) (n := n) p0]
+    exact semF_FIXn_le_FIX
+  · intro T hT
+    have hTn : ∀ n : Nat, semF (FIXn n Pf p0) ≤ T := by
+      intro n
+      rw [semF_iteration_semFfun_Bot (Pf := Pf) (n := n) p0]
+      exact hT _ ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
+    rw [subdomF_decompo]
+    constructor
+    · rw [← semF_decompo_fstF (P := FIX Pf p0) rfl]
+      refine subdomT_iff.mpr fun t ht => ?_
+      rw [FIX_def, in_traces_Rep_int_choice_nat] at ht
+      rcases ht with rfl | ⟨n, -, ht⟩
+      · exact nilt_in_T
+      · have hle := (subdomF_decompo.mp (hTn n)).1
+        rw [← semF_decompo_fstF (P := FIXn n Pf p0) rfl] at hle
+        exact subdomT_iff.mp hle t ht
+    · rw [← semF_decompo_sndF (P := FIX Pf p0) rfl]
+      refine subsetF_iff.mpr fun s X hf => ?_
+      rw [FIX_def, in_failures_Rep_int_choice_nat] at hf
+      obtain ⟨n, -, hf⟩ := hf
+      have hle := (subdomF_decompo.mp (hTn n)).2
+      rw [← semF_decompo_sndF (P := FIXn n Pf p0) rfl] at hle
+      exact subsetF_iff.mp hle s X hf
+
+private theorem FIX_index_set_ne [HasPNfun p α] [HasFPmode]
+    {Pf : p → proc p α} {p0 : p} :
+    {y : domFType α | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} ≠ ∅ := by
+  intro hEq
+  exact Set.eq_empty_iff_forall_notMem.mp hEq (((semFfun Pf)^[0]) Bot p0)
+    ⟨((semFfun Pf)^[0]) Bot, ⟨0, rfl⟩, rfl⟩
+
+theorem semF_FIX [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} {p0 : p} :
     semF (FIX Pf p0) =
-      LUB_domF {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0}
+      LUB_domF {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} :=
+  isLUB_LUB_domF_only_if FIX_index_set_ne semF_FIX_isLUB_p
 
 /- (*** FIX is LUB ***) -/
 
-axiom semF_FIX_isLUB [HasPNfun p α] [HasFPmode]
+theorem semF_FIX_isLUB [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
-    isLUB (fun p0 => semF (FIX Pf p0)) {x | ∃ n, x = ((semFfun Pf)^[n]) Bot}
+    isLUB (fun p0 => semF (FIX Pf p0)) {x | ∃ n, x = ((semFfun Pf)^[n]) Bot} := by
+  refine prod_LUB_decompo_if fun p0 => ?_
+  have himg : proj_fun p0 '' {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot} =
+      {y : domFType α | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} := by
+    ext y
+    constructor
+    · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+      exact ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
+    · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+      exact ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
+  rw [himg]
+  exact semF_FIX_isLUB_p
 
 theorem semF_FIX_LUB [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
@@ -218,12 +301,29 @@ theorem cspF_FIX [HasPNfun p α] [HasFPmode]
  |                                                              |
  *============================================================== -/
 
-axiom cspF_rmPN_eqF [HasPNfun p α] [HasFPmode]
+theorem cspF_rmPN_eqF [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨
       (FPmode = CMSmode ∧ guardedfun (PNfun : p → proc p α)) ∨
       FPmode = MIXmode) →
-        eqF P MF MF (rmPN P)
+        eqF P MF MF (rmPN P) := by
+  intro hmode
+  induction P with
+  | STOP => exact cspF_reflex_eq_P
+  | SKIP => exact cspF_reflex_eq_P
+  | DIV => exact cspF_reflex_eq_P
+  | Act_prefix a P ih => exact cspF_Act_prefix_cong rfl ih
+  | Ext_pre_choice X Qf ih => exact cspF_Ext_pre_choice_cong rfl fun a _ => ih a
+  | Ext_choice P Q ihP ihQ => exact cspF_Ext_choice_cong ihP ihQ
+  | Int_choice P Q ihP ihQ => exact cspF_Int_choice_cong ihP ihQ
+  | Rep_int_choice C Qf ih => exact cspF_Rep_int_choice_cong_sum rfl fun c _ => ih c
+  | «IF» b P Q ihP ihQ => exact cspF_IF_cong rfl ihP ihQ
+  | Parallel P X Q ihP ihQ => exact cspF_Parallel_cong rfl ihP ihQ
+  | Hiding P X ih => exact cspF_Hiding_cong rfl ih
+  | Renaming P r ih => exact cspF_Renaming_cong rfl ih
+  | Seq_compo P Q ihP ihQ => exact cspF_Seq_compo_cong ihP ihQ
+  | Depth_rest P n ih => exact cspF_Depth_rest_cong rfl ih
+  | Proc_name p0 => exact cspF_FIX hmode rfl
 
 /- -------------------------------------------------------*
  |                                                       |
@@ -231,9 +331,52 @@ axiom cspF_rmPN_eqF [HasPNfun p α] [HasFPmode]
  |                                                       |
  *------------------------------------------------------- -/
 
-axiom failures_FIXn_plus_sub_lm
+private theorem FIXn_succ' {Pf : p → proc p α} {n : Nat} :
+    FIXn (n.succ) Pf = Pf <<< FIXn n Pf := by
+  funext p0
+  simp [FIXn, Function.iterate_succ_apply', Subst_procfun_prod]
+
+private theorem semFf_iteration_semFfun_Bot
+    {Pf : p → proc p α} {n : Nat} {M : p → domFType α} :
+    ∀ p0, semFf (FIXn n Pf p0) M = ((semFfun Pf)^[n]) Bot p0 := by
+  induction n with
+  | zero =>
+      intro p0
+      have h :=
+        congrArg (fun F : p → domFType α => F p0)
+          (traces_failures_prod_Bot (ι := p) (κ := p) (α := α) (M := M))
+      simpa [FIXn, semFf_def] using h
+  | succ n ih =>
+      intro p0
+      have hfun : (fun q => semFf (FIXn n Pf q) M) = ((semFfun Pf)^[n]) Bot := by
+        funext q
+        exact ih q
+      rw [FIXn_succ', Subst_procfun_prod_p, Function.iterate_succ_apply', ← hfun]
+      simp only [semFfun_def]
+      refine (eqF_decompo).mpr ⟨?_, ?_⟩
+      · rw [fstF_semFf, fstF_semFf, traces_subst, fstF_semFf_comp]
+      · rw [sndF_semFf, sndF_semFf, failrues_subst]
+
+private theorem iterate_Bot_mono_F {Pf : p → proc p α} :
+    ∀ n m : Nat, ((semFfun Pf)^[n]) Bot ≤ ((semFfun Pf)^[n + m]) Bot := by
+  intro n
+  induction n with
+  | zero => intro m; exact bottom_bot _
+  | succ n ih =>
+      intro m
+      rw [Function.iterate_succ_apply', show n + 1 + m = (n + m) + 1 by omega,
+        Function.iterate_succ_apply']
+      exact mono_semFfun (ih m)
+
+theorem failures_FIXn_plus_sub_lm
     {Pf : p → proc p α} {M : p → domFType α} :
-    ∀ n m p0, failures (FIXn n Pf p0) M <= failures (FIXn (n + m) Pf p0) M
+    ∀ n m p0, failures (FIXn n Pf p0) M <= failures (FIXn (n + m) Pf p0) M := by
+  intro n m p0
+  rw [← sndF_semFf (P := FIXn n Pf p0) (M := M),
+    ← sndF_semFf (P := FIXn (n + m) Pf p0) (M := M),
+    semFf_iteration_semFfun_Bot (Pf := Pf) (n := n) (M := M) p0,
+    semFf_iteration_semFfun_Bot (Pf := Pf) (n := n + m) (M := M) p0]
+  exact (subdomF_decompo.mp (iterate_Bot_mono_F n m p0)).2
 
 theorem failures_FIXn_plus_sub
     {Pf : p → proc p α} {M : p → domFType α} {n m : Nat} {p0 : p} :

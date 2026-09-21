@@ -377,8 +377,6 @@ theorem cspT_DIV_Seq_compo
  *********************************************************)
 -/
 
-set_option maxHeartbeats 1000000 in
--- Nested trace expansions in this sequential-composition proof need extra heartbeats.
 theorem cspT_DIV_Seq_compo_step
     {X : Set α} {Pf : α → proc p α} {Q : proc p α} {M : p → domTType α} :
     eqT ((((proc.Ext_pre_choice X Pf) [> (proc.DIV : proc p α)) ;; Q)) M M

@@ -16,6 +16,7 @@
 
 import LeanCspProver.CSP_T.CSP_T_law_alpha_par
 import LeanCspProver.CSP_T.CSP_T_op_rep_par
+import LeanCspProver.CSP_T.CSP_T_simp
 
 open event
 
@@ -46,14 +47,58 @@ noncomputable section
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_Rep_parallel_index_eq
+private theorem set_map3 {β γ : Type _} (g : β → γ) (l : List β) :
+    _root_.set (l.map g) = g '' _root_.set l := by
+  ext x
+  simp [_root_.set]
+
+private theorem snd_subset_sUnion {I : Set ι} {PXf : ι → proc p α × Set α} {i : ι} (hi : i ∈ I) :
+    Prod.snd (PXf i) ⊆ Set.sUnion (Prod.snd '' (PXf '' I)) :=
+  fun _ ha => ⟨Prod.snd (PXf i), ⟨PXf i, ⟨i, hi, rfl⟩, rfl⟩, ha⟩
+
+theorem cspT_Rep_parallel_index_eq
     {I1 : Set ι} {I2 : Set κ}
     {PXf1 : ι → proc p α × Set α} {PXf2 : κ → proc p α × Set α}
     {M : p → domTType α} :
     I1.Finite →
       (∃ f : ι → κ, I2 = f '' I1 ∧ Set.InjOn f I1 ∧
         (∀ i : ι, i ∈ I1 → PXf2 (f i) = PXf1 i)) →
-        eqT (Rep_parallel I1 PXf1) M M (Rep_parallel I2 PXf2)
+        eqT (Rep_parallel I1 PXf1) M M (Rep_parallel I2 PXf2) := by
+  rintro hfin ⟨f, rfl, -, hPX⟩
+  by_cases hI1 : I1 = ∅
+  · subst hI1
+    rw [Set.image_empty, Rep_parallel_empty, Rep_parallel_empty]
+    rfl
+  · have hI2 : f '' I1 ≠ ∅ := by
+      intro hEmpty
+      apply hI1
+      rw [Set.eq_empty_iff_forall_notMem]
+      intro i hi
+      have : f i ∈ f '' I1 := ⟨i, hi, rfl⟩
+      rw [hEmpty] at this
+      exact this
+    have hfin2 : (f '' I1).Finite := hfin.image f
+    have hUnion :
+        Set.sUnion (Prod.snd '' (PXf2 '' (f '' I1))) =
+          Set.sUnion (Prod.snd '' (PXf1 '' I1)) := Union_index_fun hPX
+    rw [cspT_eqT_semantics]
+    apply le_antisymm
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Rep_parallel hI1 hfin] at hu
+      rw [in_traces_Rep_parallel hI2 hfin2]
+      refine ⟨by rw [hUnion]; exact hu.1, ?_⟩
+      rintro j ⟨i, hi, rfl⟩
+      rw [hPX i hi]
+      exact hu.2 i hi
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Rep_parallel hI2 hfin2] at hu
+      rw [in_traces_Rep_parallel hI1 hfin]
+      refine ⟨by rw [← hUnion]; exact hu.1, ?_⟩
+      intro i hi
+      have hval := hu.2 (f i) ⟨i, hi, rfl⟩
+      rwa [hPX i hi] at hval
 
 /-
 (*********************************************************
@@ -65,10 +110,33 @@ axiom cspT_Rep_parallel_index_eq
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_Index_to_Inductive_parallel
+theorem cspT_Index_to_Inductive_parallel
     {I : Set ι} {Is : List ι} {PXf : ι → proc p α × Set α} {M : p → domTType α} :
     I.Finite → isListOf Is I →
-      eqT (Rep_parallel I PXf) M M (Inductive_parallel (List.map PXf Is))
+      eqT (Rep_parallel I PXf) M M (Inductive_parallel (List.map PXf Is)) := by
+  intro hfin hIs
+  by_cases hI : I = ∅
+  · subst hI
+    have hnil : Is = [] := isListOf_emptyset_to_nil.mp hIs
+    subst hnil
+    rw [Rep_parallel_empty]
+    rfl
+  · have hne : Is ≠ [] := isListOf_nonemptyset hI hIs
+    have hmapne : List.map PXf Is ≠ [] := by simpa using hne
+    have hset : _root_.set (List.map PXf Is) = PXf '' I := by
+      rw [set_map3, isListOf_set_eq hIs]
+    rw [cspT_eqT_semantics]
+    apply le_antisymm
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Rep_parallel hI hfin] at hu
+      rw [in_traces_Inductive_parallel hmapne, hset, to_index_style_T]
+      exact hu
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Inductive_parallel hmapne, hset, to_index_style_T] at hu
+      rw [in_traces_Rep_parallel hI hfin]
+      exact hu
 
 /-
 (************************************
@@ -80,7 +148,7 @@ axiom cspT_Index_to_Inductive_parallel
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_SKIP_Rep_parallel_right
+theorem cspT_SKIP_Rep_parallel_right
     {I : Set ι} {PXf : ι → proc p α × Set α} {M : p → domTType α} :
     I.Finite →
       eqT
@@ -88,7 +156,36 @@ axiom cspT_SKIP_Rep_parallel_right
           Set.sUnion (Prod.snd '' (PXf '' I)),
           (∅ : Set α)]| (proc.SKIP : proc p α))
         M M
-        (Rep_parallel I PXf)
+        (Rep_parallel I PXf) := by
+  intro hfin
+  by_cases hI : I = ∅
+  · subst hI
+    rw [Rep_parallel_empty, Set.image_empty, Set.image_empty, Set.sUnion_empty]
+    exact cspT_SKIP_Alpha_parallel
+  · rw [cspT_eqT_semantics]
+    apply le_antisymm
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Alpha_parallel] at hu
+      obtain ⟨h1, -, h3⟩ := hu
+      rw [in_traces_Rep_parallel hI hfin] at h1
+      rw [in_traces_Rep_parallel hI hfin]
+      refine ⟨by simpa using h3, ?_⟩
+      intro i hi
+      have hval := h1.2 i hi
+      rwa [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2] at hval
+    · rw [subdomT_iff]
+      intro u hu
+      rw [in_traces_Rep_parallel hI hfin] at hu
+      rw [in_traces_Alpha_parallel]
+      refine ⟨?_, ?_, by simpa using hu.1⟩
+      · rw [in_traces_Rep_parallel hI hfin]
+        refine ⟨rest_tr_subset_event, ?_⟩
+        intro i hi
+        rw [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2]
+        exact hu.2 i hi
+      · rcases rest_tr_empty (u := u) with h | h <;> rw [h] <;>
+          exact in_traces_SKIP.mpr (by simp)
 
 /-
 (************************************
@@ -133,14 +230,62 @@ theorem cspT_SKIP_Rep_parallel_left
  |      csp law     |
  *------------------*) -/
 
-axiom cspT_Rep_parallel_assoc
+theorem cspT_Rep_parallel_assoc
     {I1 I2 : Set ι} {PXf : ι → proc p α × Set α} {M : p → domTType α} :
     I1 ∩ I2 = ∅ → I1.Finite → I2.Finite →
       eqT
         (Rep_parallel (I1 ∪ I2) PXf) M M
         ((Rep_parallel I1 PXf) |[
           Set.sUnion (Prod.snd '' (PXf '' I1)),
-          Set.sUnion (Prod.snd '' (PXf '' I2))]| Rep_parallel I2 PXf)
+          Set.sUnion (Prod.snd '' (PXf '' I2))]| Rep_parallel I2 PXf) := by
+  intro _ hfin1 hfin2
+  by_cases hI1 : I1 = ∅
+  · subst hI1
+    rw [Set.empty_union, Rep_parallel_empty, Set.image_empty, Set.image_empty,
+      Set.sUnion_empty]
+    exact cspT_sym (cspT_SKIP_Rep_parallel_left hfin2)
+  · by_cases hI2 : I2 = ∅
+    · subst hI2
+      rw [Set.union_empty, Rep_parallel_empty, Set.image_empty, Set.image_empty,
+        Set.sUnion_empty]
+      exact cspT_sym (cspT_SKIP_Rep_parallel_right hfin1)
+    · have hIU : I1 ∪ I2 ≠ ∅ := by
+        intro hEmpty
+        exact hI1 (Set.eq_empty_iff_forall_notMem.mpr
+          fun i hi => by
+            have : i ∈ I1 ∪ I2 := Or.inl hi
+            rw [hEmpty] at this
+            exact this)
+      rw [cspT_eqT_semantics]
+      apply le_antisymm
+      · rw [subdomT_iff]
+        intro u hu
+        rw [in_traces_Rep_parallel hIU (hfin1.union hfin2), Union_snd_Un] at hu
+        rw [in_traces_Alpha_parallel]
+        refine ⟨?_, ?_, hu.1⟩
+        · rw [in_traces_Rep_parallel hI1 hfin1]
+          refine ⟨rest_tr_subset_event, ?_⟩
+          intro i hi
+          rw [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2]
+          exact hu.2 i (Or.inl hi)
+        · rw [in_traces_Rep_parallel hI2 hfin2]
+          refine ⟨rest_tr_subset_event, ?_⟩
+          intro i hi
+          rw [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2]
+          exact hu.2 i (Or.inr hi)
+      · rw [subdomT_iff]
+        intro u hu
+        rw [in_traces_Alpha_parallel] at hu
+        obtain ⟨h1, h2, h3⟩ := hu
+        rw [in_traces_Rep_parallel hI1 hfin1] at h1
+        rw [in_traces_Rep_parallel hI2 hfin2] at h2
+        rw [in_traces_Rep_parallel hIU (hfin1.union hfin2), Union_snd_Un]
+        refine ⟨h3, ?_⟩
+        rintro i (hi | hi)
+        · have hval := h1.2 i hi
+          rwa [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2] at hval
+        · have hval := h2.2 i hi
+          rwa [(rest_tr_of_rest_tr_subset (snd_subset_sUnion hi)).2] at hval
 
 /-
 (************************************

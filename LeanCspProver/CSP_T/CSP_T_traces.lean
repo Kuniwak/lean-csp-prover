@@ -357,11 +357,50 @@ theorem in_traces_Renaming {t : traceType α} {P : proc p α} {r : Set (α × α
 
 /- (*** Seq_compo_domT ***) -/
 
-axiom Seq_compo_domT {S T : domTType α} :
+theorem Seq_compo_domT {S T : domTType α} :
     {u : traceType α |
       (∃ s, u = rmTick s ∧ s :t S) ∨
         ∃ s t, u = s ^^^ t ∧
-          s ^^^ (Abs_trace [event.Tick] : traceType α) :t S ∧ t :t T ∧ noTick s} ∈ domT (α := α)
+          s ^^^ (Abs_trace [event.Tick] : traceType α) :t S ∧ t :t T ∧ noTick s} ∈
+      domT (α := α) := by
+  change HC_T1 {u : traceType α |
+      (∃ s, u = rmTick s ∧ s :t S) ∨
+        ∃ s t, u = s ^^^ t ∧
+          s ^^^ (Abs_trace [event.Tick] : traceType α) :t S ∧ t :t T ∧ noTick s}
+  constructor
+  · intro hEmpty
+    have hNil : (<> : traceType α) ∈ {u : traceType α |
+        (∃ s, u = rmTick s ∧ s :t S) ∨
+          ∃ s t, u = s ^^^ t ∧
+            s ^^^ (Abs_trace [event.Tick] : traceType α) :t S ∧ t :t T ∧ noTick s} :=
+      Or.inl ⟨<>, by simp, nilt_in_T⟩
+    rw [hEmpty] at hNil
+    exact hNil
+  · intro v t h
+    rcases h with ⟨hmem, hp⟩
+    rcases prefix_def.mp hp with ⟨w, hEq, hcond⟩
+    rcases hcond with hvno | rfl
+    · rcases hmem with ⟨s1, rfl, hs1⟩ | ⟨s2, t2, rfl, hs2, ht2, hs2no⟩
+      · obtain ⟨u, hpu, rfl⟩ := rmTick_prefix.mp hp
+        exact Or.inl ⟨u, rfl, memT_prefix_closed hs1 hpu⟩
+      · rcases (appt_decompo (Or.inl hs2no) (Or.inl hvno)).mp hEq with
+          ⟨u, h1, h2, hc⟩ | ⟨u, h1, h2, hc⟩
+        · refine Or.inr ⟨s2, u, h1.symm, hs2, ?_, hs2no⟩
+          refine memT_prefix_closed ht2 ⟨w, h2, ?_⟩
+          rcases hc with hu | ⟨-, hw⟩
+          · exact Or.inl hu
+          · exact Or.inr hw
+        · have hu : noTick u := by
+            have hvu : noTick (v ^^^ u) := by
+              rw [← h1]
+              exact hs2no
+            exact (decompo_appt_noTick_only_if (Or.inl hvno) hvu).2
+          refine Or.inl ⟨v, (rmTick_nochange hvno).symm, ?_⟩
+          refine memT_prefix_closed hs2
+            ⟨(u ^^^ (Abs_trace [event.Tick] : traceType α) : traceType α), ?_, Or.inl hvno⟩
+          rw [h1, appt_assoc (Or.inl hvno) (Or.inl hu)]
+    · rw [appt_nil_right] at hEq
+      exact hEq ▸ hmem
 
 /- (*** Seq_compo ***) -/
 

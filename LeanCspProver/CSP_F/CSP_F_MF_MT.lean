@@ -6,6 +6,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_F.CSP_F_law_fp
+import LeanCspProver.CSP_F.CSP_F_simp
 
 open fpmode
 
@@ -89,33 +90,105 @@ theorem fstF_MF_fixed_point_cpo [HasPNfun p α] [HasFPmode]
 
 /- (*** fstF o MF = MT ***) -/
 
-axiom MT_LFP_UnionT_cpo_lm [HasPNfun p α]
+theorem MT_LFP_UnionT_cpo_lm [HasPNfun p α]
     {y : domTType α} {p0 : p} :
     (∃ x, (∃ n, x = ((semTfun PNfun)^[n]) Bot) ∧ y = x p0) ↔
-      ∃ n, y = ((semTfun PNfun)^[n]) Bot p0
+      ∃ n, y = ((semTfun PNfun)^[n]) Bot p0 := by
+  constructor
+  · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+    exact ⟨n, rfl⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨((semTfun (PNfun : p → proc p α))^[n]) Bot, ⟨n, rfl⟩, rfl⟩
 
-axiom MT_LFP_UnionT_cpo [HasPNfun p α]
+theorem MT_LFP_UnionT_cpo [HasPNfun p α]
     {Pf : p → proc p α} {p0 : p} :
     Pf = PNfun →
-      LFP (semTfun Pf) p0 = UnionT {y | ∃ n, y = ((semTfun Pf)^[n]) Bot p0}
+      LFP (semTfun Pf) p0 = UnionT {y | ∃ n, y = ((semTfun Pf)^[n]) Bot p0} := by
+  intro _
+  have hLUB : isLUB (LFP (semTfun Pf)) {x | ∃ n, x = ((semTfun Pf)^[n]) Bot} :=
+    (Tarski_thm continuous_semTfun).2
+  have hproj := (prod_LUB_decompo (x := LFP (semTfun Pf))
+    (X := {x : p → domTType α | ∃ n, x = ((semTfun Pf)^[n]) Bot})).mp hLUB p0
+  have hset :
+      proj_fun p0 '' {x : p → domTType α | ∃ n, x = ((semTfun Pf)^[n]) Bot} =
+        {y : domTType α | ∃ n, y = ((semTfun Pf)^[n]) Bot p0} := by
+    ext y
+    constructor
+    · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+      exact ⟨n, rfl⟩
+    · rintro ⟨n, rfl⟩
+      exact ⟨((semTfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
+  rw [hset] at hproj
+  have hne : {y : domTType α | ∃ n, y = ((semTfun Pf)^[n]) Bot p0} ≠ ∅ := by
+    intro hEmpty
+    have hmem : ((semTfun Pf)^[0]) Bot p0 ∈
+        {y : domTType α | ∃ n, y = ((semTfun Pf)^[n]) Bot p0} := ⟨0, rfl⟩
+    rw [hEmpty] at hmem
+    exact hmem
+  exact (isLUB_UnionT hne).mp hproj
 
-axiom fstF_MF_LFP_UnionT_cpo_lm1 [HasPNfun p α]
+theorem fstF_MF_LFP_UnionT_cpo_lm1 [HasPNfun p α]
     {Pf : p → proc p α} {y : domTType α} {p0 : p} :
     (∃ b x,
         (∃ xa, (∃ n, xa = ((semFfun Pf)^[n]) Bot) ∧ x = xa p0) ∧
           (y, b) = Rep_domF x) ↔
-      ∃ n, y = fstF (((semFfun Pf)^[n]) Bot p0)
+      ∃ n, y = fstF (((semFfun Pf)^[n]) Bot p0) := by
+  constructor
+  · rintro ⟨b, x, ⟨xa, ⟨n, rfl⟩, rfl⟩, hRep⟩
+    exact ⟨n, congrArg Prod.fst hRep⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨sndF (((semFfun Pf)^[n]) Bot p0), ((semFfun Pf)^[n]) Bot p0,
+      ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩, rfl⟩
 
-axiom fstF_MF_LFP_UnionT_cpo_lm2 [HasPNfun p α]
+theorem fstF_MF_LFP_UnionT_cpo_lm2 [HasPNfun p α]
     {Pf : p → proc p α} {p0 : p} :
     LFP (semFfun Pf) p0 =
-      LUB_domF ((fun x : p → domFType α => x p0) '' {x | ∃ n, x = ((semFfun Pf)^[n]) Bot})
+      LUB_domF ((fun x : p → domFType α => x p0) '' {x | ∃ n, x = ((semFfun Pf)^[n]) Bot}) := by
+  have hLUB : isLUB (LFP (semFfun Pf)) {x | ∃ n, x = ((semFfun Pf)^[n]) Bot} :=
+    (Tarski_thm continuous_semFfun).2
+  have hproj := (prod_LUB_decompo (x := LFP (semFfun Pf))
+    (X := {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot})).mp hLUB p0
+  have hne :
+      ((fun x : p → domFType α => x p0) ''
+        {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot}) ≠ ∅ := by
+    intro hEmpty
+    have hmem : ((semFfun Pf)^[0]) Bot p0 ∈
+        ((fun x : p → domFType α => x p0) ''
+          {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot}) :=
+      ⟨((semFfun Pf)^[0]) Bot, ⟨0, rfl⟩, rfl⟩
+    rw [hEmpty] at hmem
+    exact hmem
+  exact isLUB_LUB_domF_only_if hne hproj
 
-axiom fstF_MF_LFP_UnionT_cpo [HasPNfun p α]
+theorem fstF_MF_LFP_UnionT_cpo [HasPNfun p α]
     {Pf : p → proc p α} {p0 : p} :
     Pf = PNfun →
       fstF (LFP (semFfun Pf) p0) =
-        UnionT {y | ∃ n, y = fstF (((semFfun Pf)^[n]) Bot p0)}
+        UnionT {y | ∃ n, y = fstF (((semFfun Pf)^[n]) Bot p0)} := by
+  intro _
+  have hne :
+      ((fun x : p → domFType α => x p0) ''
+        {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot}) ≠ ∅ := by
+    intro hEmpty
+    have hmem : ((semFfun Pf)^[0]) Bot p0 ∈
+        ((fun x : p → domFType α => x p0) ''
+          {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot}) :=
+      ⟨((semFfun Pf)^[0]) Bot, ⟨0, rfl⟩, rfl⟩
+    rw [hEmpty] at hmem
+    exact hmem
+  have hset :
+      Prod.fst '' (Rep_domF '' ((fun x : p → domFType α => x p0) ''
+        {x : p → domFType α | ∃ n, x = ((semFfun Pf)^[n]) Bot})) =
+        {y : domTType α | ∃ n, y = fstF (((semFfun Pf)^[n]) Bot p0)} := by
+    ext y
+    constructor
+    · rintro ⟨⟨y', b⟩, ⟨x, ⟨xa, ⟨n, rfl⟩, rfl⟩, hRep⟩, rfl⟩
+      exact ⟨n, congrArg Prod.fst hRep.symm⟩
+    · rintro ⟨n, rfl⟩
+      exact ⟨Rep_domF (((semFfun Pf)^[n]) Bot p0),
+        ⟨((semFfun Pf)^[n]) Bot p0, ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩, rfl⟩, rfl⟩
+  rw [fstF_MF_LFP_UnionT_cpo_lm2 (Pf := Pf) (p0 := p0)]
+  rw [LUB_domF_def, fstF, Abs_domF_inverse (LUB_TF_in_Rep hne), LUB_TF_def, hset]
 
 theorem iterative_fstF_semFfun_semFfun [HasPNfun p α]
     {Pf : p → proc p α} :
@@ -146,10 +219,20 @@ theorem iterative_fstF_semFfun_semFfun [HasPNfun p α]
         _ = ((semTfun Pf)^[n.succ]) Bot p0 := by
               simp [Function.iterate_succ_apply', semTfun_def, semTf_def]
 
-axiom fstF_MF_MT_cpo_lm [HasPNfun p α]
+theorem fstF_MF_MT_cpo_lm [HasPNfun p α]
     {Pf : p → proc p α} {p0 : p} :
     Pf = PNfun →
-      fstF (LFP (semFfun Pf) p0) = LFP (semTfun Pf) p0
+      fstF (LFP (semFfun Pf) p0) = LFP (semTfun Pf) p0 := by
+  intro hPf
+  rw [fstF_MF_LFP_UnionT_cpo (Pf := Pf) (p0 := p0) hPf,
+    MT_LFP_UnionT_cpo (Pf := Pf) (p0 := p0) hPf]
+  congr 1
+  ext y
+  constructor
+  · rintro ⟨n, rfl⟩
+    exact ⟨n, iterative_fstF_semFfun_semFfun n p0⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨n, (iterative_fstF_semFfun_semFfun n p0).symm⟩
 
 theorem fstF_MF_MT_cpo [HasPNfun p α] [HasFPmode]
     {Pf : p → proc p α} :
