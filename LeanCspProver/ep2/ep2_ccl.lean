@@ -184,8 +184,7 @@ theorem CC_def (p : TerminalState × Trigger) :
     guardedfun CCfun := by
   intro pn
   cases pn <;>
-    simp [CCfun, Nondet_send_prefix, Int_pre_choice, Rec_prefix,
-      Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
+    simp [CCfun, Rec_prefix, guarded, noHide]
 
 /- *********************************************************
         relating function between AbsName and ACName
