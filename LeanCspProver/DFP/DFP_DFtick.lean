@@ -106,24 +106,22 @@ theorem guardedfun_DFtick [Inhabited α] :
     guardedfun (p := DFtickName) (q := DFtickName) (α := α) (DFtickfun (α := α)) := by
   intro pn
   cases pn
-  simp [DFtickfun, Int_pre_choice, Rep_int_choice_com, Rep_int_choice_set,
-    guarded, noHide]
+  exact ⟨(guarded_Int_pre_choice _ _).mpr fun _ => trivial, trivial⟩
 
 private theorem noHide_NatDFtick [Inhabited α]
     {P : proc RDFtickName α} {n : Nat} (hP : noHide P) :
     noHide (NatDFtick n P) := by
   induction n with
   | zero => exact hP
-  | succ n ih => exact ⟨⟨fun _ => ih, trivial⟩, hP⟩
+  | succ n ih =>
+      exact ⟨⟨(noHide_Int_pre_choice _ _).mpr fun _ => ih, trivial⟩, hP⟩
 
 @[simp]
 theorem guardedfun_RDFtick [Inhabited α] :
     guardedfun (p := RDFtickName) (q := RDFtickName) (α := α) (RDFtickfun (α := α)) := by
   intro pn
   cases pn
-  refine ⟨fun _ => ?_, trivial⟩
-  change noHide (Rep_int_choice_nat Set.univ
-    (fun n => NatDFtick n (proc.Proc_name RDFtickName.RDFtick)))
+  refine ⟨(guarded_Int_pre_choice _ _).mpr fun _ => ?_, trivial⟩
   rw [noHide_Rep_int_choice_nat]
   intro n
   exact noHide_NatDFtick trivial
@@ -270,6 +268,12 @@ private theorem FIXn_succ_DFtick [Inhabited α] {n : Nat} :
       Int_pre_choice Set.univ
           (fun _ : α => FIXn n (DFtickfun (α := α)) DFtickName.DFtick) |~| proc.SKIP := by
   rw [FIXn_def, Function.iterate_succ_apply', ← FIXn_def]
+  -- `Subst_procfun_Int_pre_choice` is no longer `rfl` (it goes through
+  -- `(the_elem X).elim`), so the substitution has to be rewritten explicitly.
+  rw [Subst_procfun_prod_p]
+  change (Int_pre_choice Set.univ (fun _ : α => proc.Proc_name DFtickName.DFtick)
+      << FIXn n DFtickfun) |~| proc.SKIP = _
+  rw [Subst_procfun_Int_pre_choice]
   rfl
 
 theorem traces_included_in_DFtick [Inhabited α] [HasFPmode] {t : traceType α} :
