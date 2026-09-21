@@ -135,20 +135,21 @@ theorem Rep_int_choice_traces_set (Xs : Set (Set α)) (Pf : Set α → proc p α
       rw [Function.leftInverse_invFun inj_type1 X]
       exact ht
 
-theorem Rep_int_choice_traces_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem Rep_int_choice_traces_com_lm {X : Set α} {Pf : α → proc p α}
     {t : traceType α} {M : p → domTType α} :
-    (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧ t :t traces (Pf (the_elem z)) M) ↔
+    (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧
+        t :t traces ((the_elem z).elim proc.DIV Pf) M) ↔
       ∃ a, a ∈ X ∧ t :t traces (Pf a) M := by
   constructor
   · rintro ⟨z, ⟨a, rfl, ha⟩, ht⟩
-    rw [the_elem_singleton] at ht
+    rw [the_elem_singleton, Option.elim_some] at ht
     exact ⟨a, ha, ht⟩
   · rintro ⟨a, ha, ht⟩
     refine ⟨{a}, ⟨a, rfl, ha⟩, ?_⟩
-    rw [the_elem_singleton]
+    rw [the_elem_singleton, Option.elim_some]
     exact ht
 
-theorem Rep_int_choice_traces_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
+theorem Rep_int_choice_traces_com (X : Set α) (Pf : α → proc p α) :
     traces (Rep_int_choice_com X Pf) =
       fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M} := by
   rw [Rep_int_choice_com_def, Rep_int_choice_traces_set]
@@ -159,15 +160,15 @@ theorem Rep_int_choice_traces_com [Inhabited α] (X : Set α) (Pf : α → proc 
   constructor
   · rintro (rfl | ⟨Y, ⟨a, ha, rfl⟩, ht⟩)
     · exact Or.inl rfl
-    · rw [the_elem_singleton] at ht
+    · rw [the_elem_singleton, Option.elim_some] at ht
       exact Or.inr ⟨a, ha, ht⟩
   · rintro (rfl | ⟨a, ha, ht⟩)
     · exact Or.inl rfl
     · refine Or.inr ⟨{a}, ⟨a, ha, rfl⟩, ?_⟩
-      rw [the_elem_singleton]
+      rw [the_elem_singleton, Option.elim_some]
       exact ht
 
-theorem Rep_int_choice_traces_f [Inhabited α] [Inhabited β]
+theorem Rep_int_choice_traces_f [Inhabited β]
     {f : β → α} (hf : Function.Injective f) (X : Set β) (Pf : β → proc p α) :
     traces (Rep_int_choice_f f X Pf) =
       fun M => Abs_domT {t | t = <> ∨ ∃ a, a ∈ X ∧ t :t traces (Pf a) M} := by

@@ -72,7 +72,7 @@ theorem cspF_Rep_int_choice_set_singleton
     rcases Set.mem_singleton_iff.mp hY with rfl
     rfl
 
-theorem cspF_Rep_int_choice_com_singleton [Inhabited α]
+theorem cspF_Rep_int_choice_com_singleton
     {a : α} {Pf : α → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com ({a} : Set α) Pf) M M (Pf a) := by
   apply cspF_Rep_int_choice_com_const
@@ -81,7 +81,7 @@ theorem cspF_Rep_int_choice_com_singleton [Inhabited α]
     rcases Set.mem_singleton_iff.mp hb with rfl
     rfl
 
-theorem cspF_Rep_int_choice_f_singleton [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_f_singleton [Inhabited β]
     {f : β → α} (hf : Injective f) {x : β} {Pf : β → proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f ({x} : Set β) Pf) M M (Pf x) := by
   apply cspF_Rep_int_choice_f_const hf
@@ -116,13 +116,13 @@ theorem cspF_Rep_int_choice_const_set_rule
       (procIte (Xs = ∅) (proc.DIV : proc p α) P) := by
   cspF_auto
 
-theorem cspF_Rep_int_choice_const_com_rule [Inhabited α]
+theorem cspF_Rep_int_choice_const_com_rule
     {X : Set α} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_com X (fun _ => P)) M M
       (procIte (X = ∅) (proc.DIV : proc p α) P) := by
   cspF_auto
 
-theorem cspF_Rep_int_choice_const_f_rule [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_const_f_rule [Inhabited β]
     {f : β → α} {X : Set β} {P : proc p α} {M : p → domFType α} :
     eqF (Rep_int_choice_f f X (fun _ => P)) M M
       (procIte (X = ∅) (proc.DIV : proc p α) P) := by

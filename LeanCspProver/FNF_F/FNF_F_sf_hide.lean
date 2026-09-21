@@ -59,7 +59,7 @@ theorem Pfun_Hiding_def
       (fun P1 => proc.Hiding P1 X) :=
   rfl
 
-def SP_step_Hiding [Inhabited α]
+def SP_step_Hiding
     (X : Set α) :
     Set α → (α → proc p α) → proc p α → (α → proc p α) → proc p α :=
   fun A1 _Pf1 Q1 SPf =>
@@ -75,7 +75,7 @@ def SP_step_Hiding [Inhabited α]
         (((proc.Ext_pre_choice (A1 \ X) SPf) [+] Q1))
         (fsfF_Rep_int_choice_com (A1 ∩ X) SPf)
 
-theorem SP_step_Hiding_def [Inhabited α]
+theorem SP_step_Hiding_def
     (X : Set α) :
     SP_step_Hiding (p := p) (α := α) X =
       (fun A1 _Pf1 Q1 SPf =>
@@ -92,11 +92,11 @@ theorem SP_step_Hiding_def [Inhabited α]
             (fsfF_Rep_int_choice_com (A1 ∩ X) SPf)) :=
   rfl
 
-def fsfF_Hiding [Inhabited α]
+def fsfF_Hiding
     (P1 : proc p α) (X : Set α) : proc p α :=
   fsfF_induct1 (Pfun_Hiding X) (SP_step_Hiding X) P1
 
-theorem fsfF_Hiding_def [Inhabited α]
+theorem fsfF_Hiding_def
     (P1 : proc p α) (X : Set α) :
     fsfF_Hiding (p := p) (α := α) P1 X =
       fsfF_induct1 (Pfun_Hiding X) (SP_step_Hiding X) P1 :=
@@ -108,7 +108,7 @@ notation:84 P " --seq " X => fsfF_Hiding P X
  |                        in fsfF_proc                        |
  *------------------------------------------------------------* -/
 
-theorem fsfF_Hiding_in [Inhabited α]
+theorem fsfF_Hiding_in
     {P1 : proc p α} {X : Set α} :
     fsfF_proc P1 →
       fsfF_proc (fsfF_Hiding P1 X) := by
@@ -165,7 +165,7 @@ theorem fsfF_Hiding_in [Inhabited α]
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-theorem cspF_fsfF_Hiding_eqF [Inhabited α]
+theorem cspF_fsfF_Hiding_eqF
     [HasPNfun p α] [HasFPmode]
     {P1 : proc p α} {X : Set α} :
     eqFfix (proc.Hiding P1 X) (fsfF_Hiding P1 X) := by

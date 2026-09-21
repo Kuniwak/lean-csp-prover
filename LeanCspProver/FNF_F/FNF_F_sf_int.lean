@@ -133,16 +133,17 @@ theorem fsfF_Rep_int_choice_nat_def
 
 /- com -/
 
-def fsfF_Rep_int_choice_com [Inhabited α]
+def fsfF_Rep_int_choice_com
     (A : Set α) (Pf : α → proc p α) : proc p α :=
-  fsfF_Rep_int_choice_set {X | ∃ a, a ∈ A ∧ X = ({a} : Set α)} fun X => Pf (the_elem X)
+  fsfF_Rep_int_choice_set {X | ∃ a, a ∈ A ∧ X = ({a} : Set α)} fun X =>
+    (the_elem X).elim proc.DIV Pf
 
-theorem fsfF_Rep_int_choice_com_def [Inhabited α]
+theorem fsfF_Rep_int_choice_com_def
     (A : Set α) (Pf : α → proc p α) :
     fsfF_Rep_int_choice_com (p := p) A Pf =
       fsfF_Rep_int_choice_set
         {X | ∃ a, a ∈ A ∧ X = ({a} : Set α)}
-        (fun X => Pf (the_elem X)) :=
+        (fun X => (the_elem X).elim proc.DIV Pf) :=
   rfl
 
 /- Lean note:
@@ -151,11 +152,11 @@ theorem fsfF_Rep_int_choice_com_def [Inhabited α]
 
 /- f -/
 
-def fsfF_Rep_int_choice_f [Inhabited α] [Inhabited β]
+def fsfF_Rep_int_choice_f [Inhabited β]
     (f : β → α) (X : Set β) (Pf : β → proc p α) : proc p α :=
   fsfF_Rep_int_choice_com (f '' X) fun x => Pf (Function.invFun f x)
 
-theorem fsfF_Rep_int_choice_f_def [Inhabited α] [Inhabited β]
+theorem fsfF_Rep_int_choice_f_def [Inhabited β]
     (f : β → α) (X : Set β) (Pf : β → proc p α) :
     fsfF_Rep_int_choice_f (p := p) f X Pf =
       fsfF_Rep_int_choice_com (f '' X) (fun x => Pf (Function.invFun f x)) :=
@@ -193,7 +194,7 @@ theorem fsfF_Rep_int_choice_set_in
   intro c hc
   exact P_inv_type1 (X := Xs) (P := fun X => fsfF_proc (SPf X)) hSPf hc
 
-theorem fsfF_Rep_int_choice_com_in [Inhabited α]
+theorem fsfF_Rep_int_choice_com_in
     {X : Set α} {SPf : α → proc p α} :
     (∀ x, x ∈ X → fsfF_proc (SPf x)) →
       fsfF_proc (fsfF_Rep_int_choice_com X SPf) := by
@@ -203,7 +204,7 @@ theorem fsfF_Rep_int_choice_com_in [Inhabited α]
   rcases hY with ⟨a, haX, rfl⟩
   simpa [the_elem_singleton] using hSPf a haX
 
-theorem fsfF_Rep_int_choice_f_in [Inhabited α] [Inhabited β]
+theorem fsfF_Rep_int_choice_f_in [Inhabited β]
     {f : β → α} {X : Set β} {SPf : β → proc p α} :
     Injective f →
       (∀ x, x ∈ X → fsfF_proc (SPf x)) →
@@ -236,16 +237,16 @@ theorem cspF_fsfF_Rep_int_choice_set_eqF
       (C := type1 Xs)
       (SPf := fun c => SPf (Function.invFun type1 c)))
 
-theorem cspF_fsfF_Rep_int_choice_com_eqF [Inhabited α]
+theorem cspF_fsfF_Rep_int_choice_com_eqF
     [HasPNfun p α] [HasFPmode]
     {X : Set α} {SPf : α → proc p α} :
     eqFfix (Rep_int_choice_com X SPf) (fsfF_Rep_int_choice_com X SPf) := by
   simpa [fsfF_Rep_int_choice_com_def, Rep_int_choice_com_def] using
     (cspF_fsfF_Rep_int_choice_set_eqF
       (Xs := {Y | ∃ a, a ∈ X ∧ Y = ({a} : Set α)})
-      (SPf := fun Y => SPf (the_elem Y)))
+      (SPf := fun Y => (the_elem Y).elim proc.DIV SPf))
 
-theorem cspF_fsfF_Rep_int_choice_f_eqF [Inhabited α] [Inhabited β]
+theorem cspF_fsfF_Rep_int_choice_f_eqF [Inhabited β]
     [HasPNfun p α] [HasFPmode]
     {f : β → α} {X : Set β} {SPf : β → proc p α} :
     Injective f →

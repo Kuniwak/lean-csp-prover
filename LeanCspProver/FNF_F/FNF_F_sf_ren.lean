@@ -59,7 +59,7 @@ theorem Pfun_Renaming_def
       (fun P1 => P1 [[r]]) :=
   rfl
 
-def SP_step_Renaming [Inhabited α]
+def SP_step_Renaming
     (r : Set (α × α)) :
     Set α → (α → proc p α) → proc p α →
       (α → proc p α) → proc p α :=
@@ -67,7 +67,7 @@ def SP_step_Renaming [Inhabited α]
     (proc.Ext_pre_choice {y | ∃ x, x ∈ Y1 ∧ (x, y) ∈ r} fun y =>
       fsfF_Rep_int_choice_com {x | x ∈ Y1 ∧ (x, y) ∈ r} SPf) [+] Q1
 
-theorem SP_step_Renaming_def [Inhabited α]
+theorem SP_step_Renaming_def
     (r : Set (α × α)) :
     SP_step_Renaming (p := p) (α := α) r =
       (fun Y1 _Pf1 Q1 SPf =>
@@ -75,11 +75,11 @@ theorem SP_step_Renaming_def [Inhabited α]
           fsfF_Rep_int_choice_com {x | x ∈ Y1 ∧ (x, y) ∈ r} SPf) [+] Q1) :=
   rfl
 
-def fsfF_Renaming [Inhabited α]
+def fsfF_Renaming
     (P1 : proc p α) (r : Set (α × α)) : proc p α :=
   fsfF_induct1 (Pfun_Renaming r) (SP_step_Renaming r) P1
 
-theorem fsfF_Renaming_def [Inhabited α]
+theorem fsfF_Renaming_def
     (P1 : proc p α) (r : Set (α × α)) :
     fsfF_Renaming (p := p) (α := α) P1 r =
       fsfF_induct1 (Pfun_Renaming r) (SP_step_Renaming r) P1 :=
@@ -91,7 +91,7 @@ notation:84 P " [[" r "]]seq" => fsfF_Renaming P r
  |                        in fsfF_proc                        |
  *------------------------------------------------------------* -/
 
-theorem fsfF_Renaming_in [Inhabited α]
+theorem fsfF_Renaming_in
     {P1 : proc p α} {r : Set (α × α)} :
     fsfF_proc P1 →
       fsfF_proc (P1 [[r]]seq) := by
@@ -109,7 +109,7 @@ theorem fsfF_Renaming_in [Inhabited α]
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-theorem cspF_fsfF_Renaming_eqF [Inhabited α]
+theorem cspF_fsfF_Renaming_eqF
     [HasPNfun p α] [HasFPmode]
     {P1 : proc p α} {r : Set (α × α)} :
     eqFfix (P1 [[r]]) (P1 [[r]]seq) := by

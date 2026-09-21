@@ -152,7 +152,7 @@ theorem cspF_fsfF_IF_eqF
  |                                                               |
  *===============================================================* -/
 
-def prefsfF [Inhabited α] : proc p α → proc p α
+def prefsfF : proc p α → proc p α
   | proc.STOP => SSTOP
   | proc.SKIP => SSKIP
   | proc.DIV => SDIV
@@ -173,12 +173,12 @@ def prefsfF [Inhabited α] : proc p α → proc p α
             --- prefsfF P is fullly sequentialized ---
  *===============================================================* -/
 
-axiom prefsfF_in_lm [Inhabited α]
+axiom prefsfF_in_lm
     {P : proc p α} :
     noPN P →
       fsfF_proc (prefsfF P)
 
-theorem prefsfF_in [Inhabited α]
+theorem prefsfF_in
     {P : proc p α} :
     noPN P →
       fsfF_proc (prefsfF P) := by
@@ -189,13 +189,13 @@ theorem prefsfF_in [Inhabited α]
            --- prefsfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_prefsfF_eqF_lm [Inhabited α]
+axiom cspF_prefsfF_eqF_lm
     [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     noPN P →
       eqFfix P (prefsfF P)
 
-theorem cspF_prefsfF_eqF [Inhabited α]
+theorem cspF_prefsfF_eqF
     [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     noPN P →
@@ -209,11 +209,11 @@ theorem cspF_prefsfF_eqF [Inhabited α]
  |                                                               |
  *===============================================================* -/
 
-def fsfF [Inhabited α] [HasPNfun p α]
+def fsfF [HasPNfun p α]
     (P : proc p α) : proc p α :=
   prefsfF (rmPN P)
 
-theorem fsfF_def [Inhabited α] [HasPNfun p α]
+theorem fsfF_def [HasPNfun p α]
     (P : proc p α) :
     fsfF P = prefsfF (rmPN P) :=
   rfl
@@ -222,7 +222,7 @@ theorem fsfF_def [Inhabited α] [HasPNfun p α]
            theorem --- fsfF P is fullly sequentialized ---
  *===============================================================* -/
 
-theorem fsfF_in [Inhabited α] [HasPNfun p α]
+theorem fsfF_in [HasPNfun p α]
     {P : proc p α} :
     fsfF_proc (fsfF P) := by
   rw [fsfF_def]
@@ -232,7 +232,7 @@ theorem fsfF_in [Inhabited α] [HasPNfun p α]
            theorem --- fsfF P is equal to P based on F ---
  *===============================================================* -/
 
-theorem cspF_fsfF_eqF [Inhabited α]
+theorem cspF_fsfF_eqF
     [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →

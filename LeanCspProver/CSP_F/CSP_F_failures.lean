@@ -301,14 +301,14 @@ theorem in_failures_Rep_int_choice_set {f : failure α}
   simpa [Rep_int_choice_failures_set] using
     (in_failures_Union_proc (f := f) (X := Xs) (Ff := fun X => failures (Pf X) M))
 
-theorem in_failures_Rep_int_choice_com [Inhabited α] {f : failure α}
+theorem in_failures_Rep_int_choice_com {f : failure α}
     {X : Set α} {Pf : α → proc p α} {M : p → domFType α} :
     (f :f failures (Rep_int_choice_com X Pf) M) ↔
       ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
   simpa [Rep_int_choice_failures_com] using
     (in_failures_Union_proc (f := f) (X := X) (Ff := fun a => failures (Pf a) M))
 
-theorem in_failures_Rep_int_choice_f [Inhabited α] [Inhabited β] {f : failure α}
+theorem in_failures_Rep_int_choice_f [Inhabited β] {f : failure α}
     {g : β → α} (hg : Function.Injective g) {X : Set β} {Pf : β → proc p α} {M : p → domFType α} :
     (f :f failures (Rep_int_choice_f g X Pf) M) ↔
       ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by

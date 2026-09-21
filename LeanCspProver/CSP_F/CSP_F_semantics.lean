@@ -149,20 +149,21 @@ theorem Rep_int_choice_failures_set (Xs : Set (Set α)) (Pf : Set α → proc p 
     rw [Function.leftInverse_invFun inj_type1 X]
     exact hf
 
-theorem Rep_int_choice_failures_com_lm [Inhabited α] {X : Set α} {Pf : α → proc p α}
+theorem Rep_int_choice_failures_com_lm {X : Set α} {Pf : α → proc p α}
     {f : failure α} {M : p → domFType α} :
-    (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧ f :f failures (Pf (the_elem z)) M) ↔
+    (∃ z, (∃ a, z = ({a} : Set α) ∧ a ∈ X) ∧
+        f :f failures ((the_elem z).elim proc.DIV Pf) M) ↔
       ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
   constructor
   · rintro ⟨z, ⟨a, rfl, ha⟩, hf⟩
-    rw [the_elem_singleton] at hf
+    rw [the_elem_singleton, Option.elim_some] at hf
     exact ⟨a, ha, hf⟩
   · rintro ⟨a, ha, hf⟩
     refine ⟨{a}, ⟨a, rfl, ha⟩, ?_⟩
-    rw [the_elem_singleton]
+    rw [the_elem_singleton, Option.elim_some]
     exact hf
 
-theorem Rep_int_choice_failures_com [Inhabited α] (X : Set α) (Pf : α → proc p α) :
+theorem Rep_int_choice_failures_com (X : Set α) (Pf : α → proc p α) :
     failures (Rep_int_choice_com X Pf) =
       fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by
   rw [Rep_int_choice_com_def, Rep_int_choice_failures_set]
@@ -172,14 +173,14 @@ theorem Rep_int_choice_failures_com [Inhabited α] (X : Set α) (Pf : α → pro
   simp only [eq_iff_iff]
   constructor
   · rintro ⟨Y, ⟨a, ha, rfl⟩, hf⟩
-    rw [the_elem_singleton] at hf
+    rw [the_elem_singleton, Option.elim_some] at hf
     exact ⟨a, ha, hf⟩
   · rintro ⟨a, ha, hf⟩
     refine ⟨{a}, ⟨a, ha, rfl⟩, ?_⟩
-    rw [the_elem_singleton]
+    rw [the_elem_singleton, Option.elim_some]
     exact hf
 
-theorem Rep_int_choice_failures_f [Inhabited α] [Inhabited β]
+theorem Rep_int_choice_failures_f [Inhabited β]
     {g : β → α} (hg : Function.Injective g) (X : Set β) (Pf : β → proc p α) :
     failures (Rep_int_choice_f (p := p) g X Pf) =
       fun M => CollectF fun f => ∃ a, a ∈ X ∧ f :f failures (Pf a) M := by

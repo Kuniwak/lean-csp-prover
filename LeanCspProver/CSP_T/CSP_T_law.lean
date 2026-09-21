@@ -55,7 +55,7 @@ theorem cspT_Ext_choice_Int_choice
     rw [in_traces_Int_choice] at ht
     exact ht
 
-theorem cspT_Ext_pre_choice_Rep_int_choice [Inhabited α]
+theorem cspT_Ext_pre_choice_Rep_int_choice
     {X : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Ext_pre_choice X Pf) M M (Int_pre_choice X Pf) := by
   rw [cspT_eqT_semantics]

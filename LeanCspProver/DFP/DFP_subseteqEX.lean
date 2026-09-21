@@ -297,7 +297,7 @@ theorem cspF_subseteqEX_Rep_int_choice_set {p α : Type _} [HasPNfun p α] [HasF
 
 /- com -/
 
-theorem cspF_subseteqEX_Rep_int_choice_com {p α : Type _} [Inhabited α] [HasPNfun p α] [HasFPmode]
+theorem cspF_subseteqEX_Rep_int_choice_com {p α : Type _} [HasPNfun p α] [HasFPmode]
     {P : proc p α} {X : Set α} {Pf : α → proc p α}
     {F : Set (failure α)} {Ff : α → Set (failure α)} {A : Set (event α)}
     (hP : eqFfix P (Rep_int_choice_com X Pf))
@@ -328,7 +328,7 @@ theorem cspF_subseteqEX_Rep_int_choice_com {p α : Type _} [Inhabited α] [HasPN
 
 /- f -/
 
-theorem cspF_subseteqEX_Rep_int_choice_f {p α β : Type _} [Inhabited α] [Inhabited β]
+theorem cspF_subseteqEX_Rep_int_choice_f {p α β : Type _} [Inhabited β]
     [HasPNfun p α] [HasFPmode]
     {f : β → α} (hf : Function.Injective f)
     {P : proc p α} {X : Set β} {Pf : β → proc p α}

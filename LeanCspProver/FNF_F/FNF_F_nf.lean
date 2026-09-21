@@ -109,20 +109,20 @@ def fnfF_fsfF
     (n : Nat) (SP : proc p α) : proc p α :=
   Classical.choose (fnfF_fsfF_rel_exists_ax n SP)
 
-def fnfF [Inhabited α] [HasPNfun p α] :
+def fnfF [HasPNfun p α] :
     Nat → proc p α → proc p α :=
   fun n P => fnfF_fsfF n (fsfF P)
 
-theorem fnfF_def [Inhabited α] [HasPNfun p α] :
+theorem fnfF_def [HasPNfun p α] :
     fnfF (p := p) (α := α) =
       (fun n P => fnfF_fsfF n (fsfF P)) :=
   rfl
 
-def XfnfF [Inhabited α] [HasPNfun p α] :
+def XfnfF [HasPNfun p α] :
     proc p α → proc p α :=
   fun P => Rep_int_choice_nat Set.univ (fun n => fnfF n P)
 
-theorem XfnfF_def [Inhabited α] [HasPNfun p α] :
+theorem XfnfF_def [HasPNfun p α] :
     XfnfF (p := p) (α := α) =
       (fun P => Rep_int_choice_nat Set.univ (fun n => fnfF n P)) :=
   rfl
@@ -436,7 +436,7 @@ theorem cspF_fnfF_fsfF_eqF
    theorem --- fnfF P is a (restricted) full normal form ---
  *===============================================================* -/
 
-theorem fnfF_in [Inhabited α] [HasPNfun p α]
+theorem fnfF_in [HasPNfun p α]
     {n : Nat} {P : proc p α} :
     fnfF_proc (fnfF n P) := by
   rw [fnfF_def]
@@ -446,7 +446,7 @@ theorem fnfF_in [Inhabited α] [HasPNfun p α]
         theorem --- fnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_fnfF_eqF [Inhabited α] [HasPNfun p α] [HasFPmode]
+axiom cspF_fnfF_eqF [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
       eqFfix (P |. n) (fnfF n P)
@@ -455,7 +455,7 @@ axiom cspF_fnfF_eqF [Inhabited α] [HasPNfun p α] [HasFPmode]
  |     auxiliary laws     |
  *------------------------* -/
 
-axiom cspF_fnfF_eqF_Depth_rest [Inhabited α] [HasPNfun p α] [HasFPmode]
+axiom cspF_fnfF_eqF_Depth_rest [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
       eqFfix ((fnfF n P) |. n) (fnfF n P)
@@ -464,7 +464,7 @@ axiom cspF_fnfF_eqF_Depth_rest [Inhabited α] [HasPNfun p α] [HasFPmode]
           theorem --- XfnfF P is a full normal form ---
  *===============================================================* -/
 
-axiom XfnfF_in [Inhabited α] [HasPNfun p α] [HasFPmode]
+axiom XfnfF_in [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
       XfnfF P ∈ XfnfF_proc (p := p) (α := α)
@@ -473,7 +473,7 @@ axiom XfnfF_in [Inhabited α] [HasPNfun p α] [HasFPmode]
           theorem --- XfnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_XfnfF_eqF [Inhabited α] [HasPNfun p α] [HasFPmode]
+axiom cspF_XfnfF_eqF [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
       eqFfix P (XfnfF P)

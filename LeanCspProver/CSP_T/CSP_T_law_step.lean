@@ -227,7 +227,7 @@ theorem cspT_Parallel_step
  |      csp law     |
  *------------------*) -/
 
-theorem cspT_Hiding_step [Inhabited α]
+theorem cspT_Hiding_step
     {X Y : Set α} {Pf : α → proc p α} {M : p → domTType α} :
     eqT (proc.Hiding (proc.Ext_pre_choice Y Pf) X) M M
       (procIte (Y ∩ X = ∅)
@@ -246,7 +246,7 @@ theorem cspT_Hiding_step [Inhabited α]
  |      csp law     |
  *------------------*) -/
 
-theorem cspT_Renaming_step [Inhabited α]
+theorem cspT_Renaming_step
     {X : Set α} {Pf : α → proc p α} {r : Set (α × α)} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[r]]) M M
       (proc.Ext_pre_choice {y | ∃ x, x ∈ X ∧ (x, y) ∈ r} fun y =>

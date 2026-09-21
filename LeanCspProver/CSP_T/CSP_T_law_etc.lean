@@ -315,7 +315,7 @@ theorem cspT_Ext_choice_DIV_Int_choice_Id
  * =================================================== *)
 -/
 
-theorem cspT_Ext_pre_choice_Renaming_fun_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming_fun_step
     {X : Set α} {Pf : α → proc p α} {f : α → α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[fun_to_rel f]]) M M
       (proc.Ext_pre_choice (f '' X) fun y =>
@@ -457,7 +457,7 @@ theorem cspT_Act_prefix_Renaming2_channel_step_notin
    `cspT_Act_prefix_Renaming_event_step`, and
    `cspT_Act_prefix_Renaming_channel_step`. -/
 
-theorem cspT_Ext_pre_choice_Renaming1_event1_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming1_event1_step
     {X : Set α} {Pf : α → proc p α} {a b : α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[a <--> b]]) M M
       ((procIte (a ∈ X) (b ~> (Pf a)[[a <--> b]]) proc.STOP) [+]
@@ -465,7 +465,7 @@ theorem cspT_Ext_pre_choice_Renaming1_event1_step [Inhabited α]
         (proc.Ext_pre_choice (X \ ({a, b} : Set α)) fun x => (Pf x)[[a <--> b]])) := by
   cspT_auto_step_dist
 
-theorem cspT_Ext_pre_choice_Renaming1_event2_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming1_event2_step
     {X : Set α} {Pf : α → proc p α} {a b : α} {M : p → domTType α} :
     a = b →
       eqT ((proc.Ext_pre_choice X Pf)[[a <--> b]]) M M
@@ -474,7 +474,7 @@ theorem cspT_Ext_pre_choice_Renaming1_event2_step [Inhabited α]
           (proc.Ext_pre_choice (X \ ({a, b} : Set α)) fun x => (Pf x)[[a <--> b]])) := by
   cspT_auto_step_dist
 
-theorem cspT_Ext_pre_choice_Renaming1_event_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming1_event_step
     {X : Set α} {Pf : α → proc p α} {a b : α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[a <--> b]]) M M
       ((procIte (a ∈ X) (b ~> (Pf a)[[a <--> b]]) proc.STOP) [+]
@@ -482,7 +482,7 @@ theorem cspT_Ext_pre_choice_Renaming1_event_step [Inhabited α]
         (proc.Ext_pre_choice (X \ ({a, b} : Set α)) fun x => (Pf x)[[a <--> b]])) := by
   cspT_auto_step_dist
 
-theorem cspT_Ext_pre_choice_Renaming2_set_event_step_in [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming2_set_event_step_in
     {X A : Set α} {Pf : α → proc p α} {a : α} {M : p → domTType α} :
     X ∩ A ≠ ∅ →
       eqT ((proc.Ext_pre_choice X Pf)[[A <<- a]]) M M
@@ -546,7 +546,7 @@ theorem cspT_Ext_pre_choice_Renaming2_set_event_step_notin
         (proc.Ext_pre_choice X fun x => (Pf x)[[A <<- b]]) := by
   cspT_auto_step_dist
 
-theorem cspT_Ext_pre_choice_Renaming2_set_event_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming2_set_event_step
     {X A : Set α} {Pf : α → proc p α} {a : α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[A <<- a]]) M M
       (procIte (X ∩ A ≠ ∅)
@@ -559,7 +559,7 @@ theorem cspT_Ext_pre_choice_Renaming2_set_event_step [Inhabited α]
   · rw [procIte_neg h]
     exact cspT_Ext_pre_choice_Renaming2_set_event_step_notin (by simpa using h)
 
-theorem cspT_Ext_pre_choice_Renaming2_event_step [Inhabited α]
+theorem cspT_Ext_pre_choice_Renaming2_event_step
     {X : Set α} {Pf : α → proc p α} {a b : α} {M : p → domTType α} :
     eqT ((proc.Ext_pre_choice X Pf)[[a <-- b]]) M M
       (procIte (a ∈ X)
@@ -732,7 +732,7 @@ theorem cspT_Rec_prefix_Renaming1_event_step_notin
    `cspT_Rec_prefix_Renaming1_event_step_notin`. -/
 
 theorem cspT_Rec_prefix_Renaming2_set_event_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       (∃ x, x ∈ X ∧ f x ∈ A) →
@@ -770,7 +770,7 @@ theorem cspT_Rec_prefix_Renaming2_set_event_step_notin
   cspT_auto_step_dist
 
 theorem cspT_Rec_prefix_Renaming2_set_event_step
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       eqT ((Rec_prefix f X Pf)[[A <<- a]]) M M
@@ -886,7 +886,7 @@ theorem cspT_Rec_prefix_Renaming2_channel_step_notin
    `cspT_Rec_prefix_Renaming_channel_step`. -/
 
 theorem cspT_Nondet_send_prefix_Renaming1_event1_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domTType α} :
     Injective f →
       v ∈ X →
@@ -897,7 +897,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_event1_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming1_event2_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domTType α} :
     Injective f →
       v ∈ X →
@@ -908,7 +908,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_event2_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming1_event_step_notin
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {a b : α} {M : p → domTType α} :
     ((∀ x, a ≠ f x) ∨ a ∉ Set.range f) →
       ((∀ x, b ≠ f x) ∨ b ∉ Set.range f) →
@@ -924,7 +924,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_event_step_notin
 /-- The `Int_pre_choice` counterpart of
     `cspT_Ext_pre_choice_Renaming2_set_event_step_in`; this is what
     `cspT_Nondet_send_prefix_Renaming2_set_event_step_in` unfolds to. -/
-private theorem Int_pre_choice_Renaming2_set_event_in [Inhabited α]
+private theorem Int_pre_choice_Renaming2_set_event_in
     {Y A : Set α} {Qf : α → proc p α} {a : α} {M : p → domTType α} :
     Y ∩ A ≠ ∅ →
       eqT ((Int_pre_choice Y Qf)[[A <<- a]]) M M
@@ -992,7 +992,7 @@ private theorem Int_pre_choice_Renaming2_set_event_in [Inhabited α]
         · exact in_traces_Act_prefix.mpr (Or.inr ⟨u, rfl, hu⟩)
 
 theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       (∃ x, x ∈ X ∧ f x ∈ A) →
@@ -1023,7 +1023,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_in
   exact Int_pre_choice_Renaming2_set_event_in hne
 
 theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_notin
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     ((∀ x, x ∈ X → f x ∉ A) ∨ A ∩ (f '' X) = ∅) →
       eqT ((Nondet_send_prefix f X Pf)[[A <<- a]]) M M
@@ -1031,7 +1031,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_set_event_step_notin
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming2_set_event_step
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {A : Set α} {a : α} {M : p → domTType α} :
     Injective f →
       eqT ((Nondet_send_prefix f X Pf)[[A <<- a]]) M M
@@ -1049,7 +1049,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_set_event_step
     exact hex ⟨z, hzX, hzA⟩
 
 theorem cspT_Nondet_send_prefix_Renaming2_event_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {v : x} {a : α} {M : p → domTType α} :
     Injective f →
       v ∈ X →
@@ -1060,7 +1060,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_event_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming2_event_step_notin
-    {x : Type _} [Inhabited α] [Inhabited x] {f : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f : x → α} {X : Set x}
     {Pf : x → proc p α} {a b : α} {M : p → domTType α} :
     ((∀ x, a ≠ f x) ∨ a ∉ Set.range f) →
       eqT ((Nondet_send_prefix f X Pf)[[a <-- b]]) M M
@@ -1076,7 +1076,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_event_step_notin
    `cspT_Nondet_send_prefix_Renaming2_event_step`. -/
 
 theorem cspT_Nondet_send_prefix_Renaming1_channel1_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domTType α} :
     Injective f →
       Injective g →
@@ -1086,7 +1086,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_channel1_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming1_channel2_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domTType α} :
     Injective f →
       Injective g →
@@ -1096,7 +1096,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_channel2_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming1_channel_step_notin
-    {x y : Type _} [Inhabited α] [Inhabited y] {f g : x → α} {h : y → α}
+    {x y : Type _} [Inhabited y] {f g : x → α} {h : y → α}
     {X : Set y} {Pf : y → proc p α} {M : p → domTType α} :
     ((∀ x y, f x ≠ h y) ∨ Set.range f ∩ Set.range h = ∅) →
       ((∀ x y, g x ≠ h y) ∨ Set.range g ∩ Set.range h = ∅) →
@@ -1111,7 +1111,7 @@ theorem cspT_Nondet_send_prefix_Renaming1_channel_step_notin
    `cspT_Nondet_send_prefix_Renaming1_channel_step_notin`. -/
 
 theorem cspT_Nondet_send_prefix_Renaming2_channel_step_in
-    {x : Type _} [Inhabited α] [Inhabited x] {f g : x → α} {X : Set x}
+    {x : Type _} [Inhabited x] {f g : x → α} {X : Set x}
     {Pf : x → proc p α} {M : p → domTType α} :
     Injective f →
       Injective g →
@@ -1121,7 +1121,7 @@ theorem cspT_Nondet_send_prefix_Renaming2_channel_step_in
   cspT_auto_step_dist
 
 theorem cspT_Nondet_send_prefix_Renaming2_channel_step_notin
-    {x y : Type _} [Inhabited α] [Inhabited y] {f g : x → α} {h : y → α}
+    {x y : Type _} [Inhabited y] {f g : x → α} {h : y → α}
     {X : Set y} {Pf : y → proc p α} {M : p → domTType α} :
     ((∀ x y, f x ≠ h y) ∨ Set.range f ∩ Set.range h = ∅) →
       eqT ((Nondet_send_prefix h X Pf)[[f <== g]]) M M

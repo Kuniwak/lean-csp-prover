@@ -262,7 +262,7 @@ theorem cspF_Rep_int_choice_mono_set
   rcases hs with ⟨X, hX, hs⟩
   exact ⟨X, hX, hF X hX hs⟩
 
-theorem cspF_Rep_int_choice_mono_com [Inhabited α]
+theorem cspF_Rep_int_choice_mono_com
     {X1 X2 : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hX : X1 = X2) (hPQ : ∀ x, x ∈ X1 → refF (Pf x) M1 M2 (Qf x)) :
@@ -282,7 +282,7 @@ theorem cspF_Rep_int_choice_mono_com [Inhabited α]
   rcases hs with ⟨x, hx, hs⟩
   exact ⟨x, hx, hF x hx hs⟩
 
-theorem cspF_Rep_int_choice_mono_f [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_mono_f [Inhabited β]
     {f : β → α} {X1 X2 : Set β} {Pf : β → proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hX : X1 = X2) (hPQ : ∀ x, x ∈ X1 → refF (Pf x) M1 M2 (Qf x)) :
@@ -351,7 +351,7 @@ theorem cspF_Rep_int_choice_cong_set
   · exact cspF_Rep_int_choice_mono_set rfl (fun X hX => (hPQ' X hX).1)
   · exact cspF_Rep_int_choice_mono_set rfl (fun X hX => (hPQ' X hX).2)
 
-theorem cspF_Rep_int_choice_cong_com [Inhabited α]
+theorem cspF_Rep_int_choice_cong_com
     {X1 X2 : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hX : X1 = X2) (hPQ : ∀ x, x ∈ X1 → eqF (Pf x) M1 M2 (Qf x)) :
@@ -365,7 +365,7 @@ theorem cspF_Rep_int_choice_cong_com [Inhabited α]
   · exact cspF_Rep_int_choice_mono_com rfl (fun x hx => (hPQ' x hx).1)
   · exact cspF_Rep_int_choice_mono_com rfl (fun x hx => (hPQ' x hx).2)
 
-theorem cspF_Rep_int_choice_cong_f [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_cong_f [Inhabited β]
     {f : β → α} {X1 X2 : Set β} {Pf : β → proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hX : X1 = X2) (hPQ : ∀ x, x ∈ X1 → eqF (Pf x) M1 M2 (Qf x)) :
@@ -801,7 +801,7 @@ theorem cspF_Rec_prefix_mono
   rcases hy with ⟨x, hx, rfl⟩
   simpa [Rec_prefix_def, Function.leftInverse_invFun ha x] using hPQ x hx
 
-theorem cspF_Int_pre_choice_mono [Inhabited α]
+theorem cspF_Int_pre_choice_mono
     {X Y : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hXY : X = Y) (hPQ : ∀ x, x ∈ Y → refF (Pf x) M1 M2 (Qf x)) :
@@ -815,7 +815,7 @@ theorem cspF_Int_pre_choice_mono [Inhabited α]
         exact cspF_Act_prefix_mono rfl (hPQ x hx)))
 
 theorem cspF_Nondet_send_prefix_mono
-    {x : Type _} [Inhabited α] [Inhabited x] {a b : x → α} {X Y : Set x}
+    {x : Type _} [Inhabited x] {a b : x → α} {X Y : Set x}
     {Pf : x → proc p α} {Qf : x → proc q α} {M1 : p → domFType α} {M2 : q → domFType α}
     (ha : Injective a) (hab : a = b) (hXY : X = Y)
     (hPQ : ∀ x, x ∈ Y → refF (Pf x) M1 M2 (Qf x)) :
@@ -855,7 +855,7 @@ theorem cspF_Rec_prefix_cong
   · exact cspF_Rec_prefix_mono ha rfl rfl (fun x hx => (hPQ' x hx).1)
   · exact cspF_Rec_prefix_mono ha rfl rfl (fun x hx => (hPQ' x hx).2)
 
-theorem cspF_Int_pre_choice_cong [Inhabited α]
+theorem cspF_Int_pre_choice_cong
     {X Y : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hXY : X = Y) (hPQ : ∀ x, x ∈ Y → eqF (Pf x) M1 M2 (Qf x)) :
@@ -870,7 +870,7 @@ theorem cspF_Int_pre_choice_cong [Inhabited α]
   · exact cspF_Int_pre_choice_mono rfl (fun x hx => (hPQ' x hx).2)
 
 theorem cspF_Nondet_send_prefix_cong
-    {x : Type _} [Inhabited α] [Inhabited x] {a b : x → α} {X Y : Set x}
+    {x : Type _} [Inhabited x] {a b : x → α} {X Y : Set x}
     {Pf : x → proc p α} {Qf : x → proc q α} {M1 : p → domFType α} {M2 : q → domFType α}
     (ha : Injective a) (hab : a = b) (hXY : X = Y)
     (hPQ : ∀ x, x ∈ Y → eqF (Pf x) M1 M2 (Qf x)) :
@@ -927,13 +927,13 @@ theorem cspF_Rep_int_choice_mono_UNIV_set
     refF (Rep_int_choice_set Set.univ Pf) M1 M2 (Rep_int_choice_set Set.univ Qf) := by
   exact cspF_Rep_int_choice_mono_set rfl (fun X _ => hPQ X)
 
-theorem cspF_Rep_int_choice_mono_UNIV_com [Inhabited α]
+theorem cspF_Rep_int_choice_mono_UNIV_com
     {Pf : α → proc p α} {Qf : α → proc q α} {M1 : p → domFType α} {M2 : q → domFType α}
     (hPQ : ∀ x, refF (Pf x) M1 M2 (Qf x)) :
     refF (Rep_int_choice_com Set.univ Pf) M1 M2 (Rep_int_choice_com Set.univ Qf) := by
   exact cspF_Rep_int_choice_mono_com rfl (fun x _ => hPQ x)
 
-theorem cspF_Rep_int_choice_mono_UNIV_f [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_mono_UNIV_f [Inhabited β]
     {f : β → α} {Pf : β → proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hPQ : ∀ x, refF (Pf x) M1 M2 (Qf x)) :
@@ -960,13 +960,13 @@ theorem cspF_Rep_int_choice_cong_UNIV_set
     eqF (Rep_int_choice_set Set.univ Pf) M1 M2 (Rep_int_choice_set Set.univ Qf) := by
   exact cspF_Rep_int_choice_cong_set rfl (fun X _ => hPQ X)
 
-theorem cspF_Rep_int_choice_cong_UNIV_com [Inhabited α]
+theorem cspF_Rep_int_choice_cong_UNIV_com
     {Pf : α → proc p α} {Qf : α → proc q α} {M1 : p → domFType α} {M2 : q → domFType α}
     (hPQ : ∀ x, eqF (Pf x) M1 M2 (Qf x)) :
     eqF (Rep_int_choice_com Set.univ Pf) M1 M2 (Rep_int_choice_com Set.univ Qf) := by
   exact cspF_Rep_int_choice_cong_com rfl (fun x _ => hPQ x)
 
-theorem cspF_Rep_int_choice_cong_UNIV_f [Inhabited α] [Inhabited β]
+theorem cspF_Rep_int_choice_cong_UNIV_f [Inhabited β]
     {f : β → α} {Pf : β → proc p α} {Qf : β → proc q α}
     {M1 : p → domFType α} {M2 : q → domFType α}
     (hf : Injective f) (hPQ : ∀ x, eqF (Pf x) M1 M2 (Qf x)) :
