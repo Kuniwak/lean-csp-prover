@@ -91,8 +91,8 @@ theorem MF_fixed_point_cpo [HasPNfun p α] [HasFPmode]
  | greatest |
  *--------- -/
 
-theorem ALL_cspF_greatest_cpo [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} :
+theorem ALL_cspF_greatest_cpo [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} :
     Pf = PNfun → FPmode = CPOmode →
       (∀ pn, eqF ((Pf pn) << f) MF MF (f pn)) →
         ∀ pn, refF (f pn) MF MF (proc.Proc_name pn : proc p α) := by
@@ -110,8 +110,8 @@ theorem ALL_cspF_greatest_cpo [HasPNfun p α] [HasFPmode]
   have hmf_le : (MF : p → domFType α) ≤ (fun q => semF (f q)) := hMF ▸ hle
   exact hmf_le pn
 
-theorem cspF_greatest_cpo [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {p0 : p} :
+theorem cspF_greatest_cpo [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {p0 : p} :
     Pf = PNfun → FPmode = CPOmode →
       (∀ pn, eqF ((Pf pn) << f) MF MF (f pn)) →
         refF (f p0) MF MF (proc.Proc_name p0 : proc p α) := by
@@ -164,8 +164,8 @@ theorem cspF_unwind_cpo [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-theorem cspF_fp_induct_cpo_ref_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_cpo_ref_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → (FPmode = CPOmode ∨ FPmode = MIXmode) →
       refF Q MF MF (f p0) →
         (∀ p, refF (f p) MF MF ((Pf p) << f)) →
@@ -215,8 +215,8 @@ theorem semF_guarded_LFP_UFP [HasPNfun p α]
 
 /-  csp law  -/
 
-theorem cspF_fp_induct_mix_ref_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_mix_ref_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
       refF (f p0) MF MF Q →
         (∀ p, refF ((Pf p) << f) MF MF (f p)) →
@@ -255,8 +255,8 @@ theorem cspF_fp_induct_mix_ref_left [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-theorem cspF_fp_induct_mix_eq_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_mix_eq_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
       eqF (f p0) MF MF Q →
         (∀ p, eqF ((Pf p) << f) MF MF (f p)) →
@@ -271,8 +271,8 @@ theorem cspF_fp_induct_mix_eq_left [HasPNfun p α] [HasFPmode]
       hPf (Or.inr hmode) (le_of_eq e0) (fun q => le_of_eq (hfix q))
   exact le_antisymm hR hL
 
-theorem cspF_fp_induct_mix_eq_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_mix_eq_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = MIXmode →
       eqF Q MF MF (f p0) →
         (∀ p, eqF (f p) MF MF ((Pf p) << f)) →
@@ -311,8 +311,8 @@ theorem cspF_unwind [HasPNfun p α] [HasFPmode]
     · exact cspF_unwind_cms (Pf := Pf) (p0 := p0) hPf hCMS.2 hCMS.1
     · exact cspF_unwind_cpo (Pf := Pf) (p0 := p0) hPf (Or.inr hMIX)
 
-theorem cspF_fp_induct_ref_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_ref_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun →
       (FPmode = CPOmode ∨ (FPmode = CMSmode ∧ guardedfun Pf) ∨ FPmode = MIXmode) →
         refF Q MF MF (f p0) →
@@ -328,8 +328,8 @@ theorem cspF_fp_induct_ref_right [HasPNfun p α] [HasFPmode]
     · exact cspF_fp_induct_cpo_ref_right (Pf := Pf) (f := f) (Q := Q) (p0 := p0)
         hPf (Or.inr hMIX) hQ hfix
 
-theorem cspF_fp_induct_ref_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_ref_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun →
       (FPmode = CMSmode ∨ FPmode = MIXmode) →
         guardedfun Pf →
@@ -343,8 +343,8 @@ theorem cspF_fp_induct_ref_left [HasPNfun p α] [HasFPmode]
   · exact cspF_fp_induct_mix_ref_left (Pf := Pf) (f := f) (Q := Q) (p0 := p0)
       hPf hguard hMIX hp hfix
 
-theorem cspF_fp_induct_eq_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_eq_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun →
       (FPmode = CMSmode ∨ FPmode = MIXmode) →
         guardedfun Pf →
@@ -358,8 +358,8 @@ theorem cspF_fp_induct_eq_left [HasPNfun p α] [HasFPmode]
   · exact cspF_fp_induct_mix_eq_left (Pf := Pf) (f := f) (Q := Q) (p0 := p0)
       hPf hguard hMIX hp hfix
 
-theorem cspF_fp_induct_eq_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspF_fp_induct_eq_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun →
       (FPmode = CMSmode ∨ FPmode = MIXmode) →
         guardedfun Pf →
