@@ -43,19 +43,17 @@ deriving DecidableEq, Inhabited
    port spelled it `Ext_pre_choice` (`? x -> P`), which breaks the
    deadlock-freedom characterisation: e.g. `(<>, X)` with `Tick ∈ X ≠ univ`
    is a failure of `! x -> P` (pick an offered event outside `X`) but not of
-   `? x -> P` (which refuses only sets disjoint from its initials). Repaired.
-   `Int_pre_choice` needs `[Inhabited α]` in this port (its `the_elem`
-   encoding), hence that extra assumption throughout this file. -/
+   `? x -> P` (which refuses only sets disjoint from its initials). Repaired. -/
 
-def DFtickfun [Inhabited α] : DFtickName → proc DFtickName α
+def DFtickfun : DFtickName → proc DFtickName α
   | DFtickName.DFtick =>
       Int_pre_choice Set.univ (fun _ : α => proc.Proc_name DFtickName.DFtick) |~| proc.SKIP
 
-instance Set_DFtickfun [Inhabited α] : HasPNfun DFtickName α where
+instance Set_DFtickfun : HasPNfun DFtickName α where
   PNfun := DFtickfun
 
 @[simp]
-theorem Set_DFtickfun_def [Inhabited α] (pn : DFtickName) :
+theorem Set_DFtickfun_def (pn : DFtickName) :
     PNfun (p := DFtickName) (α := α) pn = DFtickfun (α := α) pn :=
   rfl
 
@@ -69,7 +67,7 @@ deriving DecidableEq, Inhabited
 
 /- (*** Spc ***) -/
 
-def NatDFtick [Inhabited α] : Nat → proc RDFtickName α → proc RDFtickName α
+def NatDFtick : Nat → proc RDFtickName α → proc RDFtickName α
   | 0, P => P
   | Nat.succ n, P =>
       (Int_pre_choice Set.univ (fun _ : α => NatDFtick n P) |~| proc.SKIP) |~| P
@@ -83,17 +81,17 @@ def NatDFtick [Inhabited α] : Nat → proc RDFtickName α → proc RDFtickName 
    `RDFtick_DFtick_ref2` is false (`SKIP`'s failure `(<>, Evset)` is not a
    failure of a process that must offer an event). -/
 
-def RDFtickfun [Inhabited α] : RDFtickName → proc RDFtickName α
+def RDFtickfun : RDFtickName → proc RDFtickName α
   | RDFtickName.RDFtick =>
       Int_pre_choice Set.univ (fun _ : α =>
         Rep_int_choice_nat Set.univ
           (fun n => NatDFtick n (proc.Proc_name RDFtickName.RDFtick))) |~| proc.SKIP
 
-instance Set_RDFtickfun [Inhabited α] : HasPNfun RDFtickName α where
+instance Set_RDFtickfun : HasPNfun RDFtickName α where
   PNfun := RDFtickfun
 
 @[simp]
-theorem Set_RDFtickfun_def [Inhabited α] (pn : RDFtickName) :
+theorem Set_RDFtickfun_def (pn : RDFtickName) :
     PNfun (p := RDFtickName) (α := α) pn = RDFtickfun (α := α) pn :=
   rfl
 
@@ -102,13 +100,13 @@ theorem Set_RDFtickfun_def [Inhabited α] (pn : RDFtickName) :
  *********************************************************) -/
 
 @[simp]
-theorem guardedfun_DFtick [Inhabited α] :
+theorem guardedfun_DFtick :
     guardedfun (p := DFtickName) (q := DFtickName) (α := α) (DFtickfun (α := α)) := by
   intro pn
   cases pn
   exact ⟨(guarded_Int_pre_choice _ _).mpr fun _ => trivial, trivial⟩
 
-private theorem noHide_NatDFtick [Inhabited α]
+private theorem noHide_NatDFtick
     {P : proc RDFtickName α} {n : Nat} (hP : noHide P) :
     noHide (NatDFtick n P) := by
   induction n with
@@ -117,7 +115,7 @@ private theorem noHide_NatDFtick [Inhabited α]
       exact ⟨⟨(noHide_Int_pre_choice _ _).mpr fun _ => ih, trivial⟩, hP⟩
 
 @[simp]
-theorem guardedfun_RDFtick [Inhabited α] :
+theorem guardedfun_RDFtick :
     guardedfun (p := RDFtickName) (q := RDFtickName) (α := α) (RDFtickfun (α := α)) := by
   intro pn
   cases pn
@@ -137,7 +135,7 @@ theorem guardedfun_RDFtick [Inhabited α] :
 /- the `FPmode` disjunctions needed by unwind/FIX (any mode works, because
    both process functions are guarded) -/
 
-private theorem DFtick_mode [Inhabited α] [HasFPmode] :
+private theorem DFtick_mode [HasFPmode] :
     FPmode = CPOmode ∨
       (FPmode = CMSmode ∧
         guardedfun (p := DFtickName) (q := DFtickName) (α := α) (DFtickfun (α := α))) ∨
@@ -147,7 +145,7 @@ private theorem DFtick_mode [Inhabited α] [HasFPmode] :
   · exact Or.inr (Or.inl ⟨rfl, guardedfun_DFtick⟩)
   · exact Or.inr (Or.inr rfl)
 
-private theorem RDFtick_mode [Inhabited α] [HasFPmode] :
+private theorem RDFtick_mode [HasFPmode] :
     FPmode = CPOmode ∨
       (FPmode = CMSmode ∧
         guardedfun (p := RDFtickName) (q := RDFtickName) (α := α) (RDFtickfun (α := α))) ∨
@@ -157,7 +155,7 @@ private theorem RDFtick_mode [Inhabited α] [HasFPmode] :
   · exact Or.inr (Or.inl ⟨rfl, guardedfun_RDFtick⟩)
   · exact Or.inr (Or.inr rfl)
 
-theorem DFtick_is_DeadlockFree [Inhabited α] [HasFPmode] :
+theorem DFtick_is_DeadlockFree [HasFPmode] :
     isDeadlockFree (proc.Proc_name DFtickName.DFtick : proc DFtickName α) := by
   have hfail :
       failures (proc.Proc_name DFtickName.DFtick : proc DFtickName α) MF =
@@ -215,7 +213,7 @@ theorem DFtick_is_DeadlockFree [Inhabited α] [HasFPmode] :
 
 /- (*** main ***) -/
 
-theorem DFtick_DeadlockFree [Inhabited α]
+theorem DFtick_DeadlockFree
     {p : Type _} [HasPNfun p α] [HasFPmode] {P : proc p α}
     (hRef : refF (proc.Proc_name DFtickName.DFtick : proc DFtickName α) MF MF P) :
     isDeadlockFree P := by
@@ -237,13 +235,13 @@ theorem DFtick_DeadlockFree [Inhabited α]
  |                                                  |
  * ------------------------------------------------- -/
 
-private theorem FIX_DFtick_app [Inhabited α] :
+private theorem FIX_DFtick_app :
     (FIX (DFtickfun (α := α))) DFtickName.DFtick =
       Rep_int_choice_nat Set.univ
         (fun n => FIXn n (DFtickfun (α := α)) DFtickName.DFtick) :=
   rfl
 
-private theorem in_traces_FIX_DFtick [Inhabited α] [HasFPmode] {t : traceType α} :
+private theorem in_traces_FIX_DFtick [HasFPmode] {t : traceType α} :
     (t :t traces ((FIX (DFtickfun (α := α))) DFtickName.DFtick) (fstF ∘ MF)) ↔
       (t = <> ∨
         ∃ n, t :t traces (FIXn n (DFtickfun (α := α)) DFtickName.DFtick) (fstF ∘ MF)) := by
@@ -256,14 +254,14 @@ private theorem in_traces_FIX_DFtick [Inhabited α] [HasFPmode] {t : traceType �
     · exact Or.inl h
     · exact Or.inr ⟨n, Set.mem_univ n, h⟩
 
-private theorem in_failures_FIX_DFtick [Inhabited α] [HasFPmode]
+private theorem in_failures_FIX_DFtick [HasFPmode]
     {t : traceType α} {X : Set (event α)} :
     ((t, X) :f failures ((FIX (DFtickfun (α := α))) DFtickName.DFtick) MF) ↔
       ∃ n, (t, X) :f failures (FIXn n (DFtickfun (α := α)) DFtickName.DFtick) MF := by
   rw [FIX_DFtick_app, in_failures_Rep_int_choice_nat]
   exact ⟨fun ⟨n, _, h⟩ => ⟨n, h⟩, fun ⟨n, h⟩ => ⟨n, Set.mem_univ n, h⟩⟩
 
-private theorem FIXn_succ_DFtick [Inhabited α] {n : Nat} :
+private theorem FIXn_succ_DFtick {n : Nat} :
     FIXn (n + 1) (DFtickfun (α := α)) DFtickName.DFtick =
       Int_pre_choice Set.univ
           (fun _ : α => FIXn n (DFtickfun (α := α)) DFtickName.DFtick) |~| proc.SKIP := by
@@ -276,7 +274,7 @@ private theorem FIXn_succ_DFtick [Inhabited α] {n : Nat} :
   rw [Subst_procfun_Int_pre_choice]
   rfl
 
-theorem traces_included_in_DFtick [Inhabited α] [HasFPmode] {t : traceType α} :
+theorem traces_included_in_DFtick [HasFPmode] {t : traceType α} :
     t :t traces ((FIX DFtickfun) DFtickName.DFtick) (fstF ∘ MF) := by
   refine induct_trace ?_ ?_ ?_
   · exact in_traces_FIX_DFtick.mpr (Or.inl rfl)
@@ -297,7 +295,7 @@ theorem traces_included_in_DFtick [Inhabited α] [HasFPmode] {t : traceType α} 
     · exact hstep 0 (in_traces_DIV.mpr rfl)
     · exact hstep n hn
 
-theorem failures_included_in_DFtick_lm [Inhabited α] [HasFPmode]
+theorem failures_included_in_DFtick_lm [HasFPmode]
     {t : traceType α} {X : Set (event α)} :
     (X ≠ Set.univ ∨ Tick ∈ sett t) →
       (t, X) :f failures ((FIX DFtickfun) DFtickName.DFtick) MF := by
@@ -343,13 +341,13 @@ theorem failures_included_in_DFtick_lm [Inhabited α] [HasFPmode]
     rw [Int_pre_choice, in_failures_Rep_int_choice_com]
     exact ⟨a, Set.mem_univ a, in_failures_Act_prefix.mpr (Or.inr ⟨s, X, rfl, hn⟩)⟩
 
-theorem failures_included_in_DFtick [Inhabited α] [HasFPmode]
+theorem failures_included_in_DFtick [HasFPmode]
     {t : traceType α} {X : Set (event α)}
     (hX : X ≠ Set.univ) (_hTick : Tick ∈ sett t) :
     (t, X) :f failures ((FIX DFtickfun) DFtickName.DFtick) MF := by
   exact failures_included_in_DFtick_lm (t := t) (X := X) (Or.inl hX)
 
-theorem DeadlockFree_DFtick [Inhabited α]
+theorem DeadlockFree_DFtick
     {p : Type _} [HasPNfun p α] [HasFPmode] {P : proc p α} :
     isDeadlockFree P →
       refF (proc.Proc_name DFtickName.DFtick : proc DFtickName α) MF MF P := by
@@ -376,7 +374,7 @@ theorem DeadlockFree_DFtick [Inhabited α]
  |                                                  |
  * ------------------------------------------------- -/
 
-theorem DeadlockFree_DFtick_ref [Inhabited α]
+theorem DeadlockFree_DFtick_ref
     {p : Type _} [HasPNfun p α] [HasFPmode] {P : proc p α} :
     isDeadlockFree P ↔
       refF (proc.Proc_name DFtickName.DFtick : proc DFtickName α) MF MF P := by
@@ -399,7 +397,7 @@ theorem DeadlockFree_DFtick_ref [Inhabited α]
 def RepDF_to_DF : RDFtickName → proc DFtickName α
   | RDFtickName.RDFtick => proc.Proc_name DFtickName.DFtick
 
-private theorem NatDFtick_succ_subst [Inhabited α] {n : Nat} {P : proc RDFtickName α}
+private theorem NatDFtick_succ_subst {n : Nat} {P : proc RDFtickName α}
     {f : RDFtickName → proc DFtickName α} :
     (NatDFtick (n + 1) P) << f =
       ((Int_pre_choice Set.univ (fun _ : α => (NatDFtick n P) << f) |~| proc.SKIP)
@@ -408,7 +406,7 @@ private theorem NatDFtick_succ_subst [Inhabited α] {n : Nat} {P : proc RDFtickN
       (Int_pre_choice Set.univ (fun _ : α => NatDFtick n P) |~| proc.SKIP) |~| P from rfl]
   simp only [Subst_procfun, Subst_procfun_Int_pre_choice]
 
-theorem RDFtick_DFtick_ref1_induct_lm [Inhabited α] [HasFPmode] {n : Nat} :
+theorem RDFtick_DFtick_ref1_induct_lm [HasFPmode] {n : Nat} :
     refF ((proc.Proc_name DFtickName.DFtick : proc DFtickName α)) MF MF
       ((NatDFtick n (proc.Proc_name RDFtickName.RDFtick)) << RepDF_to_DF) := by
   induction n with
@@ -422,7 +420,7 @@ theorem RDFtick_DFtick_ref1_induct_lm [Inhabited α] [HasFPmode] {n : Nat} :
       refine cspF_Rep_int_choice_com_left ⟨a, Set.mem_univ a, ?_⟩
       exact cspF_Act_prefix_mono rfl ih
 
-theorem RDFtick_DFtick_ref1 [Inhabited α] [HasFPmode] :
+theorem RDFtick_DFtick_ref1 [HasFPmode] :
     refF (proc.Proc_name DFtickName.DFtick : proc DFtickName α) MF MF
       (proc.Proc_name RDFtickName.RDFtick : proc RDFtickName α) := by
   refine cspF_fp_induct_ref_right (Pf := RDFtickfun) (f := RepDF_to_DF)
@@ -446,7 +444,7 @@ theorem RDFtick_DFtick_ref1 [Inhabited α] [HasFPmode] :
 def DF_to_RepDF : DFtickName → proc RDFtickName α
   | DFtickName.DFtick => proc.Proc_name RDFtickName.RDFtick
 
-theorem RDFtick_DFtick_ref2 [Inhabited α] [HasFPmode] :
+theorem RDFtick_DFtick_ref2 [HasFPmode] :
     refF (proc.Proc_name RDFtickName.RDFtick : proc RDFtickName α) MF MF
       (proc.Proc_name DFtickName.DFtick : proc DFtickName α) := by
   refine cspF_fp_induct_ref_right (Pf := DFtickfun) (f := DF_to_RepDF)
@@ -463,7 +461,7 @@ theorem RDFtick_DFtick_ref2 [Inhabited α] [HasFPmode] :
 
 /- **************************** =F**************************** -/
 
-theorem RDFtick_DFtick [Inhabited α] [HasFPmode] :
+theorem RDFtick_DFtick [HasFPmode] :
     eqF (proc.Proc_name RDFtickName.RDFtick : proc RDFtickName α) MF MF
       (proc.Proc_name DFtickName.DFtick : proc DFtickName α) := by
   exact (cspF_eq_ref_iff
@@ -477,7 +475,7 @@ theorem RDFtick_DFtick [Inhabited α] [HasFPmode] :
  |                                                    |
  * --------------------------------------------------- -/
 
-theorem DeadlockFree_RDFtick_ref [Inhabited α]
+theorem DeadlockFree_RDFtick_ref
     {p : Type _} [HasPNfun p α] [HasFPmode] {P : proc p α} :
     isDeadlockFree P ↔
       refF (proc.Proc_name RDFtickName.RDFtick : proc RDFtickName α) MF MF P := by
