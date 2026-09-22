@@ -414,13 +414,30 @@ axiom EX1_isFailureOf_in {r : Type _} [Ring r]
         (failures (FIXn (Nat.succ (Nat.succ (n + n))) SAfun (ProcName.pe (i, j) r0)) MF)
         (Ev '' Alpha_pe (r := r) (i, j))
 
-axiom EX1_isFailureOf_in_ALL {r : Type _} [Ring r]
+theorem EX1_isFailureOf_in_ALL {r : Type _} [Ring r]
     (n i j : Nat) :
     ∀ r0 : r,
       peF_rec (r := r) n (i, j) <=EX
         restRefusal
           (failures (FIXn (n + n) SAfun (ProcName.pe (i, j) r0)) MF)
-          (Ev '' Alpha_pe (r := r) (i, j))
+          (Ev '' Alpha_pe (r := r) (i, j)) := by
+  induction n with
+  | zero =>
+      intro r0
+      have hDIV : FIXn 0 SAfun (ProcName.pe (i, j) r0) = (proc.DIV : proc (ProcName r) (Event r)) :=
+        rfl
+      constructor
+      · intro f hf
+        exact absurd hf (by simp [peF_rec])
+      · rintro s Y ⟨hY, -⟩
+        rw [hDIV] at hY
+        exact absurd hY in_failures_DIV
+  | succ n ih =>
+      intro r0
+      have h := EX1_isFailureOf_in n i j r0 ih
+      have harith : Nat.succ n + Nat.succ n = Nat.succ (Nat.succ (n + n)) := by omega
+      rw [harith]
+      simpa [peF_rec] using h
 
 /- main -/
 
