@@ -86,12 +86,55 @@ private def CounterTarget (P : proc nopn event) : proc nopn event :=
     Rep_int_choice_set ({({event.event_a} : Set event)} : Set (Set event))
       (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
 
-axiom PA_eqF :
+/-- `PA` is its own successor: the zero branch contributes `DIV`, which is the
+    unit of internal choice, and the rest re-indexes to `PA` behind one event. -/
+private theorem PA_unfold : eqFfix PA (event.event_a ~> PA) := by
+  have hsplit : (Set.univ : Set Nat) = ({0} : Set Nat) ∪ {m | ∃ n, m = Nat.succ n} := by
+    ext m
+    cases m with
+    | zero => exact ⟨fun _ => Or.inl rfl, fun _ => trivial⟩
+    | succ k => exact ⟨fun _ => Or.inr ⟨k, rfl⟩, fun _ => trivial⟩
+  rw [PA_def]
+  refine cspF_trans_left_eq (cspF_Rep_int_choice_cong_nat hsplit (fun n _ => cspF_reflex_eq_P)) ?_
+  refine cspF_trans_left_eq cspF_Rep_int_choice_nat_union_Int ?_
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong cspF_Rep_int_choice_nat_singleton cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq (cspF_Int_choice_unit_l (P :=
+    Rep_int_choice_nat {m | ∃ n, m = Nat.succ n} PAf)) ?_
+  -- re-index the successors
+  have hreindex : eqFfix (Rep_int_choice_nat {m | ∃ n, m = Nat.succ n} PAf)
+      (Rep_int_choice_nat Set.univ (fun n => event.event_a ~> PAf n)) := by
+    refine cspF_eq_ref_iff.mpr ⟨?_, ?_⟩
+    · refine cspF_Rep_int_choice_nat_right (fun n _ => ?_)
+      exact cspF_Rep_int_choice_nat_left_x (n := Nat.succ n) ⟨n, rfl⟩ cspF_reflex_ref_P
+    · refine cspF_Rep_int_choice_nat_right (fun m hm => ?_)
+      obtain ⟨n, rfl⟩ := hm
+      exact cspF_Rep_int_choice_nat_left_x (n := n) (Set.mem_univ n) cspF_reflex_ref_P
+  refine cspF_trans_left_eq hreindex ?_
+  exact cspF_sym (cspF_Act_prefix_Dist_nat (by
+    intro h
+    have : (0 : Nat) ∈ (Set.univ : Set Nat) := trivial
+    rw [h] at this
+    exact this))
+
+theorem PA_eqF :
     eqFfix PA
       ((((proc.Ext_pre_choice ({event.event_a} : Set event)
             (fun a => if a = event.event_a then PA else proc.DIV)) [+] proc.DIV) |~|
         Rep_int_choice_set ({({event.event_a} : Set event)} : Set (Set event))
-          (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+          (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+  refine cspF_trans_left_eq PA_unfold ?_
+  refine cspF_trans_left_eq cspF_Act_prefix_step ?_
+  refine cspF_trans_left_eq (cspF_input_DIV
+    (A := ({event.event_a} : Set event)) (Pf := fun _ => PA)) ?_
+  refine cspF_Int_choice_cong ?_ ?_
+  · refine cspF_Ext_choice_cong (cspF_Ext_pre_choice_cong rfl (fun a ha => ?_))
+      cspF_reflex_eq_P
+    have : a = event.event_a := ha
+    subst this
+    rw [if_pos rfl]
+    exact cspF_reflex_eq_P
+  · exact cspF_sym cspF_Rep_int_choice_set_singleton
 
 theorem NPA_fnfF_proc {NPA : proc nopn event} :
     fnfF_proc NPA →
