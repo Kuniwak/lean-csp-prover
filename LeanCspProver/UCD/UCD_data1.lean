@@ -12,8 +12,8 @@ import LeanCspProver.CSP.Infra_list
 
 open Classical
 
-abbrev hd : List α → α := List.head!
-abbrev last : List α → α := List.getLast!
+abbrev hd [Inhabited α] : List α → α := List.head!
+abbrev last [Inhabited α] : List α → α := List.getLast!
 
 /-
 (*****************************************************************
@@ -101,17 +101,17 @@ theorem not_nil_EX {s : List α} : (s ≠ []) ↔ ∃ a t, s = a :: t := by
   simpa using (not_nil (s := s))
 
 @[simp]
-theorem hd_in_list {s : List α} : s ≠ [] → hd s ∈ set s := by
+theorem hd_in_list {s : List α} [Inhabited α] : s ≠ [] → hd s ∈ set s := by
   cases s with
   | nil => simp
   | cons a t => simp [_root_.set, hd]
 
-theorem nth_hd {s : List α} : s ≠ [] → nth s 0 = hd s := by
+theorem nth_hd {s : List α} [Inhabited α] : s ≠ [] → nth s 0 = hd s := by
   cases s with
   | nil => simp
   | cons a t => simp [nth, hd]
 
-theorem nth_last {s : List α} {i : Nat} :
+theorem nth_last {s : List α} [Inhabited α] {i : Nat} :
     Nat.succ i = s.length → nth s i = last s := by
   intro h
   rcases list_last_nil_or_unnil s with rfl | ⟨t, a, rfl⟩
@@ -144,7 +144,7 @@ theorem zero_less_EX {n : Nat} : (0 < n) ↔ ∃ m, n = Nat.succ m := by
   | zero => simp
   | succ m => simp
 
-theorem in_set_nth {n : α} {s : List α} :
+theorem in_set_nth [Inhabited α] {n : α} {s : List α} :
     Iff (n ∈ set s) (∃ i, i < s.length ∧ n = nth s i) := by
   constructor
   · intro hn

@@ -126,8 +126,7 @@ theorem Set_DFtickfun_def (pn : DFtickName) :
     guardedfun DFtickfun := by
   intro pn
   cases pn
-  simp [DFtickfun, Nondet_send_prefix, Int_pre_choice,
-    Rep_int_choice_com, Rep_int_choice_set, guarded, noHide]
+  simp [DFtickfun, Nondet_send_prefix, guarded, noHide]
 
 def DF_to_PreCircSpecC : DFtickName → proc PNRC Event
   | DFtickName.DFtick =>
