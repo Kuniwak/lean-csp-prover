@@ -180,6 +180,11 @@ private theorem IF_posRC {c : Prop} [Decidable c] (h : c) (P Q : proc PNRC Event
   rw [decide_eq_true h]
   exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
 
+private theorem IF_negRC {c : Prop} [Decidable c] (h : ¬ c) (P Q : proc PNRC Event) :
+    eqF (IF c THEN P ELSE Q) MF MF Q := by
+  rw [decide_eq_false h]
+  exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
 /-- Selecting one component of `DF_to_PreCircSpecC`. -/
 private theorem DF_to_C {m : Nat} {r : List Att} (hr : okAtt r) :
     refF (DF_to_PreCircSpecC DFtickName.DFtick) MF MF (pPreCircSpecC m r) := by
@@ -552,8 +557,9 @@ def PreCircSpecC_to_Step : PNRC → proc PN Event
                  Circ
  * ----------------------------------- -/
 
-private theorem two_prefix_normal (a b : Event) (P Q : proc PN Event) :
-    eqFfix ((a ~> P) [+] (b ~> Q))
+private theorem two_prefix_normal {q : Type} (a b : Event) (P Q : proc q Event)
+    {M : q → domFType Event} :
+    eqF ((a ~> P) [+] (b ~> Q)) M M
       (proc.Ext_pre_choice (({a} : Set Event) ∪ ({b} : Set Event))
         (fun x => procIte (x ∈ ({a} : Set Event) ∧ x ∈ ({b} : Set Event)) (P |~| Q)
           (procIte (x ∈ ({a} : Set Event)) P Q))) :=
@@ -562,8 +568,9 @@ private theorem two_prefix_normal (a b : Event) (P Q : proc PN Event) :
       (cspF_Act_prefix_step (a := b) (P := Q)))
     cspF_Ext_choice_step
 
-private theorem one_prefix_normal (a : Event) (P : proc PN Event) :
-    eqFfix (a ~> P) (proc.Ext_pre_choice ({a} : Set Event) (fun _ => P)) :=
+private theorem one_prefix_normal {q : Type} (a : Event) (P : proc q Event)
+    {M : q → domFType Event} :
+    eqF (a ~> P) M M (proc.Ext_pre_choice ({a} : Set Event) (fun _ => P)) :=
   cspF_Act_prefix_step
 
 theorem PreCircSpecC_Step_lm {n : Nat} {s : List Att} :
@@ -823,8 +830,141 @@ def CircSpec_to_PreCircSpecC : PNR → proc PNRC Event
 
 /- ------------- lemma ------------- -/
 
-axiom CircSpec_PreCircSpecC_lm {s : List Nat} :
-  tl s ≠ [] → refF (pCircSpec s) MF MF (CircSpec_to_PreCircSpecC (PNR.CircSpec s))
+private theorem lineNext_ne_nil {t : List Nat} {x : Nat} (h : t ≠ []) :
+    lineNext t x ≠ [] := by
+  cases t with
+  | nil => exact absurd rfl h
+  | cons a u =>
+      cases u with
+      | nil => simp [lineNext]
+      | cons b w => simp [lineNext]
+
+private theorem set_lr_inter_right (v g : Nat) :
+    ((({Event.left v} : Set Event) ∪ ({Event.right g} : Set Event)) ∩
+      Set.range Event.right) = ({Event.right g} : Set Event) := by
+  ext e
+  cases e <;> simp
+
+private theorem set_lr_diff_right (v g : Nat) :
+    ((({Event.left v} : Set Event) ∪ ({Event.right g} : Set Event)) \
+      Set.range Event.right) = ({Event.left v} : Set Event) := by
+  ext e
+  cases e <;> simp
+
+private theorem singleton_right_ne_empty (g : Nat) :
+    ({Event.right g} : Set Event) ≠ ∅ := by
+  intro h
+  have : Event.right g ∈ ({Event.right g} : Set Event) := rfl
+  rw [h] at this
+  exact this
+
+theorem CircSpec_PreCircSpecC_lm {s : List Nat} :
+  tl s ≠ [] → refF (pCircSpec s) MF MF (CircSpec_to_PreCircSpecC (PNR.CircSpec s)) := by
+  intro hs
+  refine cspF_fp_induct_ref_left (Pf := PNRdef) (f := CircSpec_to_PreCircSpecC)
+    (p0 := PNR.CircSpec s) rfl (Or.inl rfl) guardedfun_PNR cspF_reflex_ref_P ?_
+  intro p
+  cases p with
+  | CircSpec u =>
+      by_cases htl : tl u ≠ []
+      · have hune : u ≠ [] := by
+          intro he
+          rw [he] at htl
+          exact htl rfl
+        have hmap : List.map Att.AttC (tl u) ≠ [] := by
+          cases h : tl u with
+          | nil => exact absurd h htl
+          | cons a w => simp
+        have hokr : ChkLCR (toStb (List.map Att.AttC (tl u))) ∧
+            toStb (List.map Att.AttC (tl u)) ≠ [] ∧
+            guardL (toStb (List.map Att.AttC (tl u))) ∧
+            guardR (toStb (List.map Att.AttC (tl u))) :=
+          ⟨ChkLCR_toStb, by simpa using hmap, guardL_toStb_AttC htl, guardR_toStb_AttC htl⟩
+        -- the two list identities that make the circle close
+        have hcircdef : circNext u = lineNext u (hd u / 2) := by simp [circNext, hune]
+        have hcirctl : tl (circNext u) ≠ [] := by
+          rw [hcircdef, ← tl_lineNext htl]
+          exact lineNext_ne_nil htl
+        have hgetr : getNat (hd (toStb (List.map Att.AttC (tl u)))) = hd (tl u) :=
+          getNat_hd_toStb_map_AttC htl
+        have hcirchd : hd (circNext u)
+            = fill (hd u / 2 + getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2) := by
+          rw [hgetr]
+          exact hd_circNext htl
+        have hcircstb : toStb (List.map Att.AttC (tl (circNext u)))
+            = nextL (nextR (toStb (List.map Att.AttC (tl u)), hd u / 2)) := by
+          rw [nextL_nextR_toStb_lineNext, hcircdef, ← tl_lineNext htl]
+        -- the common continuation of both limbs
+        have hcont : refF (CircSpec_to_PreCircSpecC (PNR.CircSpec (circNext u))) MF MF
+            (proc.Hiding (pPreCircSpecC
+              (fill (hd u / 2 + getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2))
+              (nextL (nextR (toStb (List.map Att.AttC (tl u)), hd u / 2))))
+              (Set.range Event.right)) := by
+          simp only [CircSpec_to_PreCircSpecC]
+          refine cspF_rw_left_ref (IF_posRC hcirctl _ _) ?_
+          rw [hcirchd, hcircstb]
+          exact cspF_reflex_ref_P
+        simp only [PNRdef, CircSpec_to_PreCircSpecC, Subst_procfun, Send_prefix]
+        refine cspF_rw_right_ref (IF_posRC htl _ _) ?_
+        refine cspF_rw_right_ref
+          (cspF_Hiding_cong rfl (unwRC (PNRC.PreCircSpecC (hd u,
+            toStb (List.map Att.AttC (tl u)))))) ?_
+        refine cspF_rw_right_ref (cspF_Hiding_cong rfl (IF_posRC hokr _ _)) ?_
+        refine cspF_rw_right_ref
+          (cspF_Hiding_cong rfl
+            (two_prefix_normal (Event.left (hd u / 2))
+              (Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2)) _ _)) ?_
+        refine cspF_rw_right_ref (cspF_Hiding_step (X := Set.range Event.right)) ?_
+        rw [procIte_neg (by
+            rw [set_lr_inter_right]
+            exact singleton_right_ne_empty _),
+          set_lr_diff_right, set_lr_inter_right]
+        refine cspF_rw_left_ref (IF_posRC htl _ _) ?_
+        refine cspF_rw_left_ref (one_prefix_normal (Event.left (hd u / 2)) _) ?_
+        refine cspF_Timeout_right_subset (subset_refl _) (fun y hy => ?_) ?_
+        · have hyv : y = Event.left (hd u / 2) := hy
+          subst hyv
+          have hmemS : Event.left (hd u / 2) ∈ ({Event.left (hd u / 2)} : Set Event) :=
+            Set.mem_singleton_iff.mpr rfl
+          have hnand : ¬ (Event.left (hd u / 2) ∈ ({Event.left (hd u / 2)} : Set Event) ∧
+              Event.left (hd u / 2) ∈
+                ({Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2)}
+                  : Set Event)) := by simp
+          simp only [procIte_neg hnand, procIte_pos hmemS]
+          refine cspF_rw_right_ref
+            (cspF_Hiding_cong rfl (unwRC (PNRC.PreCircSpecR (hd u / 2,
+              toStb (List.map Att.AttC (tl u)))))) ?_
+          refine cspF_rw_right_ref (cspF_Hiding_cong rfl (IF_posRC hokr _ _)) ?_
+          refine cspF_rw_right_ref
+            (cspF_Hiding_Act_prefix_in
+              ⟨getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2, rfl⟩) ?_
+          exact hcont
+        · refine cspF_Rep_int_choice_com_right (fun a ha => ?_)
+          have hav : a = Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2) := ha
+          subst hav
+          have hnand : ¬ (Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2)
+              ∈ ({Event.left (hd u / 2)} : Set Event) ∧
+              Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2) ∈
+                ({Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2)}
+                  : Set Event)) := by simp
+          have hnotS : ¬ (Event.right (getNat (hd (toStb (List.map Att.AttC (tl u)))) / 2)
+              ∈ ({Event.left (hd u / 2)} : Set Event)) := by simp
+          simp only [procIte_neg hnand, procIte_neg hnotS]
+          refine cspF_rw_right_ref
+            (cspF_Hiding_cong rfl (unwRC (PNRC.PreCircSpecL (hd u,
+              toStb (List.map Att.AttC (tl u)))))) ?_
+          refine cspF_rw_right_ref (cspF_Hiding_cong rfl (IF_posRC hokr _ _)) ?_
+          refine cspF_rw_right_ref
+            (cspF_Hiding_Act_prefix_notin (a := Event.left (hd u / 2)) (by simp)) ?_
+          refine cspF_rw_right_ref (one_prefix_normal (Event.left (hd u / 2)) _) ?_
+          refine cspF_Ext_pre_choice_mono rfl (fun y hy => ?_)
+          have hyv : y = Event.left (hd u / 2) := hy
+          subst hyv
+          rw [nextR_nextL_toStb_nextR_nextL_toStb htl]
+          exact hcont
+      · simp only [PNRdef, CircSpec_to_PreCircSpecC, Subst_procfun]
+        refine cspF_rw_left_ref (IF_negRC htl _ _) ?_
+        exact cspF_rw_right_ref (IF_negRC htl _ _) cspF_reflex_ref_P
 
 /- ---------------------------------------------------- *
  |                                                      |
