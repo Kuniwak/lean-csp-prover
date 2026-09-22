@@ -39,7 +39,17 @@ attribute [local instance] Classical.propDecidable
 
 /- in -/
 
-axiom pe_expand_in {r : Type _} [Ring r] (n i j : Nat) (r0 : r) :
+private theorem vert_hori_disjoint {r : Type _} {i j : Nat} {a : Event r} :
+    a ∈ Set.range (Event.vert (i, j)) → a ∉ Set.range (Event.hori (i, j)) := by
+  rintro ⟨x, rfl⟩ ⟨y, hy⟩
+  cases hy
+
+private theorem vert_ne_hori {r : Type _} {ij kl : Nat × Nat} {u v : r} :
+    (Event.vert ij u : Event r) ≠ Event.hori kl v := by
+  intro h
+  cases h
+
+theorem pe_expand_in {r : Type _} [Ring r] (n i j : Nat) (r0 : r) :
    (FIXn (Nat.succ (Nat.succ (n + n))) SAfun (ProcName.pe (i, j) r0))
    =F
    proc.Ext_pre_choice
@@ -55,11 +65,23 @@ axiom pe_expand_in {r : Type _} [Ring r] (n i j : Nat) (r0 : r) :
          Rec_prefix (Event.vert (i, j)) Set.univ (fun b =>
            FIXn (Nat.succ (n + n)) SAfun
              (ProcName.pe' (i, j) r0
-               b (Function.invFun (Event.hori (i, j)) a))))
+               b (Function.invFun (Event.hori (i, j)) a)))) := by
+  rw [FIXn_def, Function.iterate_succ_apply']
+  simp only [Subst_procfun_prod, SAfun, Subst_procfun, Rec_prefix_def, Set.image_univ]
+  refine cspF_trans_left_eq cspF_Ext_choice_step ?_
+  refine cspF_Ext_pre_choice_cong rfl (fun a _ => ?_)
+  refine cspF_trans_right_eq (cspF_sym cspF_IF_split) ?_
+  by_cases hA : a ∈ Set.range (Event.vert (i, j) (r := r))
+  · rw [procIte_neg (fun h => vert_hori_disjoint hA h.2), procIte_pos hA,
+      if_pos (by simpa using hA)]
+    exact cspF_reflex_eq_P
+  · rw [procIte_neg (fun h => hA h.1), procIte_neg hA,
+      if_neg (by simpa using hA)]
+    exact cspF_reflex_eq_P
 
 /- out -/
 
-axiom pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
+theorem pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
    (FIXn (Nat.succ (n + n)) SAfun (ProcName.pe' (i, j) r0 x y))
    =F
    proc.Ext_pre_choice
@@ -70,7 +92,44 @@ axiom pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
            FIXn (n + n) SAfun (ProcName.pe (i, j) (r0 + x * y)))
        else
          proc.Ext_pre_choice ({Event.vert (i + 1, j) x} : Set (Event r)) (fun _ =>
-           FIXn (n + n) SAfun (ProcName.pe (i, j) (r0 + x * y))))
+           FIXn (n + n) SAfun (ProcName.pe (i, j) (r0 + x * y)))) := by
+  rw [FIXn_def, Function.iterate_succ_apply']
+  simp only [Subst_procfun_prod, SAfun, Subst_procfun, Send_prefix_def]
+  refine cspF_trans_left_eq
+    (cspF_Seq_compo_cong
+      (cspF_Parallel_cong rfl cspF_Act_prefix_step cspF_Act_prefix_step)
+      cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq
+    (cspF_Seq_compo_cong cspF_Parallel_step cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq cspF_Seq_compo_step ?_
+  refine cspF_Ext_pre_choice_cong (by simp [Set.pair_comm]) (fun a ha => ?_)
+  by_cases hA : a = Event.vert (i + 1, j) x
+  · subst hA
+    rw [procIte_neg (by simp), procIte_neg (by simp [vert_ne_hori]),
+      procIte_pos (Set.mem_singleton _), if_pos rfl]
+    refine cspF_trans_left_eq
+      (cspF_Seq_compo_cong cspF_Parallel_preterm_l cspF_reflex_eq_P) ?_
+    refine cspF_trans_left_eq cspF_Seq_compo_step ?_
+    refine cspF_Ext_pre_choice_cong (by simp) (fun b hb => ?_)
+    exact cspF_trans_left_eq
+      (cspF_Seq_compo_cong cspF_Parallel_term cspF_reflex_eq_P) cspF_Seq_compo_unit_l
+  · have hB : a = Event.hori (i, j + 1) y := by
+      rcases ha with h | h
+      · exact absurd h hA
+      · exact h
+    subst hB
+    rw [procIte_neg (by simp),
+      procIte_neg (show ¬ (Event.hori (i, j + 1) y ∈
+          ({Event.vert (i + 1, j) x} : Set (Event r)) ∧ _) from fun h => vert_ne_hori h.1.symm),
+      procIte_neg (show ¬ (Event.hori (i, j + 1) y ∈
+          ({Event.vert (i + 1, j) x} : Set (Event r))) from fun h => vert_ne_hori h.symm),
+      if_neg hA]
+    refine cspF_trans_left_eq
+      (cspF_Seq_compo_cong cspF_Parallel_preterm_r cspF_reflex_eq_P) ?_
+    refine cspF_trans_left_eq cspF_Seq_compo_step ?_
+    refine cspF_Ext_pre_choice_cong (by simp) (fun b hb => ?_)
+    exact cspF_trans_left_eq
+      (cspF_Seq_compo_cong cspF_Parallel_term cspF_reflex_eq_P) cspF_Seq_compo_unit_l
 
 private theorem hori_notin_range_vert {r : Type _} {ij kl : Nat × Nat} {y : r} :
     Event.hori ij y ∉ Set.range (Event.vert (r := r) kl) := by
