@@ -998,6 +998,17 @@ private theorem toStbOne_AttR_AttL_eq_nextL (na n x : Nat) (t : List Att) :
       | AttR m => simp [toStbOne, nextL]
 
 
+
+private theorem sync_set_mid_mid (w : Nat) :
+    Set.range Event.mid ∩ ({Event.mid w} : Set Event) = ({Event.mid w} : Set Event) := by
+  ext e
+  cases e <;> simp
+
+private theorem expand_set_mid_mid (w : Nat) :
+    ((Set.range Event.mid \ XR) ∪ (({Event.mid w} : Set Event) \ XL)) = (∅ : Set Event) := by
+  ext e
+  cases e <;> simp
+
 /- --------------------- LineSpec_Step (lemmas) --------------------- -/
 
 set_option maxHeartbeats 1000000 in
@@ -1622,15 +1633,6 @@ theorem LineSpec_Step_ref1_AttC_AttL {t : List Att} {na n x : Nat} :
       refine cspF_rw_left_ref (cspF_sym hL) ?_
       exact cspF_rw_right_ref Line_fold_both htau
 
-axiom LineSpec_Step_ref1_AttR_AttL {t : List Att} {na n x : Nat} :
-    ChkLCR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) →
-      lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) <=F
-        (pChildR na <---> pLineSpec (Att.AttL (n, x) :: t))
-
-set_option maxHeartbeats 1000000 in
--- The pipe expansion has to unfold `Rec_prefix`, whose index set is
--- `Event.right '' Set.univ` and whose branch function goes through
--- `Function.invFun`; the defeq checks that drives are past the default budget.
 theorem LineSpec_Step_ref1_AttC_AttR {t : List Att} {n na : Nat} :
     ChkR t →
       lineSpecStepBody (Att.AttC n :: Att.AttR na :: t) <=F
@@ -1883,6 +1885,193 @@ theorem LineSpec_Step_ref1_AttR_AttR {t : List Att} {n na : Nat} :
     rw [Function.leftInverse_invFun inj_event.2.1 m]
     exact cspF_rw_right_ref (Line_fold_right hP) (hright m)
 
+/-- The three `AttC_*` step lemmas, dispatched on the head of the tail. -/
+private theorem ref1_AttC_any {p q : Nat} {w : List Att}
+    (hw : ChkLCR w) (hne : w ≠ []) :
+    lineSpecStepBody (nextL (Att.AttL (p, q) :: w)) <=F
+      (pChild (fill (p / 2 + q)) <---> pLineSpec w) := by
+  obtain ⟨b, sa, rfl⟩ := not_nil_EX.mp hne
+  rcases Att_or b with ⟨m, y, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩
+  · have he : nextL (Att.AttL (p, q) :: Att.AttL (m, y) :: sa)
+        = Att.AttL (fill (p / 2 + q), m / 2) :: nextL (Att.AttL (m, y) :: sa) := by
+      simp [nextL]
+    rw [he]
+    exact LineSpec_Step_ref1_AttC_AttL (chkLCR_of_AttL hw)
+  · have he : nextL (Att.AttL (p, q) :: Att.AttC m :: sa)
+        = Att.AttL (fill (p / 2 + q), m / 2) :: Att.AttR (m / 2) :: sa := by
+      simp [nextL]
+    rw [he]
+    exact LineSpec_Step_ref1_AttC_AttC (chkR_of_AttC hw)
+  · have he : nextL (Att.AttL (p, q) :: Att.AttR m :: sa)
+        = Att.AttC (fill (p / 2 + q)) :: Att.AttR m :: sa := by
+      simp [nextL]
+    rw [he]
+    exact LineSpec_Step_ref1_AttC_AttR (chkR_of_AttR hw)
+
+set_option maxHeartbeats 1000000 in
+-- The pipe expansion has to unfold `Rec_prefix`, whose index set is
+-- `Event.right '' Set.univ` and whose branch function goes through
+-- `Function.invFun`; the defeq checks that drives are past the default budget.
+theorem LineSpec_Step_ref1_AttR_AttL {t : List Att} {na n x : Nat} :
+    ChkLCR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) →
+      lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) <=F
+        (pChildR na <---> pLineSpec (Att.AttL (n, x) :: t)) := by
+  intro hchkz
+  have hchk2 : ChkLCR (Att.AttL (n, x) :: t) := ChkLCR_toStbOne_iff.mp hchkz
+  have hgL2 : guardL (Att.AttL (n, x) :: t) := Or.inl ⟨n, x, rfl⟩
+  have hchkw : ChkLCR (nextL (Att.AttL (n, x) :: t)) := (ChkLCR_nextL hgL2).mpr hchk2
+  have hgRw : guardR (nextL (Att.AttL (n, x) :: t)) :=
+    ChkLCR_guardL_guardR_nextL hchk2 hgL2
+  have hnew : nextL (Att.AttL (n, x) :: t) ≠ [] := nextL_not_nil
+  have hhalf : 2 * na / 2 = na := by omega
+  -- the step body's state is two `nextL` steps away from the raw list
+  have hz : toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)
+      = nextL (Att.AttL (2 * na, n / 2) :: nextL (Att.AttL (n, x) :: t)) := by
+    have h := toStbOne_AttR_AttL_eq_nextL (2 * na) n x t
+    rwa [hhalf] at h
+  have hchkA : ChkLCR (Att.AttL (2 * na, n / 2) :: nextL (Att.AttL (n, x) :: t)) :=
+    Or.inl ⟨⟨(2 * na, n / 2), rfl⟩, hchkw⟩
+  have hgLA : guardL (Att.AttL (2 * na, n / 2) :: nextL (Att.AttL (n, x) :: t)) :=
+    Or.inl ⟨2 * na, n / 2, rfl⟩
+  have hgRA : guardR (Att.AttL (2 * na, n / 2) :: nextL (Att.AttL (n, x) :: t)) := by
+    rw [guardR_AttL]
+    exact hgRw
+  have hchk1 : ChkLCR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) := hchkz
+  have hgL1 : guardL (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) := by
+    rw [hz]
+    exact guardL_nextL_AttL
+  have hgR1 : guardR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) := by
+    rw [hz]
+    exact ChkLCR_guardR_next ⟨hchkA, List.cons_ne_nil _ _⟩
+  have hgetNat : getNat (hd (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))
+      = fill (na + n / 2) := by
+    obtain ⟨b, sa, hb⟩ := not_nil_EX.mp hnew
+    rw [hz, hb]
+    rcases Att_or b with ⟨m, y, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩ <;>
+      simp [nextL, getNat, hhalf]
+  have hP : eqFfix ((pChildR na)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice (Set.range Event.mid)
+        (fun y => (pChild (fill (na + Function.invFun Event.mid y)))[[fun_to_rel fL]])) :=
+    renL_ChildR na
+  -- the tau branch, shared by both cases
+  have htau : refFfix
+      (lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))
+      (Line (pChild (fill (na + n / 2))) (pLineSpec (nextL (Att.AttL (n, x) :: t)))) := by
+    rw [hz]
+    have h := ref1_AttC_any (p := 2 * na) (q := n / 2) hchkw hnew
+    rwa [hhalf] at h
+  by_cases hgR2 : guardR (Att.AttL (n, x) :: t)
+  · have hgRt : guardR t := by rwa [guardR_AttL] at hgR2
+    have hQ : eqFfix ((pLineSpec (Att.AttL (n, x) :: t))[[fun_to_rel fR]])
+        (proc.Ext_pre_choice (({Event.mid (n / 2)} : Set Event) ∪ Set.range Event.right)
+          (fun y => procIte (y = Event.mid (n / 2))
+            ((pLineSpec (nextL (Att.AttL (n, x) :: t)))[[fun_to_rel fR]])
+            ((pLineSpec (nextR (Att.AttL (n, x) :: t,
+              Function.invFun Event.right y)))[[fun_to_rel fR]]))) :=
+      renR_LineSpec_both hchk2 hgL2 hgR2
+    have hright : ∀ m : Nat, refFfix
+        (LineSpec_to_Step (PN.LineSpec
+          (nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t), m))))
+        (Line (pChildR na) (pLineSpec (nextR (Att.AttL (n, x) :: t, m)))) := by
+      intro m
+      have hnr2 : nextR (Att.AttL (n, x) :: t, m)
+          = Att.AttL (n, x) :: nextR (t, m) := guardR_nextR_AttL hgRt
+      have horder2 : nextL (nextR (Att.AttL (n, x) :: t, m))
+          = nextR (nextL (Att.AttL (n, x) :: t), m) :=
+        nextL_nextR_order (Or.inr ⟨hgL2, hgR2, hchk2⟩)
+      have horderA : nextL (nextR (Att.AttL (2 * na, n / 2) ::
+            nextL (Att.AttL (n, x) :: t), m))
+          = nextR (nextL (Att.AttL (2 * na, n / 2) ::
+            nextL (Att.AttL (n, x) :: t)), m) :=
+        nextL_nextR_order (Or.inr ⟨hgLA, hgRA, hchkA⟩)
+      have hnrA : nextR (Att.AttL (2 * na, n / 2) :: nextL (Att.AttL (n, x) :: t), m)
+          = Att.AttL (2 * na, n / 2) :: nextR (nextL (Att.AttL (n, x) :: t), m) :=
+        guardR_nextR_AttL hgRw
+      have hstb : toStbOne (Att.AttR na :: nextR (Att.AttL (n, x) :: t, m))
+          = nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t), m) := by
+        rw [hnr2]
+        have h := toStbOne_AttR_AttL_eq_nextL (2 * na) n x (nextR (t, m))
+        rw [hhalf] at h
+        rw [h, ← hnr2, horder2, hz, ← horderA, hnrA]
+      have hchkR : ChkLCR (nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t), m)) :=
+        (ChkLCR_nextR hgR1).mpr hchk1
+      have htlR : tl (nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t), m)) ≠ [] := by
+        rw [hz, ← horderA, hnrA]
+        obtain ⟨b, sa, hb⟩ := not_nil_EX.mp (not_nil_nextR_not_nil hnew)
+        rw [hb]
+        rcases Att_or b with ⟨m', y, rfl⟩ | ⟨m', rfl⟩ | ⟨m', rfl⟩ <;> simp [nextL]
+      refine cspF_rw_left_ref (toStep_long hchkR htlR) ?_
+      refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+        (X := {u | toStbOne u
+          = nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t), m)})
+        (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+        (a := Att.AttR na :: nextR (Att.AttL (n, x) :: t, m)) inj_stlist hstb ?_
+      exact cspF_reflex_ref_P
+    refine cspF_rw_right_ref
+      (Line_step_sync hP hQ mid_sub_XL (midR_sub_XR (n / 2))
+        (by rw [sync_set_mid_midright]; exact singleton_ne_empty (n / 2))) ?_
+    rw [expand_set_mid_midright (n / 2), sync_set_mid_midright (n / 2)]
+    have hL : eqFfix
+        (lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))
+        (proc.Ext_pre_choice
+          (({Event.left (fill (na + n / 2) / 2)} : Set Event) ∪ Set.range Event.right)
+          (fun y => procIte (y = Event.left (fill (na + n / 2) / 2))
+            (LineSpec_to_Step (PN.LineSpec
+              (nextL (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))))
+            (LineSpec_to_Step (PN.LineSpec
+              (nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t),
+                Function.invFun Event.right y)))))) := by
+      have h := stepBody_LR hgL1 hgR1
+      rwa [hgetNat] at h
+    refine cspF_rw_left_ref hL ?_
+    refine cspF_Timeout_right_subset Set.subset_union_right (fun y hy => ?_) ?_
+    · obtain ⟨m, rfl⟩ := hy
+      have hn1 : ¬ (Event.right m = Event.left (fill (na + n / 2) / 2)) := by simp
+      have hn2 : ¬ (Event.right m ∈ Set.range Event.mid) := by simp
+      have hn3 : ¬ (Event.right m = Event.mid (n / 2)) := by simp
+      simp only [procIte_neg hn1, procIte_neg hn2, procIte_neg hn3]
+      rw [Function.leftInverse_invFun inj_event.2.1 m]
+      exact cspF_rw_right_ref (Line_fold_right hP) (hright m)
+    · refine cspF_Rep_int_choice_com_right (fun a ha => ?_)
+      have hav : a = Event.mid (n / 2) := ha
+      subst hav
+      simp only [procIte_pos True.intro]
+      rw [Function.leftInverse_invFun inj_event.2.2 (n / 2)]
+      refine cspF_rw_left_ref (cspF_sym hL) ?_
+      exact cspF_rw_right_ref Line_fold_both htau
+  · have hQ : eqFfix ((pLineSpec (Att.AttL (n, x) :: t))[[fun_to_rel fR]])
+        (proc.Ext_pre_choice ({Event.mid (n / 2)} : Set Event)
+          (fun _ => (pLineSpec (nextL (Att.AttL (n, x) :: t)))[[fun_to_rel fR]])) :=
+      renR_LineSpec_L hchk2 hgL2 hgR2
+    refine cspF_rw_right_ref
+      (Line_step_sync hP hQ mid_sub_XL (mid_sub_XR (n / 2))
+        (by rw [sync_set_mid_mid]; exact singleton_ne_empty (n / 2))) ?_
+    rw [expand_set_mid_mid (n / 2), sync_set_mid_mid (n / 2)]
+    have hL : eqFfix
+        (lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))
+        (proc.Ext_pre_choice
+          (({Event.left (fill (na + n / 2) / 2)} : Set Event) ∪ Set.range Event.right)
+          (fun y => procIte (y = Event.left (fill (na + n / 2) / 2))
+            (LineSpec_to_Step (PN.LineSpec
+              (nextL (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)))))
+            (LineSpec_to_Step (PN.LineSpec
+              (nextR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t),
+                Function.invFun Event.right y)))))) := by
+      have h := stepBody_LR hgL1 hgR1
+      rwa [hgetNat] at h
+    refine cspF_rw_left_ref hL ?_
+    refine cspF_Timeout_right_subset (Set.empty_subset _) (fun y hy => absurd hy (by simp)) ?_
+    refine cspF_Rep_int_choice_com_right (fun a ha => ?_)
+    have hav : a = Event.mid (n / 2) := ha
+    subst hav
+    rw [Function.leftInverse_invFun inj_event.2.2 (n / 2)]
+    refine cspF_rw_left_ref (cspF_sym hL) ?_
+    exact cspF_rw_right_ref Line_fold_both htau
+
+set_option maxHeartbeats 1000000 in
+-- The pipe expansion has to unfold `Rec_prefix`, whose index set is
+-- `Event.right '' Set.univ` and whose branch function goes through
+-- `Function.invFun`; the defeq checks that drives are past the default budget.
 /- -------------------------- LineSpec_Step -------------------------- -/
 
 private theorem step_pair (a1 a2 : Att) (rest : List Att)
