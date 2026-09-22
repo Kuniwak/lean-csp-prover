@@ -254,45 +254,147 @@ theorem fsfF_induct2_def
 
 /- uniqueness -/
 
-axiom fsfF_induct2_rel_unique_in_lm
+theorem fsfF_induct2_rel_unique_in_lm
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP1 : proc p α} :
     fsfF_induct2_rel Pfun SP_step P1 P2 SP1 →
-      ∀ SP2 : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP2 → SP1 = SP2
+      ∀ SP2 : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP2 → SP1 = SP2 := by
+  intro h1
+  induction h1 with
+  | @fsfF_induct2_rel_etc_left Q1 Q2 hP1 =>
+      intro SP2 h2
+      cases h2 with
+      | @fsfF_induct2_rel_etc_left _ _ _ => rfl
+      | @fsfF_induct2_rel_etc_right _ _ _ => rfl
+      | @step_int_left_split C1' Rf1' SRf' P2' hrel' hdiv' hC' hfsf' hfsfP2' =>
+          exact absurd (fsfF_procI (Or.inl ⟨_, _, hC', rfl, hfsf'⟩)) hP1
+      | @step_int_right_split P1' C2' Rf2' SRf' hrel' hdiv' hC' hfsf' hfsfP1' hEX' =>
+          exact absurd hfsfP1' hP1
+      | @step_split A1' A2' Pf1' Pf2' SPf' SPf1' SPf2' Q1' Q2'
+          hrel' hdiv' hrel1' hdiv1' hrel2' hdiv2' hPf1' hPf2' hQ1' hQ2' =>
+          exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hPf1', hQ1'⟩)) hP1
+  | @fsfF_induct2_rel_etc_right Q1 Q2 hP2 =>
+      intro SP2 h2
+      cases h2 with
+      | @fsfF_induct2_rel_etc_left _ _ _ => rfl
+      | @fsfF_induct2_rel_etc_right _ _ _ => rfl
+      | @step_int_left_split C1' Rf1' SRf' P2' hrel' hdiv' hC' hfsf' hfsfP2' =>
+          exact absurd hfsfP2' hP2
+      | @step_int_right_split P1' C2' Rf2' SRf' hrel' hdiv' hC' hfsf' hfsfP1' hEX' =>
+          exact absurd (fsfF_procI (Or.inl ⟨_, _, hC', rfl, hfsf'⟩)) hP2
+      | @step_split A1' A2' Pf1' Pf2' SPf' SPf1' SPf2' Q1' Q2'
+          hrel' hdiv' hrel1' hdiv1' hrel2' hdiv2' hPf1' hPf2' hQ1' hQ2' =>
+          exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hPf2', hQ2'⟩)) hP2
+  | @step_int_left_split C1 Rf1 SRf P2 hrel hdiv hC hfsf hfsfP2 ih =>
+      intro SP2 h2
+      cases h2 with
+      | @fsfF_induct2_rel_etc_left _ _ hP1 =>
+          exact absurd (fsfF_procI (Or.inl ⟨_, _, hC, rfl, hfsf⟩)) hP1
+      | @fsfF_induct2_rel_etc_right _ _ hP2 => exact absurd hfsfP2 hP2
+      | @step_int_left_split C1' Rf1' SRf2 P2' hrel2 hdiv2 hC2 hfsf2 hfsfP22 =>
+          have hSRf : SRf = SRf2 := by
+            funext c
+            by_cases hc : c ∈ sumset C1
+            · exact ih c hc _ (hrel2 c hc)
+            · rw [hdiv c hc, hdiv2 c hc]
+          rw [hSRf]
+      | @step_int_right_split P1' C2' Rf2' SRf' hrel' hdiv' hC' hfsf' hfsfP1' hEX' =>
+          obtain ⟨A, Pf, Q, hEQ⟩ := hEX'
+          exact absurd hEQ (by simp)
+  | @step_int_right_split P1 C2 Rf2 SRf hrel hdiv hC hfsf hfsfP1 hEX ih =>
+      intro SP2 h2
+      cases h2 with
+      | @fsfF_induct2_rel_etc_left _ _ hP1 => exact absurd hfsfP1 hP1
+      | @fsfF_induct2_rel_etc_right _ _ hP2 =>
+          exact absurd (fsfF_procI (Or.inl ⟨_, _, hC, rfl, hfsf⟩)) hP2
+      | @step_int_left_split C1' Rf1' SRf' P2' hrel' hdiv' hC' hfsf' hfsfP2' =>
+          obtain ⟨A, Pf, Q, hEQ⟩ := hEX
+          exact absurd hEQ (by simp)
+      | @step_int_right_split P1' C2' Rf2' SRf2 hrel2 hdiv2 hC2 hfsf2 hfsfP12 hEX2 =>
+          have hSRf : SRf = SRf2 := by
+            funext c
+            by_cases hc : c ∈ sumset C2
+            · exact ih c hc _ (hrel2 c hc)
+            · rw [hdiv c hc, hdiv2 c hc]
+          rw [hSRf]
+  | @step_split A1 A2 Pf1 Pf2 SPf SPf1 SPf2 Q1 Q2
+      hrel hdiv hrel1 hdiv1 hrel2 hdiv2 hPf1 hPf2 hQ1 hQ2 ih ih1 ih2 =>
+      intro SP2 h2
+      cases h2 with
+      | @fsfF_induct2_rel_etc_left _ _ hP1 =>
+          exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hPf1, hQ1⟩)) hP1
+      | @fsfF_induct2_rel_etc_right _ _ hP2 =>
+          exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hPf2, hQ2⟩)) hP2
+      | @step_split A1' A2' Pf1' Pf2' SPfb SPf1b SPf2b Q1' Q2'
+          hrelb hdivb hrel1b hdiv1b hrel2b hdiv2b hPf1b hPf2b hQ1b hQ2b =>
+          have e0 : SPf = SPfb := by
+            funext a
+            by_cases ha : a ∈ A1 ∧ a ∈ A2
+            · exact ih a ha _ (hrelb a ha)
+            · rw [hdiv a ha, hdivb a ha]
+          have e1 : SPf1 = SPf1b := by
+            funext a
+            by_cases ha : a ∈ A1
+            · exact ih1 a ha _ (hrel1b a ha)
+            · rw [hdiv1 a ha, hdiv1b a ha]
+          have e2 : SPf2 = SPf2b := by
+            funext a
+            by_cases ha : a ∈ A2
+            · exact ih2 a ha _ (hrel2b a ha)
+            · rw [hdiv2 a ha, hdiv2b a ha]
+          rw [e0, e1, e2]
 
-axiom fsfF_induct2_rel_unique
+theorem fsfF_induct2_rel_unique
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP1 SP2 : proc p α} :
     fsfF_induct2_rel Pfun SP_step P1 P2 SP1 →
       fsfF_induct2_rel Pfun SP_step P1 P2 SP2 →
-        SP1 = SP2
+        SP1 = SP2 :=
+  fun h1 h2 => fsfF_induct2_rel_unique_in_lm h1 SP2 h2
 
-axiom fsfF_induct2_rel_EX1
+theorem fsfF_induct2_rel_EX1
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α)
     (P1 P2 : proc p α) :
     (∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP) ↔
-      ∃! SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+      ∃! SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP := by
+  constructor
+  · rintro ⟨SP, hSP⟩
+    exact ⟨SP, hSP, fun SP2 hSP2 => (fsfF_induct2_rel_unique hSP hSP2).symm⟩
+  · intro h
+    exact h.exists
 
 /- fsfF_induct2_rel (iff) -/
 
-axiom fsfF_induct2_rel_etc_left_iff
+theorem fsfF_induct2_rel_etc_left_iff
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP : proc p α} :
     ¬ fsfF_proc P1 →
-      (fsfF_induct2_rel Pfun SP_step P1 P2 SP ↔ SP = Pfun P1 P2)
+      (fsfF_induct2_rel Pfun SP_step P1 P2 SP ↔ SP = Pfun P1 P2) := by
+  intro hP1
+  constructor
+  · intro h
+    exact fsfF_induct2_rel_unique h (fsfF_induct2_rel.fsfF_induct2_rel_etc_left hP1)
+  · rintro rfl
+    exact fsfF_induct2_rel.fsfF_induct2_rel_etc_left hP1
 
-axiom fsfF_induct2_rel_etc_right_iff
+theorem fsfF_induct2_rel_etc_right_iff
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP : proc p α} :
     ¬ fsfF_proc P2 →
-      (fsfF_induct2_rel Pfun SP_step P1 P2 SP ↔ SP = Pfun P1 P2)
+      (fsfF_induct2_rel Pfun SP_step P1 P2 SP ↔ SP = Pfun P1 P2) := by
+  intro hP2
+  constructor
+  · intro h
+    exact fsfF_induct2_rel_unique h (fsfF_induct2_rel.fsfF_induct2_rel_etc_right hP2)
+  · rintro rfl
+    exact fsfF_induct2_rel.fsfF_induct2_rel_etc_right hP2
 
-axiom fsfF_induct2_rel_step_int_left_iff
+theorem fsfF_induct2_rel_step_int_left_iff
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {C1 : sets_nats α}
@@ -305,9 +407,17 @@ axiom fsfF_induct2_rel_step_int_left_iff
         (∀ c, fsfF_proc (Rf1 c)) →
           fsfF_proc P2 →
             (fsfF_induct2_rel Pfun SP_step (proc.Rep_int_choice C1 Rf1) P2 SP ↔
-              SP = proc.Rep_int_choice C1 SRf)
+              SP = proc.Rep_int_choice C1 SRf) := by
+  intro h hC hfsf hfsfP2
+  have hrel := fsfF_induct2_rel.fsfF_induct2_rel_step_int_left h hC
+    (fun c _ => hfsf c) hfsfP2
+  constructor
+  · intro h2
+    exact fsfF_induct2_rel_unique h2 hrel
+  · rintro rfl
+    exact hrel
 
-axiom fsfF_induct2_rel_step_iff
+theorem fsfF_induct2_rel_step_iff
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {A1 A2 : Set α}
@@ -329,7 +439,14 @@ axiom fsfF_induct2_rel_step_iff
                   (fsfF_induct2_rel Pfun SP_step
                       ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
                       ((proc.Ext_pre_choice A2 Pf2) [+] Q2) SP ↔
-                    SP = SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)
+                    SP = SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2) := by
+  intro h h1 h2 hPf1 hPf2 hQ1 hQ2
+  have hrel := fsfF_induct2_rel.fsfF_induct2_rel_step h h1 h2 hPf1 hPf2 hQ1 hQ2
+  constructor
+  · intro hh
+    exact fsfF_induct2_rel_unique hh hrel
+  · rintro rfl
+    exact hrel
 
 /- existence -/
 
