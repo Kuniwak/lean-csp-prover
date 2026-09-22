@@ -102,10 +102,26 @@ theorem fsfF_Parallel_DIV_in
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fsfF_Parallel_DIV_eqF
+theorem cspF_fsfF_Parallel_DIV_eqF
     [HasPNfun p α] [HasFPmode]
     {X : Set α} {P1 : proc p α} :
-    eqFfix (P1 |[X]| (proc.DIV : proc p α)) (fsfF_Parallel_DIV X P1)
+    eqFfix (P1 |[X]| (proc.DIV : proc p α)) (fsfF_Parallel_DIV X P1) := by
+  rw [fsfF_Parallel_DIV_def]
+  refine cspF_fsfF_induct1_eqF
+    (Pfun := Pfun_Parallel_DIV X) (SP_step := SP_step_Parallel_DIV X) ?_ ?_ ?_
+  · intro C1 Rf1 hC
+    exact cspF_Parallel_Dist_sum_l_nonempty hC
+  · intro A1 Pf1 Q1 hQ1
+    change eqFfix (((proc.Ext_pre_choice A1 Pf1) [+] Q1) |[X]| (proc.DIV : proc p α))
+      (SP_step_Parallel_DIV X A1 Pf1 Q1 (fun a => Pf1 a |[X]| (proc.DIV : proc p α)))
+    simp only [SP_step_Parallel_DIV_def]
+    refine cspF_trans_left_eq
+      (cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_DIV_l hQ1) ?_
+    exact cspF_DIV_Parallel_step_r
+  · intro A1 Pf1 Q1 SPf SQf hSPf
+    simp only [SP_step_Parallel_DIV_def]
+    exact cspF_Ext_choice_cong
+      (cspF_Ext_pre_choice_cong rfl (fun a ha => hSPf a ha.1)) cspF_reflex_eq_P
 
 /- *============================================================*
  |                                                            |
@@ -163,10 +179,24 @@ theorem fsfF_Parallel_SKIP_in
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fsfF_Parallel_SKIP_eqF
+theorem cspF_fsfF_Parallel_SKIP_eqF
     [HasPNfun p α] [HasFPmode]
     {X : Set α} {P1 : proc p α} :
-    eqFfix (P1 |[X]| (proc.SKIP : proc p α)) (fsfF_Parallel_SKIP X P1)
+    eqFfix (P1 |[X]| (proc.SKIP : proc p α)) (fsfF_Parallel_SKIP X P1) := by
+  rw [fsfF_Parallel_SKIP_def]
+  refine cspF_fsfF_induct1_eqF
+    (Pfun := Pfun_Parallel_SKIP X) (SP_step := SP_step_Parallel_SKIP X) ?_ ?_ ?_
+  · intro C1 Rf1 hC
+    exact cspF_Parallel_Dist_sum_l_nonempty hC
+  · intro A1 Pf1 Q1 hQ1
+    change eqFfix (((proc.Ext_pre_choice A1 Pf1) [+] Q1) |[X]| (proc.SKIP : proc p α))
+      (SP_step_Parallel_SKIP X A1 Pf1 Q1 (fun a => Pf1 a |[X]| (proc.SKIP : proc p α)))
+    simp only [SP_step_Parallel_SKIP_def]
+    exact cspF_SKIP_or_DIV_or_STOP_Parallel_Ext_choice_SKIP_l hQ1
+  · intro A1 Pf1 Q1 SPf SQf hSPf
+    simp only [SP_step_Parallel_SKIP_def]
+    exact cspF_Ext_choice_cong
+      (cspF_Ext_pre_choice_cong rfl (fun a ha => hSPf a ha.1)) cspF_reflex_eq_P
 
 /- *============================================================*
  |                                                            |
@@ -311,7 +341,7 @@ notation:76 P " |[" X "]|seq " Q => fsfF_Parallel P X Q
  |                        in fsfF_proc                        |
  *------------------------------------------------------------* -/
 
-axiom fsfF_Parallel_in_lm
+theorem fsfF_Parallel_in_lm
     {X A1 A2 : Set α}
     {Pf1 Pf2 SPf SPf1 SPf2 : α → proc p α}
     {Q1 Q2 : proc p α} :
@@ -322,7 +352,75 @@ axiom fsfF_Parallel_in_lm
             (∀ a, a ∈ A2 → fsfF_proc (SPf2 a)) →
               (Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP) →
                 (Q2 = proc.SKIP ∨ Q2 = proc.DIV ∨ Q2 = proc.STOP) →
-                  fsfF_proc (SP_step_Parallel X A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)
+                  fsfF_proc (SP_step_Parallel X A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2) := by
+  intro hPf1 hPf2 hSPf hSPf1 hSPf2 hQ1 hQ2
+  -- the common prefix part
+  have hR : fsfF_proc
+      ((proc.Ext_pre_choice ((X ∩ A1 ∩ A2) ∪ (A1 \ X) ∪ (A2 \ X)) fun a =>
+          if a ∈ X then SPf a
+          else if a ∈ A1 ∧ a ∈ A2 then fsfF_Int_choice (SPf1 a) (SPf2 a)
+          else if a ∈ A1 then SPf1 a
+          else SPf2 a) [+] (proc.STOP : proc p α)) := by
+    refine fsfF_proc.fsfF_proc_ext ?_ (Or.inr <| Or.inr rfl)
+    intro a ha
+    by_cases haX : a ∈ X
+    · rw [if_pos haX]
+      refine hSPf a ?_
+      rcases ha with (hIn | hIn) | hIn
+      · exact ⟨hIn.1.2, hIn.2⟩
+      · exact absurd haX hIn.2
+      · exact absurd haX hIn.2
+    · rw [if_neg haX]
+      by_cases hBoth : a ∈ A1 ∧ a ∈ A2
+      · rw [if_pos hBoth]
+        exact fsfF_Int_choice_in (hSPf1 a hBoth.1) (hSPf2 a hBoth.2)
+      · rw [if_neg hBoth]
+        by_cases hA1 : a ∈ A1
+        · rw [if_pos hA1]
+          exact hSPf1 a hA1
+        · rw [if_neg hA1]
+          refine hSPf2 a ?_
+          rcases ha with (hIn | hIn) | hIn
+          · exact absurd hIn.1.1 haX
+          · exact absurd hIn.1 hA1
+          · exact hIn.1
+  -- the two step bodies whose terminal parts may be SKIP or DIV
+  have hP1ext : fsfF_proc ((proc.Ext_pre_choice A1 Pf1) [+] Q1) :=
+    fsfF_proc.fsfF_proc_ext hPf1 hQ1
+  have hP2ext : fsfF_proc ((proc.Ext_pre_choice A2 Pf2) [+] Q2) :=
+    fsfF_proc.fsfF_proc_ext hPf2 hQ2
+  simp only [SP_step_Parallel_def]
+  by_cases hBothStop : Q1 = (proc.STOP : proc p α) ∧ Q2 = (proc.STOP : proc p α)
+  · simp only [if_pos hBothStop]
+    exact hR
+  · simp only [if_neg hBothStop]
+    by_cases hQ1Stop : Q1 = (proc.STOP : proc p α)
+    · have hQ2SD : Q2 = (proc.SKIP : proc p α) ∨ Q2 = proc.DIV := by
+        rcases hQ2 with h | h | h
+        · exact Or.inl h
+        · exact Or.inr h
+        · exact absurd ⟨hQ1Stop, h⟩ hBothStop
+      simp only [if_pos hQ1Stop]
+      exact fsfF_Timeout_in hR (fsfF_Parallel_SKIP_DIV_in hP1ext hQ2SD)
+    · simp only [if_neg hQ1Stop]
+      have hQ1SD : Q1 = (proc.SKIP : proc p α) ∨ Q1 = proc.DIV := by
+        rcases hQ1 with h | h | h
+        · exact Or.inl h
+        · exact Or.inr h
+        · exact absurd h hQ1Stop
+      by_cases hQ2Stop : Q2 = (proc.STOP : proc p α)
+      · simp only [if_pos hQ2Stop]
+        exact fsfF_Timeout_in hR (fsfF_Parallel_SKIP_DIV_in hP2ext hQ1SD)
+      · simp only [if_neg hQ2Stop]
+        have hQ2SD : Q2 = (proc.SKIP : proc p α) ∨ Q2 = proc.DIV := by
+          rcases hQ2 with h | h | h
+          · exact Or.inl h
+          · exact Or.inr h
+          · exact absurd h hQ2Stop
+        exact fsfF_Timeout_in hR
+          (fsfF_Int_choice_in
+            (fsfF_Parallel_SKIP_DIV_in hP2ext hQ1SD)
+            (fsfF_Parallel_SKIP_DIV_in hP1ext hQ2SD))
 
 theorem fsfF_Parallel_in
     {P1 P2 : proc p α} {X : Set α} :

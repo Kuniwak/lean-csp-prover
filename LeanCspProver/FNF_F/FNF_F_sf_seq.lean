@@ -168,7 +168,7 @@ theorem cspF_fsfF_Seq_compo_eqF
   · intro C1 Rf1 _
     exact cspF_Seq_compo_Dist_sum
   · intro A1 Pf1 Q1 hQ1
-    show eqFfix (((proc.Ext_pre_choice A1 Pf1) [+] Q1) ;; P2)
+    change eqFfix (((proc.Ext_pre_choice A1 Pf1) [+] Q1) ;; P2)
       (SP_step_Seq_compo P2 A1 Pf1 Q1 (fun a => Pf1 a ;; P2))
     simp only [SP_step_Seq_compo_def]
     rcases hQ1 with rfl | rfl | rfl
