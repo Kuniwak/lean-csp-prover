@@ -198,7 +198,80 @@ theorem fnfF_syntactical_equality_Union
 
 /- (*** Yf ***) -/
 
-axiom fnfF_syntactical_equality_Yf_DIV_lm
+/- the refusal set `Evset ∪ {Tick} \ Ev '' x` used to probe `Ys1`: it refuses
+   everything except the events of `x`, and in particular it refuses `Tick`,
+   which is what rules out the `SKIP` summand. -/
+
+private theorem Yf_head
+    {A : Set α} {Pf1 : α → proc p α} {Ys1 : Set (Set α)} {Q : proc p α} {x : Set α}
+    {M : p → domFType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (h : ((<> : traceType α), (Set.univ \ event.Ev '' x)) :f
+      failures ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys1 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M) :
+    ∃ X, X ∈ Ys1 ∧ X ⊆ x := by
+  have hTick : (event.Tick : event α) ∈ (Set.univ \ event.Ev '' x) := by
+    refine ⟨trivial, ?_⟩
+    rintro ⟨b, -, hb⟩
+    exact absurd hb (by simp)
+  have hnotEvset : ¬ ((Set.univ \ event.Ev '' x) ⊆ (Evset : Set (event α))) := by
+    intro hsub
+    exact (hsub hTick) rfl
+  rw [in_failures_Int_choice, in_failures_Ext_choice,
+    in_failures_Rep_int_choice_set] at h
+  rcases h with (⟨-, -, hQf⟩ | ⟨u, ⟨Z, hZ⟩, -, hne⟩ | ⟨Z, hZ, -, hEv⟩) | ⟨Y, hYs, hY⟩
+  · rcases hQ with rfl | rfl
+    · rw [in_failures_SKIP] at hQf
+      rcases hQf with ⟨Z, hZ, hsub⟩ | ⟨Z, hZ⟩
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj hZ
+        exact absurd hsub hnotEvset
+      · exact absurd (Prod.mk.inj hZ).1.symm (by simp)
+    · exact absurd hQf in_failures_DIV
+  · exact absurd (Prod.mk.inj hZ).1.symm hne
+  · obtain ⟨-, rfl⟩ := Prod.mk.inj hZ
+    exact absurd hEv hnotEvset
+  · rw [in_failures_Ext_pre_choice] at hY
+    rcases hY with ⟨Z, hZ, hint⟩ | ⟨b, s, Z, hZ, -, -⟩
+    · obtain ⟨-, rfl⟩ := Prod.mk.inj hZ
+      refine ⟨Y, hYs, fun a ha => ?_⟩
+      by_contra hax
+      have : event.Ev a ∈ (event.Ev '' Y) ∩ (Set.univ \ event.Ev '' x) :=
+        ⟨⟨a, ha, rfl⟩, trivial, fun hc => by
+          rcases hc with ⟨b, hb, hb'⟩
+          injection hb' with hba
+          exact hax (hba ▸ hb)⟩
+      rw [hint] at this
+      exact this
+    · exact absurd (Prod.mk.inj hZ).1.symm (by simp)
+
+private theorem Yf_lm
+    {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)} {Q : proc p α}
+    {M1 M2 : p → domFType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (_hY1 : Set.sUnion Ys1 ⊆ A) (hY2 : Set.sUnion Ys2 ⊆ A)
+    (hc1 : fnfF_set_condition A Ys1)
+    (h : refF
+      ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys1 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+      M1 M2
+      ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))) :
+    Ys2 ⊆ Ys1 := by
+  intro x hx
+  have hF := (cspF_cspT_refF_semantics.mp h).2
+  have hR : ((<> : traceType α), (Set.univ \ event.Ev '' x)) :f
+      failures ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M2 := by
+    rw [in_failures_Int_choice, in_failures_Rep_int_choice_set]
+    refine Or.inr ⟨x, hx, ?_⟩
+    rw [in_failures_Ext_pre_choice]
+    refine Or.inl ⟨_, rfl, ?_⟩
+    rw [Set.eq_empty_iff_forall_notMem]
+    rintro e ⟨he, -, hne⟩
+    exact hne he
+  exact hc1 x ⟨Yf_head hQ (hF hR), fun a ha => Or.inl (hY2 ⟨x, hx, ha⟩)⟩
+
+theorem fnfF_syntactical_equality_Yf_DIV_lm
     {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)} {M1 M2 : p → domFType α} :
     Set.sUnion Ys1 ⊆ A →
       Set.sUnion Ys2 ⊆ A →
@@ -209,9 +282,10 @@ axiom fnfF_syntactical_equality_Yf_DIV_lm
             M1 M2
             ((((proc.Ext_pre_choice A Pf2) [+] proc.DIV) |~|
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-            Ys2 ⊆ Ys1
+            Ys2 ⊆ Ys1 :=
+  fun hY1 hY2 hc1 h => Yf_lm (Or.inr rfl) hY1 hY2 hc1 h
 
-axiom fnfF_syntactical_equality_Yf_SKIP_lm
+theorem fnfF_syntactical_equality_Yf_SKIP_lm
     {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)} {M1 M2 : p → domFType α} :
     Set.sUnion Ys1 ⊆ A →
       Set.sUnion Ys2 ⊆ A →
@@ -222,7 +296,8 @@ axiom fnfF_syntactical_equality_Yf_SKIP_lm
             M1 M2
             ((((proc.Ext_pre_choice A Pf2) [+] proc.SKIP) |~|
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-            Ys2 ⊆ Ys1
+            Ys2 ⊆ Ys1 :=
+  fun hY1 hY2 hc1 h => Yf_lm (Or.inl rfl) hY1 hY2 hc1 h
 
 theorem fnfF_syntactical_equality_Yf
     {A : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
