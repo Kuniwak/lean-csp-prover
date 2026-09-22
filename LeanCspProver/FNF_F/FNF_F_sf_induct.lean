@@ -824,7 +824,7 @@ theorem fsfF_induct1_in
 
 /- syntactical transformation to fsfF -/
 
-axiom cspF_fsfF_induct1_eqF
+theorem cspF_fsfF_induct1_eqF
     [HasPNfun p α] [HasFPmode]
     {Pfun : FsfFInduct1Pfun p α}
     {SP_step : FsfFInduct1Step p α}
@@ -842,6 +842,16 @@ axiom cspF_fsfF_induct1_eqF
             (SPf SQf : α → proc p α),
           (∀ a, a ∈ A1 → eqFfix (SPf a) (SQf a)) →
             eqFfix (SP_step A1 Pf1 Q1 SPf) (SP_step A1 Pf1 Q1 SQf)) →
-          eqFfix (Pfun P1) (fsfF_induct1 Pfun SP_step P1)
+          eqFfix (Pfun P1) (fsfF_induct1 Pfun SP_step P1) := by
+  intro h1 h2 h3
+  rw [fsfF_induct1]
+  refine cspF_fsfF_induct2_eqF
+    (Pfun := fun P1 _P2 => Pfun P1)
+    (SP_step := fun A1 Pf1 Q1 _A2 _Pf2 _Q2 _SPf SPf1 _SPf2 => SP_step A1 Pf1 Q1 SPf1)
+    (fun C1 Rf1 _P2 hC => h1 C1 Rf1 hC)
+    (fun _P1 C2 _Rf2 hC => cspF_sym (cspF_Rep_int_choice_sum_unit hC))
+    (fun A1 Pf1 Q1 _A2 _Pf2 _Q2 hQ1 _hQ2 => h2 A1 Pf1 Q1 hQ1)
+    (fun A1 Pf1 Q1 _A2 _Pf2 _Q2 _SPf _SQf SPf1 SQf1 _SPf2 _SQf2 _ hSPf1 _ =>
+      h3 A1 Pf1 Q1 SPf1 SQf1 hSPf1)
 
 end
