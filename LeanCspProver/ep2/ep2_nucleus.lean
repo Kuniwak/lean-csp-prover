@@ -243,11 +243,6 @@ theorem guardedfun_AC_Seq :
            a theorem for verifying Seq <=F AC
  ********************************************************* -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction across
-   `SeqName` and `ACName`. The current Lean port keeps this heterogeneous
-   fixed-point argument as an axiom for now. -/
-
 instance Set_FPmode : HasFPmode where
   FPmode := CMSmode
 
@@ -255,6 +250,98 @@ instance Set_FPmode : HasFPmode where
 theorem FPmode_def : FPmode = CMSmode :=
   rfl
 
-axiom ep2 : Seq =F AC
+private theorem inj_c : Function.Injective Event.c := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem unwAC (pn : ACName) :
+    eqF (proc.Proc_name pn : proc ACName Event) MF MF (ACfun pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_AC_Seq.1⟩))
+
+private theorem range_ne {γ : Type _} [Inhabited γ] (f : γ → Data) : Set.range f ≠ ∅ :=
+  Set.nonempty_iff_ne_empty.mp ⟨f default, default, rfl⟩
+
+/-- The body of `$TerminalConfigManagement` behaves like `SKIP` on an `Exit` value. -/
+private theorem TCM_body_Exit (e : exit_d) :
+    eqF
+      (IF decideMem (Data.Exit e) (Set.range Data.Request) THEN
+          (Nondet_send_prefix Event.c (Set.range Data.Response) fun _ =>
+            proc.Proc_name ACName.TerminalConfigManagement)
+        ELSE IF decideMem (Data.Exit e) (Set.range Data.Exit) THEN
+          proc.SKIP
+        ELSE
+          proc.STOP) MF MF (proc.SKIP : proc ACName Event) := by
+  have h1 : decideMem (Data.Exit e) (Set.range Data.Request) = false := by simp [decideMem]
+  have h2 : decideMem (Data.Exit e) (Set.range Data.Exit) = true := by simp [decideMem]
+  rw [h1, h2]
+  exact cspF_trans_left_eq cspF_IF_False cspF_IF_True
+
+/-- The body of `$TerminalConfigManagement` on a `Request` value. -/
+private theorem TCM_body_Request (r : request_d) :
+    eqF
+      (IF decideMem (Data.Request r) (Set.range Data.Request) THEN
+          (Nondet_send_prefix Event.c (Set.range Data.Response) fun _ =>
+            proc.Proc_name ACName.TerminalConfigManagement)
+        ELSE IF decideMem (Data.Request r) (Set.range Data.Exit) THEN
+          proc.SKIP
+        ELSE
+          proc.STOP) MF MF
+      (Nondet_send_prefix Event.c (Set.range Data.Response) fun _ =>
+        proc.Proc_name ACName.TerminalConfigManagement) := by
+  have h1 : decideMem (Data.Request r) (Set.range Data.Request) = true := by simp [decideMem]
+  rw [h1]
+  exact cspF_IF_True
+
+theorem ep2 : Seq =F AC := by
+  rw [Seq_def, AC_def]
+  refine cspF_fp_induct_eq_left (Pf := Seqfun) (f := Seq_to_AC)
+    rfl (Or.inl rfl) guardedfun_AC_Seq.2 cspF_reflex_eq_P ?_
+  intro pn
+  cases pn with
+  | SeqInit =>
+      have hRHS :
+          eqF (Seq_to_AC SeqName.SeqInit) MF MF
+            ((Rec_prefix Event.c (Set.range Data.Init)
+                fun _ => proc.Proc_name ACName.AcConfigManagement) |[Set.range Event.c]|
+              (Nondet_send_prefix Event.c (Set.range Data.Init)
+                fun _ => proc.Proc_name ACName.TerminalConfigManagement)) :=
+        cspF_Parallel_cong rfl (unwAC ACName.Acquirer) (unwAC ACName.Terminal)
+      refine cspF_trans_left_eq ?_ (cspF_sym hRHS)
+      simp only [Seqfun, Seq_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      exact cspF_sym
+        (cspF_Parallel_Rec_Nondet_send_prefix (Set.image_subset_range _ _)
+          (subset_refl _) (range_ne Data.Init))
+  | Loop =>
+      have hRHS :
+          eqF (Seq_to_AC SeqName.Loop) MF MF
+            ((ACfun ACName.AcConfigManagement) |[Set.range Event.c]|
+              (ACfun ACName.TerminalConfigManagement)) :=
+        cspF_Parallel_cong rfl (unwAC ACName.AcConfigManagement)
+          (unwAC ACName.TerminalConfigManagement)
+      refine cspF_trans_left_eq ?_ (cspF_sym hRHS)
+      simp only [Seqfun, ACfun, Seq_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      refine cspF_trans_left_eq ?_ (cspF_sym cspF_Parallel_dist_l)
+      refine cspF_Int_choice_cong ?_ ?_
+      · -- the `Exit` branch: both sides terminate
+        refine cspF_sym (cspF_trans_left_eq
+          (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.c) (A := Set.univ)
+            (B := Set.range Data.Exit) (Set.image_subset_range _ _) (Set.subset_univ _)
+            (range_ne Data.Exit)) ?_)
+        refine cspF_Nondet_send_prefix_cong inj_c rfl rfl (fun x hx => ?_)
+        obtain ⟨e, rfl⟩ := hx
+        exact cspF_trans_left_eq
+          (cspF_Parallel_cong rfl cspF_reflex_eq_P (TCM_body_Exit e)) cspF_Parallel_term
+      · -- the `Request` branch: one more synchronised `Response`
+        refine cspF_sym (cspF_trans_left_eq
+          (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.c) (A := Set.univ)
+            (B := Set.range Data.Request) (Set.image_subset_range _ _) (Set.subset_univ _)
+            (range_ne Data.Request)) ?_)
+        refine cspF_Nondet_send_prefix_cong inj_c rfl rfl (fun x hx => ?_)
+        obtain ⟨r, rfl⟩ := hx
+        refine cspF_trans_left_eq
+          (cspF_Parallel_cong rfl cspF_reflex_eq_P (TCM_body_Request r)) ?_
+        exact cspF_Parallel_Rec_Nondet_send_prefix (Set.image_subset_range _ _)
+          (subset_refl _) (range_ne Data.Response)
 
 end ep2_nucleus
