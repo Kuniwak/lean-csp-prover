@@ -1518,7 +1518,7 @@ theorem EX1_cal1_rev (x y0 y1 : Nat) :
 
 /- (****** hori ******) -/
 
-axiom local_hori_lm {r : Type _}
+theorem local_hori_lm {r : Type _} [Inhabited r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1529,11 +1529,25 @@ axiom local_hori_lm {r : Type _}
       Nat.succ (Nat.succ (4 * lengtht (t rest-tr Set.range (Event.hori (i, j + 1))))) ≤
           lengtht (t rest-tr Alpha_pe (r := r) (i, j)) ∧
         Nat.succ (lengtht (t rest-tr Alpha_pe (r := r) (i, j + 1))) ≤
-          4 * lengtht (t rest-tr Set.range (Event.hori (i, j + 1)))
+          4 * lengtht (t rest-tr Set.range (Event.hori (i, j + 1))) := by
+  rintro ⟨⟨⟨⟨-, hst⟩, -, -, -, hne⟩, hsub⟩, -⟩
+  have hA : Set.range (Event.hori (i, j + 1) (r := r)) ⊆ Alpha_pe (r := r) (i, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩
+  have hB : Set.range (Event.hori (i, j + 1) (r := r)) ⊆ Alpha_pe (r := r) (i, j + 1) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inl rfl)⟩
+  have h1 := (hst (i, j) (by simp)).1
+  have h2 := (hst (i, j + 1) (by simp)).1
+  refine ⟨?_, ?_⟩
+  · have h := local_i_j_hori _ Yf i j h1 (EX1_request_hori i j Yf hne)
+    rwa [rest_tr_of_rest_tr_subset2 hA] at h
+  · have h := local_i_Suc_j_hori _ Yf i j h2 (EX1_ungranted_hori i j _ Yf hne hsub h2)
+    rwa [rest_tr_of_rest_tr_subset2 hB] at h
 
 /- local_hori -/
 
-theorem local_hori {r : Type _}
+theorem local_hori {r : Type _} [Inhabited r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1550,7 +1564,7 @@ theorem local_hori {r : Type _}
 
 /- (****** vert ******) -/
 
-axiom local_vert_lm {r : Type _}
+theorem local_vert_lm {r : Type _} [Inhabited r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1561,11 +1575,25 @@ axiom local_vert_lm {r : Type _}
       Nat.succ (Nat.succ (4 * lengtht (t rest-tr Set.range (Event.vert (i + 1, j))))) ≤
           lengtht (t rest-tr Alpha_pe (r := r) (i, j)) ∧
         Nat.succ (lengtht (t rest-tr Alpha_pe (r := r) (i + 1, j))) ≤
-          4 * lengtht (t rest-tr Set.range (Event.vert (i + 1, j)))
+          4 * lengtht (t rest-tr Set.range (Event.vert (i + 1, j))) := by
+  rintro ⟨⟨⟨⟨-, hst⟩, -, -, -, hne⟩, hsub⟩, -⟩
+  have hA : Set.range (Event.vert (i + 1, j) (r := r)) ⊆ Alpha_pe (r := r) (i, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩
+  have hB : Set.range (Event.vert (i + 1, j) (r := r)) ⊆ Alpha_pe (r := r) (i + 1, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inl rfl⟩
+  have h1 := (hst (i, j) (by simp)).1
+  have h2 := (hst (i + 1, j) (by simp)).1
+  refine ⟨?_, ?_⟩
+  · have h := local_i_j_vert _ Yf i j h1 (EX1_request_vert i j Yf hne)
+    rwa [rest_tr_of_rest_tr_subset2 hA] at h
+  · have h := local_Suc_i_j_vert _ Yf i j h2 (EX1_ungranted_vert i j _ Yf hne hsub h2)
+    rwa [rest_tr_of_rest_tr_subset2 hB] at h
 
 /- local_vert -/
 
-theorem local_vert {r : Type _}
+theorem local_vert {r : Type _} [Inhabited r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1582,7 +1610,7 @@ theorem local_vert {r : Type _}
 
 /- (****** hori rev ******) -/
 
-axiom local_hori_rev_lm {r : Type _}
+theorem local_hori_rev_lm {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1593,7 +1621,21 @@ axiom local_hori_rev_lm {r : Type _}
       lengtht (t rest-tr Alpha_pe (r := r) (i, j)) ≤
           Nat.succ (4 * lengtht (t rest-tr Set.range (Event.hori (i, j + 1)))) ∧
         4 * lengtht (t rest-tr Set.range (Event.hori (i, j + 1))) ≤
-          lengtht (t rest-tr Alpha_pe (r := r) (i, j + 1))
+          lengtht (t rest-tr Alpha_pe (r := r) (i, j + 1)) := by
+  rintro ⟨⟨⟨⟨-, hst⟩, -, -, -, hne⟩, hsub⟩, -⟩
+  have hA : Set.range (Event.hori (i, j + 1) (r := r)) ⊆ Alpha_pe (r := r) (i, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩
+  have hB : Set.range (Event.hori (i, j + 1) (r := r)) ⊆ Alpha_pe (r := r) (i, j + 1) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inl rfl)⟩
+  have h1 := (hst (i, j) (by simp)).1
+  have h2 := (hst (i, j + 1) (by simp)).1
+  refine ⟨?_, ?_⟩
+  · have h := local_i_j_hori_rev _ Yf i j h1 (EX1_ungranted_hori_rev i j _ Yf hne hsub h2)
+    rwa [rest_tr_of_rest_tr_subset2 hA] at h
+  · have h := local_i_Suc_j_hori_rev _ Yf i j h2 (EX1_request_hori_rev i j Yf hne)
+    rwa [rest_tr_of_rest_tr_subset2 hB] at h
 
 /- local_hori_rev -/
 
@@ -1614,7 +1656,7 @@ theorem local_hori_rev {r : Type _}
 
 /- (****** vert rev ******) -/
 
-axiom local_vert_rev_lm {r : Type _}
+theorem local_vert_rev_lm {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1625,7 +1667,21 @@ axiom local_vert_rev_lm {r : Type _}
       lengtht (t rest-tr Alpha_pe (r := r) (i, j)) ≤
           Nat.succ (4 * lengtht (t rest-tr Set.range (Event.vert (i + 1, j)))) ∧
         4 * lengtht (t rest-tr Set.range (Event.vert (i + 1, j))) ≤
-          lengtht (t rest-tr Alpha_pe (r := r) (i + 1, j))
+          lengtht (t rest-tr Alpha_pe (r := r) (i + 1, j)) := by
+  rintro ⟨⟨⟨⟨-, hst⟩, -, -, -, hne⟩, hsub⟩, -⟩
+  have hA : Set.range (Event.vert (i + 1, j) (r := r)) ⊆ Alpha_pe (r := r) (i, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩
+  have hB : Set.range (Event.vert (i + 1, j) (r := r)) ⊆ Alpha_pe (r := r) (i + 1, j) := by
+    rintro _ ⟨x, rfl⟩
+    exact ⟨x, Or.inl rfl⟩
+  have h1 := (hst (i, j) (by simp)).1
+  have h2 := (hst (i + 1, j) (by simp)).1
+  refine ⟨?_, ?_⟩
+  · have h := local_i_j_vert_rev _ Yf i j h1 (EX1_ungranted_vert_rev i j _ Yf hne hsub h2)
+    rwa [rest_tr_of_rest_tr_subset2 hA] at h
+  · have h := local_Suc_i_j_vert_rev _ Yf i j h2 (EX1_request_vert_rev i j Yf hne)
+    rwa [rest_tr_of_rest_tr_subset2 hB] at h
 
 /- local_vert_rev -/
 
