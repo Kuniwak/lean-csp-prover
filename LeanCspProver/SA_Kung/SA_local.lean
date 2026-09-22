@@ -52,14 +52,133 @@ axiom possible_pairs {r : Type _}
 
 /- (*** i j hori ***) -/
 
-axiom local_i_j_hori_ALL {r : Type _}
+private theorem lengtht_cons {r : Type _} (e : Event r) (s : traceType (Event r)) :
+    lengtht ((Abs_trace [Ev e] : traceType (Event r)) ^^^ s) = 1 + lengtht s := by
+  rw [lengtht_app_decompo1 (Or.inl (by simp [noTick]))]
+  simp [lengtht_one_event]
+
+private theorem vert_notin_hori {r : Type _} (i j k l : Nat) (x : r) :
+    Event.vert (i, j) x ∉ Set.range (Event.hori (k, l) (r := r)) := by
+  rintro ⟨z, hz⟩
+  cases hz
+
+private theorem hori_notin_hori_succ {r : Type _} (i j : Nat) (y : r) :
+    Event.hori (i, j) y ∉ Set.range (Event.hori (i, j + 1) (r := r)) := by
+  rintro ⟨z, hz⟩
+  cases hz
+
+private theorem hori_mem_range {r : Type _} (i j : Nat) (y : r) :
+    Event.hori (i, j + 1) y ∈ Set.range (Event.hori (i, j + 1) (r := r)) := ⟨y, rfl⟩
+
+theorem local_i_j_hori_ALL {r : Type _}
     (n i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     ∀ s : traceType (Event r),
       (s, Yf (i, j)) ∈ peF_rec (r := r) n (i, j) ∧
           (∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j)) →
         Nat.succ (Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))))) ≤
-          lengtht s
+          lengtht s := by
+  induction n with
+  | zero =>
+      rintro s ⟨hs, -⟩
+      exact absurd hs (by simp [peF_rec])
+  | succ m ih =>
+      -- the four inner levels of one unfolding step
+      have hOutHori : ∀ (y : r) (s3 : traceType (Event r)),
+          (s3, Yf (i, j)) ∈ Faiures_out_hori (r := r) y (i, j) (peF_rec m (i, j)) →
+            (∃ z, Ev (Event.hori (i, j + 1) z) ∉ Yf (i, j)) →
+              4 * lengtht (s3 rest-tr Set.range (Event.hori (i, j + 1))) ≤ 1 + lengtht s3 := by
+        rintro y s3 h3 hz
+        simp only [Faiures_out_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h3
+        rcases h3 with h0 | ⟨s4, Y4, heq, h4⟩
+        · obtain ⟨rfl, -⟩ := Prod.mk.inj h0
+          simp
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_in_appt (hori_mem_range i j y), lengtht_cons, lengtht_cons]
+          have := ih s4 ⟨h4, hz⟩
+          omega
+      have hOutVert : ∀ (x : r) (s3 : traceType (Event r)),
+          (s3, Yf (i, j)) ∈ Faiures_out_vert (r := r) x (i, j) (peF_rec m (i, j)) →
+            (∃ z, Ev (Event.hori (i, j + 1) z) ∉ Yf (i, j)) →
+              3 + 4 * lengtht (s3 rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s3 := by
+        rintro x s3 h3 ⟨z, hz⟩
+        simp only [Faiures_out_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h3
+        rcases h3 with h0 | ⟨s4, Y4, heq, h4⟩
+        · exfalso
+          obtain ⟨-, hY⟩ := Prod.mk.inj h0
+          exact hz (hY ▸ ⟨z, Or.inr (Or.inr (Or.inl rfl))⟩)
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_notin (vert_notin_hori (i + 1) j i (j + 1) x), lengtht_cons]
+          have := ih s4 ⟨h4, z, hz⟩
+          omega
+      have hOut : ∀ (x y : r) (s2 : traceType (Event r)),
+          (s2, Yf (i, j)) ∈ Faiures_out (r := r) x y (i, j) (peF_rec m (i, j)) →
+            (∃ z, Ev (Event.hori (i, j + 1) z) ∉ Yf (i, j)) →
+              4 * lengtht (s2 rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s2 := by
+        rintro x y s2 h2 hz
+        simp only [Faiures_out, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h2
+        rcases h2 with (h0 | ⟨s3, Y3, heq, h3⟩) | ⟨s3, Y3, heq, h3⟩
+        · obtain ⟨rfl, -⟩ := Prod.mk.inj h0
+          simp
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_notin (vert_notin_hori (i + 1) j i (j + 1) x), lengtht_cons]
+          have := hOutHori y s3 h3 hz
+          omega
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_in_appt (hori_mem_range i j y), lengtht_cons, lengtht_cons]
+          have := hOutVert x s3 h3 hz
+          omega
+      have hInHori : ∀ (x : r) (s' : traceType (Event r)),
+          (s', Yf (i, j)) ∈ Faiures_in_hori (r := r) x (i, j) (peF_rec m (i, j)) →
+            (∃ z, Ev (Event.hori (i, j + 1) z) ∉ Yf (i, j)) →
+              1 + 4 * lengtht (s' rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s' := by
+        rintro x s' h' hz
+        simp only [Faiures_in_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h'
+        rcases h' with h0 | ⟨y, s2, Y2, heq, h2⟩
+        · exfalso
+          obtain ⟨-, hY⟩ := Prod.mk.inj h0
+          obtain ⟨z, hz⟩ := hz
+          exact hz (hY ▸ ⟨z, Or.inr (Or.inl rfl)⟩)
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_notin (hori_notin_hori_succ i j y), lengtht_cons]
+          have := hOut x y s2 h2 hz
+          omega
+      have hInVert : ∀ (y : r) (s' : traceType (Event r)),
+          (s', Yf (i, j)) ∈ Faiures_in_vert (r := r) y (i, j) (peF_rec m (i, j)) →
+            (∃ z, Ev (Event.hori (i, j + 1) z) ∉ Yf (i, j)) →
+              1 + 4 * lengtht (s' rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s' := by
+        rintro y s' h' hz
+        simp only [Faiures_in_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h'
+        rcases h' with h0 | ⟨x, s2, Y2, heq, h2⟩
+        · exfalso
+          obtain ⟨-, hY⟩ := Prod.mk.inj h0
+          obtain ⟨z, hz⟩ := hz
+          exact hz (hY ▸ ⟨z, Or.inr (Or.inr rfl)⟩)
+        · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+          rw [rest_tr_notin (vert_notin_hori i j i (j + 1) x), lengtht_cons]
+          have := hOut x y s2 h2 hz
+          omega
+      rintro s ⟨hs, x, hx⟩
+      rw [peF_rec] at hs
+      simp only [Faiures_in_def, Set.mem_union, Set.mem_setOf_eq,
+        Set.mem_singleton_iff] at hs
+      rcases hs with (h0 | ⟨x', s', Y', heq, h'⟩) | ⟨y', s', Y', heq, h'⟩
+      · exfalso
+        obtain ⟨-, hY⟩ := Prod.mk.inj h0
+        exact hx (hY ▸ ⟨x, Or.inr rfl⟩)
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+        rw [rest_tr_notin (vert_notin_hori i j i (j + 1) x'), lengtht_cons]
+        have := hInHori x' s' h' ⟨x, hx⟩
+        omega
+      · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
+        rw [rest_tr_notin (hori_notin_hori_succ i j y'), lengtht_cons]
+        have := hInVert y' s' h' ⟨x, hx⟩
+        omega
 
 theorem local_i_j_hori {r : Type _}
     (s : traceType (Event r))
