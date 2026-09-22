@@ -61,14 +61,18 @@ axiom local_i_j_hori_ALL {r : Type _}
         Nat.succ (Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))))) ≤
           lengtht s
 
-axiom local_i_j_hori {r : Type _}
+theorem local_i_j_hori {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j)) ∈ peF (r := r) (i, j) →
       (∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j)) →
         Nat.succ (Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))))) ≤
-          lengtht s
+          lengtht s := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_j_hori_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** i (Suc j) hori ***) -/
 
@@ -80,13 +84,17 @@ axiom local_i_Suc_j_hori_ALL {r : Type _}
           (∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)) →
         Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1)))
 
-axiom local_i_Suc_j_hori {r : Type _}
+theorem local_i_Suc_j_hori {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j + 1)) ∈ peF (r := r) (i, j + 1) →
       (∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)) →
-        Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1)))
+        Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))) := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_Suc_j_hori_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** i j vert ***) -/
 
@@ -99,14 +107,18 @@ axiom local_i_j_vert_ALL {r : Type _}
         Nat.succ (Nat.succ (4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))))) ≤
           lengtht s
 
-axiom local_i_j_vert {r : Type _}
+theorem local_i_j_vert {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j)) ∈ peF (r := r) (i, j) →
       (∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i, j)) →
         Nat.succ (Nat.succ (4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))))) ≤
-          lengtht s
+          lengtht s := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_j_vert_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** (Suc i) j vert ***) -/
 
@@ -118,13 +130,17 @@ axiom local_Suc_i_j_vert_ALL {r : Type _}
           (∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)) →
         Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j)))
 
-axiom local_Suc_i_j_vert {r : Type _}
+theorem local_Suc_i_j_vert {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i + 1, j)) ∈ peF (r := r) (i + 1, j) →
       (∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)) →
-        Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j)))
+        Nat.succ (lengtht s) ≤ 4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))) := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_Suc_i_j_vert_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (****** reverse ******) -/
 
@@ -138,13 +154,17 @@ axiom local_i_j_hori_rev_ALL {r : Type _}
           (∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j)) →
         lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))))
 
-axiom local_i_j_hori_rev {r : Type _}
+theorem local_i_j_hori_rev {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j)) ∈ peF (r := r) (i, j) →
       (∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j)) →
-        lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))))
+        lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1)))) := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_j_hori_rev_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** i (Suc j) hori ***) -/
 
@@ -156,13 +176,17 @@ axiom local_i_Suc_j_hori_rev_ALL {r : Type _}
           (∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1)) →
         4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s
 
-axiom local_i_Suc_j_hori_rev {r : Type _}
+theorem local_i_Suc_j_hori_rev {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j + 1)) ∈ peF (r := r) (i, j + 1) →
       (∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1)) →
-        4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s
+        4 * lengtht (s rest-tr Set.range (Event.hori (i, j + 1))) ≤ lengtht s := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_Suc_j_hori_rev_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** i j vert ***) -/
 
@@ -174,13 +198,17 @@ axiom local_i_j_vert_rev_ALL {r : Type _}
           (∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i, j)) →
         lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))))
 
-axiom local_i_j_vert_rev {r : Type _}
+theorem local_i_j_vert_rev {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i, j)) ∈ peF (r := r) (i, j) →
       (∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i, j)) →
-        lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))))
+        lengtht s ≤ Nat.succ (4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j)))) := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_i_j_vert_rev_ALL n i j Yf s ⟨hs, hx⟩
 
 /- (*** (Suc i) j vert ***) -/
 
@@ -192,25 +220,62 @@ axiom local_Suc_i_j_vert_rev_ALL {r : Type _}
           (∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j)) →
         4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))) ≤ lengtht s
 
-axiom local_Suc_i_j_vert_rev {r : Type _}
+theorem local_Suc_i_j_vert_rev {r : Type _}
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
     (s, Yf (i + 1, j)) ∈ peF (r := r) (i + 1, j) →
       (∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j)) →
-        4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))) ≤ lengtht s
+        4 * lengtht (s rest-tr Set.range (Event.vert (i + 1, j))) ≤ lengtht s := by
+  intro hs hx
+  rw [peF_def, Set.mem_iUnion] at hs
+  obtain ⟨n, hs⟩ := hs
+  exact local_Suc_i_j_vert_rev_ALL n i j Yf s ⟨hs, hx⟩
 
 /- ---------------------------------------*
  |  ungranted request --> Yf properties  |
  *--------------------------------------- -/
 
+/- the only event shared by `Alpha_pe (i, j)` and `Alpha_pe (i, j+1)` is
+   `hori (i, j+1) _`, and the only one shared by `Alpha_pe (i, j)` and
+   `Alpha_pe (i+1, j)` is `vert (i+1, j) _`. -/
+
+private theorem hori_of_mem {r : Type _} {a : Event r} {i j : Nat}
+    (h1 : a ∈ Alpha_pe (r := r) (i, j)) (h2 : a ∈ Alpha_pe (r := r) (i, j + 1)) :
+    ∃ z, a = Event.hori (i, j + 1) z := by
+  simp only [Alpha_pe, Set.mem_setOf_eq] at h1 h2
+  obtain ⟨x, h1⟩ := h1
+  obtain ⟨y, h2⟩ := h2
+  rcases h1 with rfl | rfl | rfl | rfl
+  · exact absurd h2 (by simp)
+  · exact absurd h2 (by simp; omega)
+  · exact absurd h2 (by simp)
+  · exact ⟨x, rfl⟩
+
+private theorem vert_of_mem {r : Type _} {a : Event r} {i j : Nat}
+    (h1 : a ∈ Alpha_pe (r := r) (i, j)) (h2 : a ∈ Alpha_pe (r := r) (i + 1, j)) :
+    ∃ z, a = Event.vert (i + 1, j) z := by
+  simp only [Alpha_pe, Set.mem_setOf_eq] at h1 h2
+  obtain ⟨x, h1⟩ := h1
+  obtain ⟨y, h2⟩ := h2
+  rcases h1 with rfl | rfl | rfl | rfl
+  · exact absurd h2 (by simp; omega)
+  · exact absurd h2 (by simp)
+  · exact ⟨x, rfl⟩
+  · exact absurd h2 (by simp)
+
 /- hori -/
 
-axiom EX1_request_hori {r : Type _}
+theorem EX1_request_hori {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j) \ Yf (i, j)) ∩ Ev '' Alpha_pe (r := r) (i, j + 1) ≠ ∅ →
-      ∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j)
+      ∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j) := by
+  intro h
+  rcases Set.nonempty_iff_ne_empty.mpr h with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := hori_of_mem ha hb
+  exact ⟨z, hY⟩
 
 axiom EX1_ungranted_hori_lm1 {r : Type _}
     (i j : Nat)
@@ -228,7 +293,7 @@ axiom EX1_ungranted_hori_lm2 {r : Type _}
           (∃ t : traceType (Event r), (t, Yf (i, j + 1)) ∈ peF_rec (r := r) n (i, j + 1)) →
         ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)
 
-axiom EX1_ungranted_hori {r : Type _}
+theorem EX1_ungranted_hori {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -236,15 +301,25 @@ axiom EX1_ungranted_hori {r : Type _}
       Ev '' Alpha_pe (r := r) (i, j) ∩ Ev '' Alpha_pe (r := r) (i, j + 1) ⊆
           Yf (i, j) ∪ Yf (i, j + 1) →
         (t, Yf (i, j + 1)) ∈ peF (r := r) (i, j + 1) →
-          ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)
+          ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1) := by
+  intro hne hsub ht
+  obtain ⟨x, hx⟩ := EX1_ungranted_hori_lm1 i j Yf hne hsub
+  rw [peF_def, Set.mem_iUnion] at ht
+  obtain ⟨n, ht⟩ := ht
+  exact EX1_ungranted_hori_lm2 i j Yf n x ⟨hx, ⟨t, ht⟩⟩
 
 /- vert -/
 
-axiom EX1_request_vert {r : Type _}
+theorem EX1_request_vert {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j) \ Yf (i, j)) ∩ Ev '' Alpha_pe (r := r) (i + 1, j) ≠ ∅ →
-      ∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i, j)
+      ∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i, j) := by
+  intro h
+  rcases Set.nonempty_iff_ne_empty.mpr h with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := vert_of_mem ha hb
+  exact ⟨z, hY⟩
 
 axiom EX1_ungranted_vert_lm1 {r : Type _}
     (i j : Nat)
@@ -262,7 +337,7 @@ axiom EX1_ungranted_vert_lm2 {r : Type _}
           (∃ t : traceType (Event r), (t, Yf (i + 1, j)) ∈ peF_rec (r := r) n (i + 1, j)) →
         ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)
 
-axiom EX1_ungranted_vert {r : Type _}
+theorem EX1_ungranted_vert {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -270,25 +345,44 @@ axiom EX1_ungranted_vert {r : Type _}
       Ev '' Alpha_pe (r := r) (i, j) ∩ Ev '' Alpha_pe (r := r) (i + 1, j) ⊆
           Yf (i, j) ∪ Yf (i + 1, j) →
         (t, Yf (i + 1, j)) ∈ peF (r := r) (i + 1, j) →
-          ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)
+          ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j) := by
+  intro hne hsub ht
+  obtain ⟨x, hx⟩ := EX1_ungranted_vert_lm1 i j Yf hne hsub
+  rw [peF_def, Set.mem_iUnion] at ht
+  obtain ⟨n, ht⟩ := ht
+  exact EX1_ungranted_vert_lm2 i j Yf n x ⟨hx, ⟨t, ht⟩⟩
 
 /- hori rev -/
 
-axiom EX1_request_hori_rev {r : Type _}
+theorem EX1_request_hori_rev {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j + 1) \ Yf (i, j + 1)) ∩ Ev '' Alpha_pe (r := r) (i, j) ≠ ∅ →
-      ∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1)
+      ∃ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1) := by
+  intro h
+  rcases Set.nonempty_iff_ne_empty.mpr h with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := hori_of_mem hb ha
+  exact ⟨z, hY⟩
 
-axiom EX1_request_hori_rev_ALL {r : Type _}
+theorem EX1_request_hori_rev_ALL {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j + 1) \ Yf (i, j + 1)) ∩ Ev '' Alpha_pe (r := r) (i, j) ≠ ∅ →
       (t, Yf (i, j + 1)) ∈ peF (r := r) (i, j + 1) →
-        ∀ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1)
+        ∀ x, Ev (Event.hori (i, j + 1) x) ∉ Yf (i, j + 1) := by
+  intro hne ht
+  by_contra hc
+  push_neg at hc
+  obtain ⟨x, hx⟩ := hc
+  rw [peF_def, Set.mem_iUnion] at ht
+  obtain ⟨n, ht⟩ := ht
+  have hall := EX1_ungranted_hori_lm2 i j Yf n x ⟨hx, ⟨t, ht⟩⟩
+  obtain ⟨y, hy⟩ := EX1_request_hori_rev i j Yf hne
+  exact hy (hall y)
 
-axiom EX1_ungranted_hori_rev {r : Type _}
+theorem EX1_ungranted_hori_rev {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -296,25 +390,49 @@ axiom EX1_ungranted_hori_rev {r : Type _}
       Ev '' Alpha_pe (r := r) (i, j + 1) ∩ Ev '' Alpha_pe (r := r) (i, j) ⊆
           Yf (i, j + 1) ∪ Yf (i, j) →
         (t, Yf (i, j + 1)) ∈ peF (r := r) (i, j + 1) →
-          ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j)
+          ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j) := by
+  intro hne hsub ht x
+  have hnot := EX1_request_hori_rev_ALL i j t Yf hne ht x
+  have hmem : Ev (Event.hori (i, j + 1) x) ∈
+      Ev '' Alpha_pe (r := r) (i, j + 1) ∩ Ev '' Alpha_pe (r := r) (i, j) := by
+    constructor
+    · exact ⟨Event.hori (i, j + 1) x, ⟨x, Or.inr (Or.inl rfl)⟩, rfl⟩
+    · exact ⟨Event.hori (i, j + 1) x, ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩
+  rcases hsub hmem with h | h
+  · exact absurd h hnot
+  · exact h
 
 /- vert rev -/
 
-axiom EX1_request_vert_rev {r : Type _}
+theorem EX1_request_vert_rev {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i + 1, j) \ Yf (i + 1, j)) ∩ Ev '' Alpha_pe (r := r) (i, j) ≠ ∅ →
-      ∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j)
+      ∃ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j) := by
+  intro h
+  rcases Set.nonempty_iff_ne_empty.mpr h with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := vert_of_mem hb ha
+  exact ⟨z, hY⟩
 
-axiom EX1_request_vert_rev_ALL {r : Type _}
+theorem EX1_request_vert_rev_ALL {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i + 1, j) \ Yf (i + 1, j)) ∩ Ev '' Alpha_pe (r := r) (i, j) ≠ ∅ →
       (t, Yf (i + 1, j)) ∈ peF (r := r) (i + 1, j) →
-        ∀ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j)
+        ∀ x, Ev (Event.vert (i + 1, j) x) ∉ Yf (i + 1, j) := by
+  intro hne ht
+  by_contra hc
+  push_neg at hc
+  obtain ⟨x, hx⟩ := hc
+  rw [peF_def, Set.mem_iUnion] at ht
+  obtain ⟨n, ht⟩ := ht
+  have hall := EX1_ungranted_vert_lm2 i j Yf n x ⟨hx, ⟨t, ht⟩⟩
+  obtain ⟨y, hy⟩ := EX1_request_vert_rev i j Yf hne
+  exact hy (hall y)
 
-axiom EX1_ungranted_vert_rev {r : Type _}
+theorem EX1_ungranted_vert_rev {r : Type _}
     (i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -322,7 +440,17 @@ axiom EX1_ungranted_vert_rev {r : Type _}
       Ev '' Alpha_pe (r := r) (i + 1, j) ∩ Ev '' Alpha_pe (r := r) (i, j) ⊆
           Yf (i + 1, j) ∪ Yf (i, j) →
         (t, Yf (i + 1, j)) ∈ peF (r := r) (i + 1, j) →
-          ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i, j)
+          ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i, j) := by
+  intro hne hsub ht x
+  have hnot := EX1_request_vert_rev_ALL i j t Yf hne ht x
+  have hmem : Ev (Event.vert (i + 1, j) x) ∈
+      Ev '' Alpha_pe (r := r) (i + 1, j) ∩ Ev '' Alpha_pe (r := r) (i, j) := by
+    constructor
+    · exact ⟨Event.vert (i + 1, j) x, ⟨x, Or.inl rfl⟩, rfl⟩
+    · exact ⟨Event.vert (i + 1, j) x, ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩
+  rcases hsub hmem with h | h
+  · exact absurd h hnot
+  · exact h
 
 /- --------------------------------*
  |        making function         |
