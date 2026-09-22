@@ -128,18 +128,25 @@ theorem Set_DFtickfun_def (pn : DFtickName) :
   cases pn
   simp [DFtickfun, Nondet_send_prefix, guarded, noHide]
 
+/- Lean note:
+   Isabelle's `!<f> :X .. Pf` (`CSP_syntax.thy:252`,
+   `!<f> :X .. Pf == ! :(f ` X) .. (%x. Pf ((inv f) x))`) is a replicated
+   *internal choice* indexed through `f`; it performs no event.  The port had
+   `Nondet_send_prefix`, which is `!<f> :X -> Pf` and prefixes each branch
+   with `f x`.  The source here writes `..`, so it is `Rep_int_choice_f`. -/
+
 def DF_to_PreCircSpecC : DFtickName → proc PNRC Event
   | DFtickName.DFtick =>
       (Rep_int_choice_nat Set.univ fun n =>
-        Nondet_send_prefix Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
+        Rep_int_choice_f Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
           pPreCircSpecC n s)
       |~|
       (Rep_int_choice_nat Set.univ fun n =>
-        Nondet_send_prefix Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
+        Rep_int_choice_f Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
           pPreCircSpecL n s)
       |~|
       (Rep_int_choice_nat Set.univ fun n =>
-        Nondet_send_prefix Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
+        Rep_int_choice_f Event.stlist {s | ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s} fun s =>
           pPreCircSpecR n s)
 
 /- --------------------------------------- *

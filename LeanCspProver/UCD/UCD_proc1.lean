@@ -245,8 +245,15 @@ theorem Circ_cong {P Q R : proc PN Event} :
                   for induction (sub)
  ********************************************************* -/
 
+/- Lean note:
+   Isabelle's `!<f> :X .. Pf` (`CSP_syntax.thy:252`,
+   `!<f> :X .. Pf == ! :(f ` X) .. (%x. Pf ((inv f) x))`) is a replicated
+   *internal choice* indexed through `f`; it performs no event.  The port had
+   `Nondet_send_prefix`, which is `!<f> :X -> Pf` and prefixes each branch
+   with `f x`.  The source here writes `..`, so it is `Rep_int_choice_f`. -/
+
 private abbrev lineSpecSendStep (s : List Att) : proc PN Event :=
-  Nondet_send_prefix Event.stlist {t | toStbOne t = s} fun t =>
+  Rep_int_choice_f Event.stlist {t | toStbOne t = s} fun t =>
     ChildAtt (hd t) <---> pLineSpec (tl t)
 
 def LineSpec_to_Step : PN → proc PN Event
@@ -533,12 +540,12 @@ theorem LineSpec_One {a : Att} :
 axiom LineSpec_LineChild_toStbOne_lm (n : Nat) :
     ∀ s, (s.length = n ∧ ChkLCR s ∧ s ≠ []) →
       pLineSpec s <=F
-        Nondet_send_prefix Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t
+        Rep_int_choice_f Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t
 
 theorem LineSpec_LineChild_toStbOne {s : List Att} :
     ChkLCR s → s ≠ [] →
       pLineSpec s <=F
-        Nondet_send_prefix Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t := by
+        Rep_int_choice_f Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t := by
   intro hChk hs
   exact LineSpec_LineChild_toStbOne_lm s.length s ⟨rfl, hChk, hs⟩
 
