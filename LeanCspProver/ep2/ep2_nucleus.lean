@@ -263,7 +263,7 @@ private theorem range_ne {γ : Type _} [Inhabited γ] (f : γ → Data) : Set.ra
   Set.nonempty_iff_ne_empty.mp ⟨f default, default, rfl⟩
 
 /-- The body of `$TerminalConfigManagement` behaves like `SKIP` on an `Exit` value. -/
-private theorem TCM_body_Exit (e : exit_d) :
+theorem TCM_body_Exit (e : exit_d) :
     eqF
       (IF decideMem (Data.Exit e) (Set.range Data.Request) THEN
           (Nondet_send_prefix Event.c (Set.range Data.Response) fun _ =>
@@ -278,7 +278,7 @@ private theorem TCM_body_Exit (e : exit_d) :
   exact cspF_trans_left_eq cspF_IF_False cspF_IF_True
 
 /-- The body of `$TerminalConfigManagement` on a `Request` value. -/
-private theorem TCM_body_Request (r : request_d) :
+theorem TCM_body_Request (r : request_d) :
     eqF
       (IF decideMem (Data.Request r) (Set.range Data.Request) THEN
           (Nondet_send_prefix Event.c (Set.range Data.Response) fun _ =>

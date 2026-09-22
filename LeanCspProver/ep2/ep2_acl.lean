@@ -378,11 +378,6 @@ def Abs_to_AC : AbsName → proc ACName Event
 /- Lean note:
    Isabelle's `declare inj_on_def [simp]` has no direct Lean analogue here. -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction across
-   `AbsName` and `ACName`. The current Lean port keeps this heterogeneous
-   fixed-point argument as an axiom for now. -/
-
 instance Set_FPmode : HasFPmode where
   FPmode := CMSmode
 
@@ -390,7 +385,170 @@ instance Set_FPmode : HasFPmode where
 theorem FPmode_def : FPmode = CMSmode :=
   rfl
 
-axiom ep2_abs :
-    Abs <=F AC
+private theorem inj_C_SI_Init : Function.Injective Event.C_SI_Init := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem unwAC (pn : ACName) :
+    eqF (proc.Proc_name pn : proc ACName Event) MF MF (ACfun pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guarded_AC⟩))
+
+private theorem range_ne {γ : Type _} [Inhabited γ] (f : γ → D_SI_Init) :
+    Set.range f ≠ ∅ :=
+  Set.nonempty_iff_ne_empty.mp ⟨f default, default, rfl⟩
+
+/- ---------- evaluating the guard chain of `$TConfigurationManagement` ---------- -/
+
+private theorem IF_chain_true {b : Bool} {P Q : proc ACName Event} (hb : b = true) :
+    eqF (IF b THEN P ELSE Q) MF MF P := by
+  rw [hb]
+  exact cspF_IF_True
+
+private theorem IF_chain_false {b : Bool} {P Q R : proc ACName Event} (hb : b = false)
+    (h : eqF Q MF MF R) : eqF (IF b THEN P ELSE Q) MF MF R := by
+  rw [hb]
+  exact cspF_trans_left_eq cspF_IF_False h
+
+/- ---------- the fixed-point induction ---------- -/
+
+theorem ep2_abs :
+    Abs <=F AC := by
+  rw [Abs_def, AC_def]
+  refine cspF_fp_induct_ref_left (Pf := Absfun) (f := Abs_to_AC)
+    rfl (Or.inl rfl) guarded_Abs cspF_reflex_ref_P ?_
+  intro pn
+  cases pn with
+  | Abstract =>
+      refine cspF_rw_right_ref
+        (cspF_Parallel_cong rfl (unwAC ACName.TInit) (unwAC ACName.AcquirerInit)) ?_
+      simp only [Absfun, ACfun, Abs_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      refine cspF_rw_right_ref
+        (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+          (A := Set.range D_SI_Init.SStart) (B := Set.range D_SI_Init.SStart)
+          (Pf := fun _ => proc.Proc_name ACName.TConfigurationManagement)
+          (Qf := fun _ => proc.Proc_name ACName.ConfigurationManagement)
+          (Set.image_subset_range _ _) (subset_refl _) (range_ne D_SI_Init.SStart)) ?_
+      exact cspF_reflex_ref_P
+  | Loop =>
+      refine cspF_rw_right_ref
+        (cspF_Parallel_cong rfl (unwAC ACName.TConfigurationManagement)
+          (unwAC ACName.ConfigurationManagement)) ?_
+      simp only [Absfun, ACfun, Abs_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      -- split the five alternatives offered by `$ConfigurationManagement`
+      refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+      refine cspF_Int_choice_right ?_ ?_
+      · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+        refine cspF_Int_choice_right ?_ ?_
+        · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+          refine cspF_Int_choice_right ?_ ?_
+          · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+            refine cspF_Int_choice_right ?_ ?_
+            · -- session end: both sides terminate
+              refine cspF_Int_choice_left1 ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                  (A := Set.univ) (B := Set.range D_SI_Init.SEnd)
+                  (Set.image_subset_range _ _) (Set.subset_univ _)
+                  (range_ne D_SI_Init.SEnd)) ?_
+              refine cspF_Nondet_send_prefix_mono inj_C_SI_Init rfl rfl (fun x hx => ?_)
+              obtain ⟨s, rfl⟩ := hx
+              refine cspF_rw_right_ref
+                (cspF_Parallel_cong rfl
+                  (IF_chain_false (by simp [decideMem])
+                    (IF_chain_false (by simp [decideMem])
+                      (IF_chain_false (by simp [decideMem])
+                        (IF_chain_false (by simp [decideMem])
+                          (IF_chain_true (by simp [decideMem]))))))
+                  cspF_reflex_eq_P) ?_
+              exact cspF_rw_right_ref cspF_Parallel_term cspF_reflex_ref_P
+            · -- configuration data request / response
+              refine cspF_Int_choice_left2 ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                  (A := Set.univ) (B := Set.range D_SI_Init.CDReq)
+                  (Set.image_subset_range _ _) (Set.subset_univ _)
+                  (range_ne D_SI_Init.CDReq)) ?_
+              refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+                (fun _ h => Or.inl (Or.inl (Or.inl h))) (fun x hx => ?_)
+              obtain ⟨c, rfl⟩ := hx
+              refine cspF_rw_right_ref
+                (cspF_Parallel_cong rfl (IF_chain_true (by simp [decideMem]))
+                  cspF_reflex_eq_P) ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+                  (A := Set.range D_SI_Init.CDRes) (B := Set.range D_SI_Init.CDRes)
+                  (Set.image_subset_range _ _) (subset_refl _)
+                  (range_ne D_SI_Init.CDRes)) ?_
+              exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+                (fun _ h => Or.inl (Or.inl (Or.inl h))) (fun _ _ => cspF_reflex_ref_P)
+          · -- configuration data notification / acknowledge
+            refine cspF_Int_choice_left2 ?_
+            refine cspF_rw_right_ref
+              (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                (A := Set.univ) (B := Set.range D_SI_Init.CDN)
+                (Set.image_subset_range _ _) (Set.subset_univ _)
+                (range_ne D_SI_Init.CDN)) ?_
+            refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+              (fun _ h => Or.inl (Or.inl (Or.inr h))) (fun x hx => ?_)
+            obtain ⟨c, rfl⟩ := hx
+            refine cspF_rw_right_ref
+              (cspF_Parallel_cong rfl
+                (IF_chain_false (by simp [decideMem]) (IF_chain_true (by simp [decideMem])))
+                cspF_reflex_eq_P) ?_
+            refine cspF_rw_right_ref
+              (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+                (A := Set.range D_SI_Init.CDA) (B := Set.range D_SI_Init.CDA)
+                (Set.image_subset_range _ _) (subset_refl _)
+                (range_ne D_SI_Init.CDA)) ?_
+            exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+              (fun _ h => Or.inl (Or.inl (Or.inr h))) (fun _ _ => cspF_reflex_ref_P)
+        · -- remove configuration data
+          refine cspF_Int_choice_left2 ?_
+          refine cspF_rw_right_ref
+            (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+              (A := Set.univ) (B := Set.range D_SI_Init.RCDN)
+              (Set.image_subset_range _ _) (Set.subset_univ _)
+              (range_ne D_SI_Init.RCDN)) ?_
+          refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+            (fun _ h => Or.inl (Or.inr h)) (fun x hx => ?_)
+          obtain ⟨c, rfl⟩ := hx
+          refine cspF_rw_right_ref
+            (cspF_Parallel_cong rfl
+              (IF_chain_false (by simp [decideMem])
+                (IF_chain_false (by simp [decideMem])
+                  (IF_chain_true (by simp [decideMem]))))
+              cspF_reflex_eq_P) ?_
+          refine cspF_rw_right_ref
+            (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+              (A := Set.range D_SI_Init.RCDA) (B := Set.range D_SI_Init.RCDA)
+              (Set.image_subset_range _ _) (subset_refl _)
+              (range_ne D_SI_Init.RCDA)) ?_
+          exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+            (fun _ h => Or.inl (Or.inr h)) (fun _ _ => cspF_reflex_ref_P)
+      · -- activate configuration data
+        refine cspF_Int_choice_left2 ?_
+        refine cspF_rw_right_ref
+          (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+            (A := Set.univ) (B := Set.range D_SI_Init.ACDN)
+            (Set.image_subset_range _ _) (Set.subset_univ _)
+            (range_ne D_SI_Init.ACDN)) ?_
+        refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+          (fun _ h => Or.inr h) (fun x hx => ?_)
+        obtain ⟨c, rfl⟩ := hx
+        refine cspF_rw_right_ref
+          (cspF_Parallel_cong rfl
+            (IF_chain_false (by simp [decideMem])
+              (IF_chain_false (by simp [decideMem])
+                (IF_chain_false (by simp [decideMem])
+                  (IF_chain_true (by simp [decideMem])))))
+            cspF_reflex_eq_P) ?_
+        refine cspF_rw_right_ref
+          (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+            (A := Set.range D_SI_Init.ACDA) (B := Set.range D_SI_Init.ACDA)
+            (Set.image_subset_range _ _) (subset_refl _)
+            (range_ne D_SI_Init.ACDA)) ?_
+        exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+          (fun _ h => Or.inr h) (fun _ _ => cspF_reflex_ref_P)
 
 end ep2_acl
