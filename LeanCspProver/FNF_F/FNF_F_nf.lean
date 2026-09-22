@@ -679,37 +679,65 @@ theorem fnfF_in [HasPNfun p α]
         theorem --- fnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_fnfF_eqF [HasPNfun p α] [HasFPmode]
+theorem cspF_fnfF_eqF [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix (P |. n) (fnfF n P)
+      eqFfix (P |. n) (fnfF n P) := by
+  intro hMode
+  rw [fnfF_def]
+  exact cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_fsfF_eqF hMode))
+    (cspF_fnfF_fsfF_eqF (n := n) (SP := fsfF P))
 
 /- *------------------------*
  |     auxiliary laws     |
  *------------------------* -/
 
-axiom cspF_fnfF_eqF_Depth_rest [HasPNfun p α] [HasFPmode]
+theorem cspF_fnfF_eqF_Depth_rest [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix ((fnfF n P) |. n) (fnfF n P)
+      eqFfix ((fnfF n P) |. n) (fnfF n P) := by
+  intro hMode
+  refine cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_sym (cspF_fnfF_eqF (n := n) (P := P) hMode))) ?_
+  refine cspF_trans_left_eq cspF_Depth_rest_min ?_
+  rw [Nat.min_self]
+  exact cspF_fnfF_eqF hMode
 
 /- *===============================================================*
           theorem --- XfnfF P is a full normal form ---
  *===============================================================* -/
 
-axiom XfnfF_in [HasPNfun p α] [HasFPmode]
+private theorem XfnfF_eqF_aux [HasPNfun p α] [HasFPmode]
+    {P : proc p α} (hMode : FPmode = CPOmode ∨ FPmode = MIXmode) :
+    eqFfix (Rep_int_choice_nat Set.univ (fun m => fnfF m P)) P :=
+  cspF_trans_left_eq
+    (cspF_Rep_int_choice_cong_nat rfl
+      (fun m _ => cspF_sym (cspF_fnfF_eqF (n := m) (P := P) hMode)))
+    (cspF_sym cspF_nat_Depth_rest_UNIV)
+
+theorem XfnfF_in [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      XfnfF P ∈ XfnfF_proc (p := p) (α := α)
+      XfnfF P ∈ XfnfF_proc (p := p) (α := α) := by
+  intro hMode
+  refine ⟨fun n => fnfF n P, rfl, fun n => ?_, fun n => fnfF_in⟩
+  exact cspF_sym
+    (cspF_trans_left_eq
+      (cspF_Depth_rest_cong rfl (XfnfF_eqF_aux hMode))
+      (cspF_fnfF_eqF hMode))
 
 /- *===============================================================*
           theorem --- XfnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_XfnfF_eqF [HasPNfun p α] [HasFPmode]
+theorem cspF_XfnfF_eqF [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix P (XfnfF P)
+      eqFfix P (XfnfF P) := by
+  intro hMode
+  rw [XfnfF_def]
+  exact cspF_sym (XfnfF_eqF_aux hMode)
 
 /- (****************** to add them again ******************) -/
 
