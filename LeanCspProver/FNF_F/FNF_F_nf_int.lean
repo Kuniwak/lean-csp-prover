@@ -203,7 +203,7 @@ theorem fnfF_Rep_int_choice_in
  |    convenient lemma for subexpresions   |
  *-----------------------------------------*) -/
 
-axiom fnfF_Rep_int_choice_step_subexp
+theorem fnfF_Rep_int_choice_step_subexp
     [HasPNfun p α] [HasFPmode]
     {C : sets_nats α}
     {Af1 Af2 : aset_anat α → Set α}
@@ -219,7 +219,38 @@ axiom fnfF_Rep_int_choice_step_subexp
             (∀ c, c ∈ sumset C → Set.sUnion (Ysf2 c) ⊆ Af2 c) →
               eqFfix
                 (fnfF_Rep_int_choice_step C Af1 Ysf1 Pf1 Qf1)
-                (fnfF_Rep_int_choice_step C Af2 Ysf2 Pf2 Qf2)
+                (fnfF_Rep_int_choice_step C Af2 Ysf2 Pf2 Qf2) := by
+  intro hP hA hYs hQ _
+  have hAset : fnfF_Rep_int_choice_step_A C Af1 = fnfF_Rep_int_choice_step_A C Af2 := by
+    unfold fnfF_Rep_int_choice_step_A
+    congr 1
+    ext A
+    constructor
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, hA c hc⟩
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, (hA c hc).symm⟩
+  have hYset : fnfF_Rep_int_choice_step_Ys C Ysf1 = fnfF_Rep_int_choice_step_Ys C Ysf2 := by
+    unfold fnfF_Rep_int_choice_step_Ys
+    congr 1
+    ext Ys
+    constructor
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, hYs c hc⟩
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, (hYs c hc).symm⟩
+  have hQprop :
+      (∃ x, x ∈ sumset C ∧ Qf1 x = proc.SKIP) ↔ (∃ x, x ∈ sumset C ∧ Qf2 x = proc.SKIP) := by
+    constructor
+    · rintro ⟨x, hx, h⟩
+      exact ⟨x, hx, (hQ x hx) ▸ h⟩
+    · rintro ⟨x, hx, h⟩
+      exact ⟨x, hx, (hQ x hx).symm ▸ h⟩
+  unfold fnfF_Rep_int_choice_step
+  rw [hAset, hYset]
+  simp only [hQprop]
+  refine cspF_Int_choice_cong (cspF_Ext_choice_cong ?_ cspF_reflex_eq_P) cspF_reflex_eq_P
+  exact cspF_Ext_pre_choice_cong rfl (fun a ha => hP a ha)
 
 /- (*------------------------------------*
  |         one step equality          |
