@@ -311,6 +311,298 @@ private theorem rec_right_cong {Pf Qf : Nat → proc PN Event}
 private theorem unw (pn : PN) : eqF (proc.Proc_name pn : proc PN Event) MF MF (PNdef pn) :=
   «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PN⟩))
 
+/- *********************************************************
+          expanding the pipe operator `<--->`
+ ********************************************************* -/
+
+/- the two renaming functions of the pipe -/
+
+private abbrev fL : Event → Event := Renaming1_channel_fun Event.right Event.mid
+private abbrev fR : Event → Event := Renaming1_channel_fun Event.left Event.mid
+
+private theorem right_ne_mid : ∀ x y, Event.right x ≠ Event.mid y := by
+  intro x y h; cases h
+
+private theorem left_ne_mid : ∀ x y, Event.left x ≠ Event.mid y := by
+  intro x y h; cases h
+
+private theorem left_ne_right : ∀ x y, Event.left x ≠ Event.right y := by
+  intro x y h; cases h
+
+private theorem fL_right (n : Nat) : fL (Event.right n) = Event.mid n :=
+  Renaming1_channel_fun_f inj_event.2.1 right_ne_mid
+
+private theorem fL_mid (n : Nat) : fL (Event.mid n) = Event.right n :=
+  Renaming_channel_fun_g inj_event.2.2 right_ne_mid
+
+private theorem fL_left (n : Nat) : fL (Event.left n) = Event.left n :=
+  Renaming1_channel_fun_h right_ne_mid
+    (fun x y => fun h => left_ne_right y x h.symm) (fun x y => fun h => left_ne_mid y x h.symm)
+
+private theorem fL_stlist (l : List Att) : fL (Event.stlist l) = Event.stlist l :=
+  Renaming1_channel_fun_h right_ne_mid
+    (fun x y => by intro h; cases h) (fun x y => by intro h; cases h)
+
+private theorem fR_left (n : Nat) : fR (Event.left n) = Event.mid n :=
+  Renaming1_channel_fun_f inj_event.1 left_ne_mid
+
+private theorem fR_mid (n : Nat) : fR (Event.mid n) = Event.left n :=
+  Renaming_channel_fun_g inj_event.2.2 left_ne_mid
+
+private theorem fR_right (n : Nat) : fR (Event.right n) = Event.right n :=
+  Renaming1_channel_fun_h left_ne_mid
+    (fun x y => left_ne_right x y) (fun x y => fun h => by cases h)
+
+private theorem fR_stlist (l : List Att) : fR (Event.stlist l) = Event.stlist l :=
+  Renaming1_channel_fun_h left_ne_mid
+    (fun x y => by intro h; cases h) (fun x y => by intro h; cases h)
+
+private theorem inj_fL : Function.Injective fL := by
+  intro a b h
+  cases a <;> cases b <;>
+    simp only [fL_left, fL_right, fL_mid, fL_stlist] at h <;>
+    first
+      | rfl
+      | (cases h; rfl)
+      | exact absurd h (by simp)
+
+private theorem inj_fR : Function.Injective fR := by
+  intro a b h
+  cases a <;> cases b <;>
+    simp only [fR_left, fR_right, fR_mid, fR_stlist] at h <;>
+    first
+      | rfl
+      | (cases h; rfl)
+      | exact absurd h (by simp)
+
+/- the pipe alphabets -/
+
+private abbrev XL : Set Event := Set.range Event.left ∪ Set.range Event.mid
+private abbrev XR : Set Event := Set.range Event.mid ∪ Set.range Event.right
+
+private theorem XL_inter_XR : XL ∩ XR = Set.range Event.mid := by
+  ext e
+  cases e <;> simp
+
+private theorem Line_eq_pipe (P Q : proc PN Event) :
+    Line P Q =
+      proc.Hiding (Alpha_parallel (P[[fun_to_rel fL]]) XL XR (Q[[fun_to_rel fR]]))
+        (XL ∩ XR) := by
+  rw [XL_inter_XR]
+  rfl
+
+/- a left-output prefix after the left renaming -/
+
+private theorem renL_Act_left (n : Nat) (P : proc PN Event) :
+    eqFfix ((Event.left n ~> P)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice ({Event.left n} : Set Event)
+        (fun _ => P[[fun_to_rel fL]])) := by
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Act_prefix inj_fL) ?_
+  rw [fL_left]
+  exact cspF_Act_prefix_step
+
+/- ---------- renamed normal forms of the UCD process shapes ---------- -/
+
+private theorem invL_mid (n : Nat) : Function.invFun fL (Event.mid n) = Event.right n := by
+  have h := Function.leftInverse_invFun inj_fL (Event.right n)
+  rwa [fL_right] at h
+
+private theorem invL_left (n : Nat) : Function.invFun fL (Event.left n) = Event.left n := by
+  have h := Function.leftInverse_invFun inj_fL (Event.left n)
+  rwa [fL_left] at h
+
+private theorem image_fL_right : fL '' (Set.range Event.right) = Set.range Event.mid := by
+  ext e
+  constructor
+  · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+    exact ⟨n, (fL_right n).symm ▸ rfl⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨Event.right n, ⟨n, rfl⟩, fL_right n⟩
+
+private theorem renL_R (Qf : Nat → proc PN Event) :
+    eqFfix ((Rec_prefix Event.right Set.univ Qf)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice (Set.range Event.mid) fun x =>
+        (Qf (Function.invFun Event.mid x))[[fun_to_rel fL]]) := by
+  rw [Rec_prefix_def]
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Ext_pre_choice inj_fL) ?_
+  have himg : fL '' (Event.right '' (Set.univ : Set Nat)) = Set.range Event.mid := by
+    rw [Set.image_univ]; exact image_fL_right
+  refine cspF_Ext_pre_choice_cong himg (fun y hy => ?_)
+  obtain ⟨n, rfl⟩ := hy
+  rw [invL_mid n, Function.leftInverse_invFun inj_event.2.1 n,
+    Function.leftInverse_invFun inj_event.2.2 n]
+  exact cspF_reflex_eq_P
+
+private theorem invR_mid (n : Nat) : Function.invFun fR (Event.mid n) = Event.left n := by
+  have h := Function.leftInverse_invFun inj_fR (Event.left n)
+  rwa [fR_left] at h
+
+private theorem invR_right (n : Nat) : Function.invFun fR (Event.right n) = Event.right n := by
+  have h := Function.leftInverse_invFun inj_fR (Event.right n)
+  rwa [fR_right] at h
+
+private theorem image_fR_right : fR '' (Set.range Event.right) = Set.range Event.right := by
+  ext e
+  constructor
+  · rintro ⟨x, ⟨n, rfl⟩, rfl⟩
+    exact ⟨n, (fR_right n).symm⟩
+  · rintro ⟨n, rfl⟩
+    exact ⟨Event.right n, ⟨n, rfl⟩, fR_right n⟩
+
+private theorem renR_R (Qf : Nat → proc PN Event) :
+    eqFfix ((Rec_prefix Event.right Set.univ Qf)[[fun_to_rel fR]])
+      (proc.Ext_pre_choice (Set.range Event.right) fun x =>
+        (Qf (Function.invFun Event.right x))[[fun_to_rel fR]]) := by
+  rw [Rec_prefix_def]
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Ext_pre_choice inj_fR) ?_
+  have himg : fR '' (Event.right '' (Set.univ : Set Nat)) = Set.range Event.right := by
+    rw [Set.image_univ]; exact image_fR_right
+  refine cspF_Ext_pre_choice_cong himg (fun y hy => ?_)
+  obtain ⟨n, rfl⟩ := hy
+  rw [invR_right n]
+  exact cspF_reflex_eq_P
+
+private theorem renR_L (v : Nat) (P : proc PN Event) :
+    eqFfix ((Event.left v ~> P)[[fun_to_rel fR]])
+      (proc.Ext_pre_choice ({Event.mid v} : Set Event)
+        (fun _ => P[[fun_to_rel fR]])) := by
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Act_prefix inj_fR) ?_
+  rw [fR_left]
+  exact cspF_Act_prefix_step
+
+private theorem renL_LR (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Event) :
+    eqFfix (((Event.left v ~> P) [+] (Rec_prefix Event.right Set.univ Qf))[[fun_to_rel fL]])
+      (proc.Ext_pre_choice (({Event.left v} : Set Event) ∪ Set.range Event.mid) fun x =>
+        procIte (x = Event.left v) (P[[fun_to_rel fL]])
+          ((Qf (Function.invFun Event.mid x))[[fun_to_rel fL]])) := by
+  rw [Rec_prefix_def]
+  refine cspF_trans_left_eq
+    (cspF_Renaming_cong rfl
+      (cspF_Ext_choice_cong (cspF_Act_prefix_step (a := Event.left v) (P := P))
+        cspF_reflex_eq_P)) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl cspF_Ext_choice_step) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Ext_pre_choice inj_fL) ?_
+  have himg : fL '' ((({Event.left v} : Set Event)) ∪ Event.right '' (Set.univ : Set Nat))
+      = (({Event.left v} : Set Event)) ∪ Set.range Event.mid := by
+    rw [Set.image_univ, Set.image_union, Set.image_singleton, fL_left, image_fL_right]
+  refine cspF_Ext_pre_choice_cong himg (fun y hy => ?_)
+  rcases hy with hy | ⟨n, rfl⟩
+  · have hyv : y = Event.left v := hy
+    subst hyv
+    have hmem : Event.left v ∈ ({Event.left v} : Set Event) := Set.mem_singleton_iff.mpr rfl
+    have hnot : ¬ (Event.left v ∈ ({Event.left v} : Set Event) ∧
+        Event.left v ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    rw [invL_left v]
+    simp only [procIte_neg hnot, procIte_pos hmem, procIte_pos True.intro]
+    exact cspF_reflex_eq_P
+  · have hnot1 : ¬ (Event.right n ∈ ({Event.left v} : Set Event) ∧
+        Event.right n ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    have hnot2 : ¬ (Event.right n ∈ ({Event.left v} : Set Event)) := by simp
+    have hnot3 : ¬ (Event.mid n = Event.left v) := by simp
+    rw [invL_mid n]
+    simp only [procIte_neg hnot1, procIte_neg hnot2, procIte_neg hnot3]
+    rw [Function.leftInverse_invFun inj_event.2.1 n,
+      Function.leftInverse_invFun inj_event.2.2 n]
+    exact cspF_reflex_eq_P
+
+private theorem renR_LR (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Event) :
+    eqFfix (((Event.left v ~> P) [+] (Rec_prefix Event.right Set.univ Qf))[[fun_to_rel fR]])
+      (proc.Ext_pre_choice (({Event.mid v} : Set Event) ∪ Set.range Event.right) fun x =>
+        procIte (x = Event.mid v) (P[[fun_to_rel fR]])
+          ((Qf (Function.invFun Event.right x))[[fun_to_rel fR]])) := by
+  rw [Rec_prefix_def]
+  refine cspF_trans_left_eq
+    (cspF_Renaming_cong rfl
+      (cspF_Ext_choice_cong (cspF_Act_prefix_step (a := Event.left v) (P := P))
+        cspF_reflex_eq_P)) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl cspF_Ext_choice_step) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_fun_Ext_pre_choice inj_fR) ?_
+  have himg : fR '' ((({Event.left v} : Set Event)) ∪ Event.right '' (Set.univ : Set Nat))
+      = (({Event.mid v} : Set Event)) ∪ Set.range Event.right := by
+    rw [Set.image_univ, Set.image_union, Set.image_singleton, fR_left, image_fR_right]
+  refine cspF_Ext_pre_choice_cong himg (fun y hy => ?_)
+  rcases hy with hy | ⟨n, rfl⟩
+  · have hyv : y = Event.mid v := hy
+    subst hyv
+    have hmem : Event.left v ∈ ({Event.left v} : Set Event) := Set.mem_singleton_iff.mpr rfl
+    have hnot : ¬ (Event.left v ∈ ({Event.left v} : Set Event) ∧
+        Event.left v ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    rw [invR_mid v]
+    simp only [procIte_neg hnot, procIte_pos hmem, procIte_pos True.intro]
+    exact cspF_reflex_eq_P
+  · have hnot1 : ¬ (Event.right n ∈ ({Event.left v} : Set Event) ∧
+        Event.right n ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    have hnot2 : ¬ (Event.right n ∈ ({Event.left v} : Set Event)) := by simp
+    have hnot3 : ¬ (Event.right n = Event.mid v) := by simp
+    rw [invR_right n]
+    simp only [procIte_neg hnot1, procIte_neg hnot2, procIte_neg hnot3]
+    rw [Function.leftInverse_invFun inj_event.2.1 n]
+    exact cspF_reflex_eq_P
+
+/- ---------- the generic Line step ---------- -/
+
+private theorem Line_step_nosync {P Q : proc PN Event} {A B : Set Event}
+    {Pf Qf : Event → proc PN Event}
+    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
+    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
+    (hA : A ⊆ XL) (hB : B ⊆ XR) (hsync : A ∩ B = ∅) :
+    eqFfix (Line P Q)
+      (proc.Ext_pre_choice ((A \ XR) ∪ (B \ XL)) fun x =>
+        procIte (x ∈ A)
+          (proc.Hiding (Alpha_parallel (Pf x) XL XR (proc.Ext_pre_choice B Qf)) (XL ∩ XR))
+          (proc.Hiding (Alpha_parallel (proc.Ext_pre_choice A Pf) XL XR (Qf x)) (XL ∩ XR))) := by
+  rw [Line_eq_pipe]
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong rfl (cspF_Alpha_parallel_cong rfl rfl hP hQ)) ?_
+  exact cspF_Pipe_step_nosync hA hB hsync
+
+private theorem Line_step_sync {P Q : proc PN Event} {A B : Set Event}
+    {Pf Qf : Event → proc PN Event}
+    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
+    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
+    (hA : A ⊆ XL) (hB : B ⊆ XR) (hsync : A ∩ B ≠ ∅) :
+    eqFfix (Line P Q)
+      ((proc.Ext_pre_choice ((A \ XR) ∪ (B \ XL)) fun x =>
+          procIte (x ∈ A)
+            (proc.Hiding (Alpha_parallel (Pf x) XL XR (proc.Ext_pre_choice B Qf)) (XL ∩ XR))
+            (proc.Hiding (Alpha_parallel (proc.Ext_pre_choice A Pf) XL XR (Qf x)) (XL ∩ XR)))
+        [> Rep_int_choice_com (A ∩ B) fun x =>
+            proc.Hiding (Alpha_parallel (Pf x) XL XR (Qf x)) (XL ∩ XR)) := by
+  rw [Line_eq_pipe]
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong rfl (cspF_Alpha_parallel_cong rfl rfl hP hQ)) ?_
+  exact cspF_Pipe_step_sync hA hB hsync
+
+/- ---------- folding the expansion back into a Line ---------- -/
+
+private theorem Line_fold_left {P' Q : proc PN Event} {B : Set Event} {Qf : Event → proc PN Event}
+    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf)) :
+    eqFfix
+      (proc.Hiding (Alpha_parallel (P'[[fun_to_rel fL]]) XL XR (proc.Ext_pre_choice B Qf))
+        (XL ∩ XR))
+      (Line P' Q) := by
+  rw [Line_eq_pipe]
+  exact cspF_Hiding_cong rfl
+    (cspF_Alpha_parallel_cong rfl rfl cspF_reflex_eq_P (cspF_sym hQ))
+
+private theorem Line_fold_right {P Q' : proc PN Event} {A : Set Event} {Pf : Event → proc PN Event}
+    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf)) :
+    eqFfix
+      (proc.Hiding (Alpha_parallel (proc.Ext_pre_choice A Pf) XL XR (Q'[[fun_to_rel fR]]))
+        (XL ∩ XR))
+      (Line P Q') := by
+  rw [Line_eq_pipe]
+  exact cspF_Hiding_cong rfl
+    (cspF_Alpha_parallel_cong rfl rfl (cspF_sym hP) cspF_reflex_eq_P)
+
+private theorem Line_fold_both {P' Q' : proc PN Event} :
+    eqFfix
+      (proc.Hiding (Alpha_parallel (P'[[fun_to_rel fL]]) XL XR (Q'[[fun_to_rel fR]]))
+        (XL ∩ XR))
+      (Line P' Q') := by
+  rw [Line_eq_pipe]
+  exact cspF_reflex_eq_P
+
 /- --------------------- LineSpec_Step (lemmas) --------------------- -/
 
 axiom LineSpec_Step_ref1_AttL_AttL {t : List Att} {n x na xa : Nat} :
