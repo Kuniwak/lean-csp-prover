@@ -744,7 +744,7 @@ theorem fsfF_induct2_in
 
 /- syntactical transformation to fsfF -/
 
-axiom cspF_fsfF_induct2_eqF
+theorem cspF_fsfF_induct2_eqF
     [HasPNfun p α] [HasFPmode]
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
@@ -776,7 +776,8 @@ axiom cspF_fsfF_induct2_eqF
                   eqFfix
                     (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)
                     (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SQf SQf1 SQf2)) →
-            eqFfix (Pfun P1 P2) (fsfF_induct2 Pfun SP_step P1 P2)
+            eqFfix (Pfun P1 P2) (fsfF_induct2 Pfun SP_step P1 P2) :=
+  cspF_fsfF_induct2_rel_eqF fsfF_induct2_in_rel
 
 /- *===========================================================*
  |               fsfF_induct1 (take one process)             |

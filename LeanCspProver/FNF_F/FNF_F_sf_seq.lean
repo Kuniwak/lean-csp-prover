@@ -149,10 +149,64 @@ theorem fsfF_Seq_compo_in
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fsfF_Seq_compo_eqF
+/-- Congruence of the sequentialised timeout in its left argument. -/
+private theorem fsfF_Timeout_cong_left
+    [HasPNfun p α] [HasFPmode] {P1 P1' P2 : proc p α}
+    (h : eqFfix P1 P1') :
+    eqFfix (P1 [>seq P2) (P1' [>seq P2) := by
+  refine cspF_trans_left_eq (cspF_sym cspF_fsfF_Timeout_eqF) ?_
+  refine cspF_trans_left_eq (cspF_Timeout_cong h cspF_reflex_eq_P) ?_
+  exact cspF_fsfF_Timeout_eqF
+
+theorem cspF_fsfF_Seq_compo_eqF
     [HasPNfun p α] [HasFPmode]
     {P1 P2 : proc p α} :
-    eqFfix (P1 ;; P2) (P1 ;;seq P2)
+    eqFfix (P1 ;; P2) (P1 ;;seq P2) := by
+  rw [fsfF_Seq_compo_def]
+  refine cspF_fsfF_induct1_eqF
+    (Pfun := Pfun_Seq_compo P2) (SP_step := SP_step_Seq_compo P2) ?_ ?_ ?_
+  · intro C1 Rf1 _
+    exact cspF_Seq_compo_Dist_sum
+  · intro A1 Pf1 Q1 hQ1
+    show eqFfix (((proc.Ext_pre_choice A1 Pf1) [+] Q1) ;; P2)
+      (SP_step_Seq_compo P2 A1 Pf1 Q1 (fun a => Pf1 a ;; P2))
+    simp only [SP_step_Seq_compo_def]
+    rcases hQ1 with rfl | rfl | rfl
+    · -- SKIP: the step resolves into a timeout on `P2`
+      rw [if_pos rfl]
+      refine cspF_trans_left_eq cspF_SKIP_Seq_compo_step_resolve ?_
+      refine cspF_trans_left_eq
+        (cspF_Timeout_cong (cspF_sym cspF_Ext_choice_unit_r) cspF_reflex_eq_P) ?_
+      exact cspF_fsfF_Timeout_eqF
+    · -- DIV: the step resolves into a timeout on `SDIV`
+      rw [if_neg (show ¬ ((proc.DIV : proc p α) = proc.SKIP) by intro h; cases h), if_pos rfl]
+      refine cspF_trans_left_eq cspF_DIV_Seq_compo_step_resolve ?_
+      refine cspF_trans_left_eq
+        (cspF_Ext_choice_SKIP_or_DIV_resolve (Or.inr rfl)) ?_
+      refine cspF_trans_left_eq
+        (cspF_Timeout_cong (cspF_sym cspF_Ext_choice_unit_r) cspF_SDIV_eqF) ?_
+      exact cspF_fsfF_Timeout_eqF
+    · -- STOP: the step is just the prefix choice
+      rw [if_neg (show ¬ ((proc.STOP : proc p α) = proc.SKIP) by intro h; cases h),
+        if_neg (show ¬ ((proc.STOP : proc p α) = proc.DIV) by intro h; cases h)]
+      refine cspF_trans_left_eq
+        (cspF_Seq_compo_cong cspF_Ext_choice_unit_r cspF_reflex_eq_P) ?_
+      refine cspF_trans_left_eq cspF_Seq_compo_step ?_
+      exact cspF_sym cspF_Ext_choice_unit_r
+  · intro A1 Pf1 Q1 SPf SQf hSPf
+    simp only [SP_step_Seq_compo_def]
+    have hext : eqFfix ((proc.Ext_pre_choice A1 SPf) [+] (proc.STOP : proc p α))
+        ((proc.Ext_pre_choice A1 SQf) [+] (proc.STOP : proc p α)) :=
+      cspF_Ext_choice_cong (cspF_Ext_pre_choice_cong rfl hSPf) cspF_reflex_eq_P
+    by_cases hS : Q1 = (proc.SKIP : proc p α)
+    · simp only [if_pos hS]
+      exact fsfF_Timeout_cong_left hext
+    · simp only [if_neg hS]
+      by_cases hD : Q1 = (proc.DIV : proc p α)
+      · simp only [if_pos hD]
+        exact fsfF_Timeout_cong_left hext
+      · simp only [if_neg hD]
+        exact hext
 
 /- ****************** to add them again ****************** -/
 
