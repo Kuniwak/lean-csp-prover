@@ -153,9 +153,105 @@ def DF_to_PreCircSpecC : DFtickName → proc PNRC Event
             deadlock freeness
  * --------------------------------------- -/
 
-axiom PreCircSpecC_DF {n : Nat} {s : List Att} :
+private abbrev okAtt (s : List Att) : Prop :=
+  ChkLCR s ∧ s ≠ [] ∧ guardL s ∧ guardR s
+
+/-- Every state the spec can reach is again a legal state. -/
+private theorem okAtt_nextR_nextL {s : List Att} (h : okAtt s) (z : Nat) :
+    okAtt (nextR (nextL s, z)) := by
+  obtain ⟨hchk, hne, hgL, hgR⟩ := h
+  have hchkL : ChkLCR (nextL s) := (ChkLCR_nextL hgL).mpr hchk
+  have hgRL : guardR (nextL s) := ChkLCR_guardL_guardR_nextL hchk hgL
+  refine ⟨(ChkLCR_nextR hgRL).mpr hchkL, ?_, ?_, guardR_nextR_nextL hchk hgL hgR⟩
+  · exact not_nil_nextR_not_nil (not_nil_nextL_not_nil hne)
+  · exact ChkLCR_guardR_guardL_nextR hchkL hgRL
+
+private theorem okAtt_nextL_nextR {s : List Att} (h : okAtt s) (z : Nat) :
+    okAtt (nextL (nextR (s, z))) := by
+  obtain ⟨hchk, hne, hgL, hgR⟩ := h
+  have hchkR : ChkLCR (nextR (s, z)) := (ChkLCR_nextR hgR).mpr hchk
+  have hgLR : guardL (nextR (s, z)) := ChkLCR_guardR_guardL_nextR hchk hgR
+  refine ⟨(ChkLCR_nextL hgLR).mpr hchkR, ?_, guardL_nextL_nextR hchk hgL hgR, ?_⟩
+  · exact not_nil_nextL_not_nil (not_nil_nextR_not_nil hne)
+  · exact ChkLCR_guardL_guardR_nextL hchkR hgLR
+
+private theorem IF_posRC {c : Prop} [Decidable c] (h : c) (P Q : proc PNRC Event) :
+    eqF (IF c THEN P ELSE Q) MF MF P := by
+  rw [decide_eq_true h]
+  exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+/-- Selecting one component of `DF_to_PreCircSpecC`. -/
+private theorem DF_to_C {m : Nat} {r : List Att} (hr : okAtt r) :
+    refF (DF_to_PreCircSpecC DFtickName.DFtick) MF MF (pPreCircSpecC m r) := by
+  refine cspF_Int_choice_left1 (cspF_Int_choice_left1 ?_)
+  refine cspF_Rep_int_choice_nat_left_x (n := m) (Set.mem_univ m) ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+    (X := {r' | ChkLCR r' ∧ r' ≠ [] ∧ guardL r' ∧ guardR r'})
+    (Pf := fun r' => pPreCircSpecC m r') (a := r) inj_stlist hr cspF_reflex_ref_P
+
+private theorem DF_to_L {m : Nat} {r : List Att} (hr : okAtt r) :
+    refF (DF_to_PreCircSpecC DFtickName.DFtick) MF MF (pPreCircSpecL m r) := by
+  refine cspF_Int_choice_left1 (cspF_Int_choice_left2 ?_)
+  refine cspF_Rep_int_choice_nat_left_x (n := m) (Set.mem_univ m) ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+    (X := {r' | ChkLCR r' ∧ r' ≠ [] ∧ guardL r' ∧ guardR r'})
+    (Pf := fun r' => pPreCircSpecL m r') (a := r) inj_stlist hr cspF_reflex_ref_P
+
+private theorem DF_to_R {m : Nat} {r : List Att} (hr : okAtt r) :
+    refF (DF_to_PreCircSpecC DFtickName.DFtick) MF MF (pPreCircSpecR m r) := by
+  refine cspF_Int_choice_left2 ?_
+  refine cspF_Rep_int_choice_nat_left_x (n := m) (Set.mem_univ m) ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+    (X := {r' | ChkLCR r' ∧ r' ≠ [] ∧ guardL r' ∧ guardR r'})
+    (Pf := fun r' => pPreCircSpecR m r') (a := r) inj_stlist hr cspF_reflex_ref_P
+
+private theorem unwRC (pn : PNRC) :
+    eqF (proc.Proc_name pn : proc PNRC Event) MF MF (PNRCdef pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PNRC⟩))
+
+/-- `$DFtick` after one step: it can offer any single event and then be
+    `$DFtick` again. -/
+private theorem DF_step_one {a : Event} {Q : proc PNRC Event}
+    (h : refF (DF_to_PreCircSpecC DFtickName.DFtick) MF MF Q) :
+    refF (Int_pre_choice Set.univ
+        (fun _ : Event => DF_to_PreCircSpecC DFtickName.DFtick)) MF MF (a ~> Q) :=
+  cspF_Int_pre_choice_left_x (a := a) (Set.mem_univ a) (cspF_Act_prefix_mono rfl h)
+
+theorem PreCircSpecC_DF {n : Nat} {s : List Att} :
   ChkLCR s → s ≠ [] → guardL s → guardR s →
-    refF pDFtick MF MF (pPreCircSpecC n s)
+    refF pDFtick MF MF (pPreCircSpecC n s) := by
+  intro hchk hne hgL hgR
+  refine cspF_fp_induct_ref_left (Pf := DFtickfun) (f := DF_to_PreCircSpecC)
+    (p0 := DFtickName.DFtick) rfl (Or.inl rfl) guardedfun_DFtick
+    (DF_to_C ⟨hchk, hne, hgL, hgR⟩) ?_
+  intro p
+  cases p
+  have hDF : eqFfix ((DFtickfun DFtickName.DFtick) << DF_to_PreCircSpecC)
+      ((Int_pre_choice Set.univ
+          (fun _ : Event => DF_to_PreCircSpecC DFtickName.DFtick)) |~| proc.SKIP) := by
+    simp only [DFtickfun, Subst_procfun, Nondet_send_prefix_def,
+      Subst_procfun_Int_pre_choice, Set.image_id']
+    exact cspF_reflex_eq_P
+  refine cspF_rw_left_ref hDF ?_
+  refine cspF_Int_choice_left1 ?_
+  refine cspF_Int_choice_right (cspF_Int_choice_right ?_ ?_) ?_
+  · refine cspF_Rep_int_choice_nat_right (fun m _ => ?_)
+    refine cspF_Rep_int_choice_f_right inj_stlist (fun r hr => ?_)
+    refine cspF_rw_right_ref (unwRC (PNRC.PreCircSpecC (m, r))) ?_
+    refine cspF_rw_right_ref (IF_posRC hr _ _) ?_
+    exact cspF_Ext_choice_right
+      (DF_step_one (DF_to_R (m := m / 2) hr))
+      (DF_step_one (DF_to_L (m := m) hr))
+  · refine cspF_Rep_int_choice_nat_right (fun m _ => ?_)
+    refine cspF_Rep_int_choice_f_right inj_stlist (fun r hr => ?_)
+    refine cspF_rw_right_ref (unwRC (PNRC.PreCircSpecL (m, r))) ?_
+    refine cspF_rw_right_ref (IF_posRC hr _ _) ?_
+    exact DF_step_one (DF_to_C (okAtt_nextR_nextL hr (m / 2)))
+  · refine cspF_Rep_int_choice_nat_right (fun m _ => ?_)
+    refine cspF_Rep_int_choice_f_right inj_stlist (fun r hr => ?_)
+    refine cspF_rw_right_ref (unwRC (PNRC.PreCircSpecR (m, r))) ?_
+    refine cspF_rw_right_ref (IF_posRC hr _ _) ?_
+    exact DF_step_one (DF_to_C (okAtt_nextL_nextR hr m))
 
 /- ------------------------------------------------------------ -/
 
