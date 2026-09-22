@@ -190,14 +190,21 @@ theorem CC_def (p : TerminalState × Trigger) :
         relating function between AbsName and ACName
  ********************************************************* -/
 
+/- Lean note:
+   Isabelle's `!<f> :X .. Pf` (`CSP_syntax.thy:252`,
+   `!<f> :X .. Pf == ! :(f ` X) .. (%x. Pf ((inv f) x))`) is a replicated
+   *internal choice* indexed through `f`; it performs no event.  The port had
+   `Nondet_send_prefix`, which is `!<f> :X -> Pf` and prefixes each branch
+   with `f x`.  The source here writes `..`, so it is `Rep_int_choice_f`. -/
+
 def AC_to_CC : ACName → proc CCName Event
   | ACName.TInit =>
-      Nondet_send_prefix Event.PairTT Set.univ fun p =>
+      Rep_int_choice_f Event.PairTT Set.univ fun p =>
         proc.Hiding
           (proc.Proc_name (CCName.CTInit p))
           (Set.range Event.C_TerminalDisplay)
   | ACName.TConfigurationManagement =>
-      Nondet_send_prefix Event.PairTT Set.univ fun p =>
+      Rep_int_choice_f Event.PairTT Set.univ fun p =>
         proc.Hiding
           (proc.Proc_name (CCName.CTConfigurationManagement p))
           (Set.range Event.C_TerminalDisplay)
