@@ -591,35 +591,52 @@ axiom cspF_fsfF_induct2_rel_eqF
 
 /- relation --> function -/
 
-axiom fsfF_induct2_in_rel
+theorem fsfF_induct2_in_rel
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
-    fsfF_induct2_rel Pfun SP_step P1 P2 (fsfF_induct2 Pfun SP_step P1 P2)
+    fsfF_induct2_rel Pfun SP_step P1 P2 (fsfF_induct2 Pfun SP_step P1 P2) :=
+  Classical.choose_spec (fsfF_induct2_rel_exists_ax Pfun SP_step P1 P2)
 
-axiom fsfF_induct2_from_rel
+theorem fsfF_induct2_from_rel
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP : proc p α} :
     fsfF_induct2_rel Pfun SP_step P1 P2 SP ↔
-      fsfF_induct2 Pfun SP_step P1 P2 = SP
+      fsfF_induct2 Pfun SP_step P1 P2 = SP := by
+  constructor
+  · intro h
+    exact fsfF_induct2_rel_unique fsfF_induct2_in_rel h
+  · rintro rfl
+    exact fsfF_induct2_in_rel
 
-axiom fsfF_induct2_to_rel
+theorem fsfF_induct2_to_rel
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP : proc p α} :
     fsfF_induct2 Pfun SP_step P1 P2 = SP ↔
-      fsfF_induct2_rel Pfun SP_step P1 P2 SP
+      fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fsfF_induct2_from_rel.symm
 
 /- function -/
 
-axiom fsfF_induct2_etc
+/- Lean note:
+   Isabelle states this with a *disjunction* of the two side conditions
+   (`FNF_F_sf_induct.thy:696`, `[| P1 ~: fsfF_proc | P2 ~: fsfF_proc |]`, and
+   the proof discharges it with `erule disjE`); the port had them as two
+   separate premises, which is strictly weaker. -/
+
+theorem fsfF_induct2_etc
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
-    ¬ fsfF_proc P1 →
-      ¬ fsfF_proc P2 →
-        fsfF_induct2 Pfun SP_step P1 P2 = Pfun P1 P2
+    (¬ fsfF_proc P1 ∨ ¬ fsfF_proc P2) →
+      fsfF_induct2 Pfun SP_step P1 P2 = Pfun P1 P2 := by
+  intro h
+  refine fsfF_induct2_to_rel.mpr ?_
+  rcases h with h | h
+  · exact fsfF_induct2_rel.fsfF_induct2_rel_etc_left h
+  · exact fsfF_induct2_rel.fsfF_induct2_rel_etc_right h
 
 axiom fsfF_induct2_step_int_left
     {Pfun : FsfFInduct2Pfun p α}

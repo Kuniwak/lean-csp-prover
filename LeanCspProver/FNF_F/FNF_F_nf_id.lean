@@ -54,7 +54,7 @@ variable {p : Type u} {α : Type v}
 
 /- (*** Q ***) -/
 
-axiom fnfF_syntactical_equality_Q_lm
+theorem fnfF_syntactical_equality_Q_lm
     {A1 A2 : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
     {M1 M2 : p → domFType α} :
     refF
@@ -63,7 +63,27 @@ axiom fnfF_syntactical_equality_Q_lm
       M1 M2
       ((((proc.Ext_pre_choice A2 Pf2) [+] proc.SKIP) |~|
         Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-      False
+      False := by
+  intro h
+  have hT := (cspF_cspT_refF_semantics.mp h).1
+  rw [cspT_refT_semantics] at hT
+  have hTick : (Abs_trace [event.Tick] : traceType α) :t
+      traces ((((proc.Ext_pre_choice A2 Pf2) [+] proc.SKIP) |~|
+        Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+        (fstF ∘ M2) := by
+    rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_SKIP]
+    exact Or.inl (Or.inr (Or.inr rfl))
+  have hin : (Abs_trace [event.Tick] : traceType α) :t
+      traces ((((proc.Ext_pre_choice A1 Pf1) [+] proc.DIV) |~|
+        Rep_int_choice_set Ys1 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+        (fstF ∘ M1) := hT hTick
+  rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_DIV,
+    in_traces_Rep_int_choice_set] at hin
+  rcases hin with (hin | hin) | (hin | ⟨Y, -, hin⟩)
+  · exact Tick_notin_traces_Ext_pre_choice hin
+  · exact one_neq_nil hin
+  · exact one_neq_nil hin
+  · exact Tick_notin_traces_Ext_pre_choice hin
 
 theorem fnfF_syntactical_equality_Q
     {Q1 Q2 : proc p α} {A1 A2 : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
