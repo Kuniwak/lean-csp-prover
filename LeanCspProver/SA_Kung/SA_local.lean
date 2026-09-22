@@ -277,13 +277,21 @@ theorem EX1_request_hori {r : Type _}
   obtain ⟨z, rfl⟩ := hori_of_mem ha hb
   exact ⟨z, hY⟩
 
-axiom EX1_ungranted_hori_lm1 {r : Type _}
+theorem EX1_ungranted_hori_lm1 {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j) \ Yf (i, j)) ∩ Ev '' Alpha_pe (r := r) (i, j + 1) ≠ ∅ →
       Ev '' Alpha_pe (r := r) (i, j) ∩ Ev '' Alpha_pe (r := r) (i, j + 1) ⊆
           Yf (i, j) ∪ Yf (i, j + 1) →
-        ∃ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)
+        ∃ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1) := by
+  intro hne hsub
+  rcases Set.nonempty_iff_ne_empty.mpr hne with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := hori_of_mem ha hb
+  refine ⟨z, ?_⟩
+  rcases hsub ⟨⟨_, ha, rfl⟩, ⟨_, hb, rfl⟩⟩ with h | h
+  · exact absurd h hY
+  · exact h
 
 axiom EX1_ungranted_hori_lm2 {r : Type _}
     (i j : Nat)
@@ -321,13 +329,21 @@ theorem EX1_request_vert {r : Type _}
   obtain ⟨z, rfl⟩ := vert_of_mem ha hb
   exact ⟨z, hY⟩
 
-axiom EX1_ungranted_vert_lm1 {r : Type _}
+theorem EX1_ungranted_vert_lm1 {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     (Ev '' Alpha_pe (r := r) (i, j) \ Yf (i, j)) ∩ Ev '' Alpha_pe (r := r) (i + 1, j) ≠ ∅ →
       Ev '' Alpha_pe (r := r) (i, j) ∩ Ev '' Alpha_pe (r := r) (i + 1, j) ⊆
           Yf (i, j) ∪ Yf (i + 1, j) →
-        ∃ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)
+        ∃ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j) := by
+  intro hne hsub
+  rcases Set.nonempty_iff_ne_empty.mpr hne with ⟨e, ⟨⟨a, ha, rfl⟩, hY⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨z, rfl⟩ := vert_of_mem ha hb
+  refine ⟨z, ?_⟩
+  rcases hsub ⟨⟨_, ha, rfl⟩, ⟨_, hb, rfl⟩⟩ with h | h
+  · exact absurd h hY
+  · exact h
 
 axiom EX1_ungranted_vert_lm2 {r : Type _}
     (i j : Nat)
