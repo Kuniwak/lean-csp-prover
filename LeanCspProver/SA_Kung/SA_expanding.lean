@@ -76,13 +76,31 @@ axiom pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
                   alphabet lemma
  ********************************************************* -/
 
-axiom EX1_isFailureOf_in_alpha1 {r : Type _} (i j : Nat) :
+theorem EX1_isFailureOf_in_alpha1 {r : Type _} (i j : Nat) :
     ((<> : traceType (Event r)),
       Ev '' Alpha_pe (r := r) (i, j) \
         (Ev '' (Set.range (Event.vert (i, j)) ∪ Set.range (Event.hori (i, j)))) ) =
     ((<> : traceType (Event r)),
       {e | ∃ a, e = Ev a ∧
-        (∃ x, a = Event.vert (i + 1, j) x ∨ a = Event.hori (i, j + 1) x)})
+        (∃ x, a = Event.vert (i + 1, j) x ∨ a = Event.hori (i, j + 1) x)}) := by
+  congr 1
+  ext e
+  simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_union,
+    Set.mem_range]
+  constructor
+  · rintro ⟨⟨a, ⟨x, ha⟩, rfl⟩, hnot⟩
+    refine ⟨a, rfl, ?_⟩
+    rcases ha with rfl | rfl | rfl | rfl
+    · exact absurd ⟨_, Or.inl ⟨x, rfl⟩, rfl⟩ hnot
+    · exact absurd ⟨_, Or.inr ⟨x, rfl⟩, rfl⟩ hnot
+    · exact ⟨x, Or.inl rfl⟩
+    · exact ⟨x, Or.inr rfl⟩
+  · rintro ⟨a, rfl, x, ha⟩
+    rcases ha with rfl | rfl
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (⟨y, rfl⟩ | ⟨y, rfl⟩), hb⟩ <;> (injection hb with hb; simp at hb)
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (⟨y, rfl⟩ | ⟨y, rfl⟩), hb⟩ <;> (injection hb with hb; simp at hb)
 
 axiom EX1_isFailureOf_in_alpha2
     {r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
@@ -100,14 +118,39 @@ axiom EX1_isFailureOf_in_alpha2
            else Faiures_in_vert (Function.invFun (Event.hori (i, j)) a) (i, j) F) ∧
         a ∈ Set.range (Event.vert (i, j)) ∪ Set.range (Event.hori (i, j))}
 
-axiom EX1_isFailureOf_in_hori_alpha1 {r : Type _} (i j : Nat) :
+theorem EX1_isFailureOf_in_hori_alpha1 {r : Type _} (i j : Nat) :
     ((<> : traceType (Event r)),
       {e | ∃ a, e = Ev a ∧ ∃ x,
         a = Event.vert (i, j) x ∨
           a = Event.hori (i, j + 1) x ∨
           a = Event.vert (i + 1, j) x}) =
     ((<> : traceType (Event r)),
-      Ev '' Alpha_pe (r := r) (i, j) \ Ev '' Set.range (Event.hori (i, j)))
+      Ev '' Alpha_pe (r := r) (i, j) \ Ev '' Set.range (Event.hori (i, j))) := by
+  congr 1
+  ext e
+  simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_range]
+  constructor
+  · rintro ⟨a, rfl, x, ha⟩
+    rcases ha with rfl | rfl | rfl
+    · refine ⟨⟨_, ⟨x, Or.inl rfl⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+  · rintro ⟨⟨a, ⟨x, ha⟩, rfl⟩, hnot⟩
+    refine ⟨a, rfl, x, ?_⟩
+    rcases ha with rfl | rfl | rfl | rfl
+    · exact Or.inl rfl
+    · exact absurd ⟨_, ⟨x, rfl⟩, rfl⟩ hnot
+    · exact Or.inr (Or.inr rfl)
+    · exact Or.inr (Or.inl rfl)
 
 axiom EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
@@ -122,14 +165,39 @@ axiom EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a :
             (Function.invFun (Event.hori (i, j)) aa) (i, j) F ∧
         aa ∈ Set.range (Event.hori (i, j))}
 
-axiom EX1_isFailureOf_in_vert_alpha1 {r : Type _} (i j : Nat) :
+theorem EX1_isFailureOf_in_vert_alpha1 {r : Type _} (i j : Nat) :
     ((<> : traceType (Event r)),
       {e | ∃ a, e = Ev a ∧ ∃ x,
         a = Event.hori (i, j) x ∨
           a = Event.vert (i + 1, j) x ∨
           a = Event.hori (i, j + 1) x}) =
     ((<> : traceType (Event r)),
-      Ev '' Alpha_pe (r := r) (i, j) \ Ev '' Set.range (Event.vert (i, j)))
+      Ev '' Alpha_pe (r := r) (i, j) \ Ev '' Set.range (Event.vert (i, j))) := by
+  congr 1
+  ext e
+  simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_range]
+  constructor
+  · rintro ⟨a, rfl, x, ha⟩
+    rcases ha with rfl | rfl | rfl
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inl rfl)⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+    · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, ⟨y, rfl⟩, hb⟩
+      injection hb with hb
+      simp at hb
+  · rintro ⟨⟨a, ⟨x, ha⟩, rfl⟩, hnot⟩
+    refine ⟨a, rfl, x, ?_⟩
+    rcases ha with rfl | rfl | rfl | rfl
+    · exact absurd ⟨_, ⟨x, rfl⟩, rfl⟩ hnot
+    · exact Or.inl rfl
+    · exact Or.inr (Or.inl rfl)
+    · exact Or.inr (Or.inr rfl)
 
 axiom EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
@@ -144,7 +212,7 @@ axiom EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a :
             (Function.invFun (Event.hori (i, j)) a) (i, j) F ∧
         aa ∈ Set.range (Event.vert (i, j))}
 
-axiom EX1_isFailureOf_out_alpha1 {r : Type _} (i j : Nat) (x y : r) :
+theorem EX1_isFailureOf_out_alpha1 {r : Type _} (i j : Nat) (x y : r) :
     ((<> : traceType (Event r)),
       {e | ∃ a, e = Ev a ∧ ∃ z,
         a = Event.hori (i, j) z ∨
@@ -153,7 +221,35 @@ axiom EX1_isFailureOf_out_alpha1 {r : Type _} (i j : Nat) (x y : r) :
           (a = Event.vert (i + 1, j) z ∧ z ≠ x)}) =
     ((<> : traceType (Event r)),
       Ev '' Alpha_pe (r := r) (i, j) \
-        Ev '' ({Event.vert (i + 1, j) x, Event.hori (i, j + 1) y} : Set (Event r)))
+        Ev '' ({Event.vert (i + 1, j) x, Event.hori (i, j + 1) y} : Set (Event r))) := by
+  congr 1
+  ext e
+  simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_insert_iff,
+    Set.mem_singleton_iff]
+  constructor
+  · rintro ⟨a, rfl, z, ha⟩
+    rcases ha with rfl | rfl | ⟨rfl, hz⟩ | ⟨rfl, hz⟩
+    · refine ⟨⟨_, ⟨z, Or.inr (Or.inl rfl)⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (rfl | rfl), hb⟩ <;> (injection hb with hb; simp at hb)
+    · refine ⟨⟨_, ⟨z, Or.inl rfl⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (rfl | rfl), hb⟩ <;> (injection hb with hb; simp at hb)
+    · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (rfl | rfl), hb⟩ <;> injection hb with hb <;> simp at hb
+      exact hz hb.symm
+    · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+      rintro ⟨b, (rfl | rfl), hb⟩ <;> injection hb with hb <;> simp at hb
+      exact hz hb.symm
+  · rintro ⟨⟨a, ⟨z, ha⟩, rfl⟩, hnot⟩
+    refine ⟨a, rfl, z, ?_⟩
+    rcases ha with rfl | rfl | rfl | rfl
+    · exact Or.inr (Or.inl rfl)
+    · exact Or.inl rfl
+    · refine Or.inr (Or.inr (Or.inr ⟨rfl, ?_⟩))
+      rintro rfl
+      exact hnot ⟨_, Or.inl rfl, rfl⟩
+    · refine Or.inr (Or.inr (Or.inl ⟨rfl, ?_⟩))
+      rintro rfl
+      exact hnot ⟨_, Or.inr rfl, rfl⟩
 
 axiom EX1_isFailureOf_out_alpha2 {r : Type _} (i j : Nat) (x y : r)
     (F : Set (failure (Event r))) :
