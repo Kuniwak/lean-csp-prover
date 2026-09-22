@@ -528,11 +528,88 @@ theorem cspF_fnfF_fsfF_rel_eqF_notin
       rw [(fnfF_fsfF_rel_etc_iff hP).mp h]
       exact cspF_reflex_eq_P
 
-axiom cspF_fnfF_fsfF_rel_eqF_in
+/-- Cutting at the same depth twice is cutting once. -/
+private theorem depth_rest_idem [HasPNfun p α] [HasFPmode]
+    {P : proc p α} {k : Nat} :
+    eqFfix ((P |. k) |. k) (P |. k) := by
+  have h := cspF_Depth_rest_min (P := P) (n := k) (m := k) (M := (MF : p → domFType α))
+  rwa [Nat.min_self] at h
+
+set_option maxHeartbeats 1000000 in
+-- Both cases rewrite the depth restriction through the whole indexed family
+-- before the induction hypothesis can be used branchwise.
+theorem cspF_fnfF_fsfF_rel_eqF_in
     [HasPNfun p α] [HasFPmode]
     {SP : proc p α} :
     fsfF_proc SP →
-      ∀ n : Nat, ∀ NP : proc p α, fnfF_fsfF_rel n SP NP → eqFfix (SP |. n) NP
+      ∀ n : Nat, ∀ NP : proc p α, fnfF_fsfF_rel n SP NP → eqFfix (SP |. n) NP := by
+  intro hSP
+  induction hSP with
+  | @fsfF_proc_int C Rf hC hRf ih =>
+      intro n NP hrel
+      cases n with
+      | zero => exact cspF_fnfF_fsfF_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot => exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hnot
+          | @int_split _ _ _ NPf hSub _ _ _ =>
+              refine cspF_trans_left_eq cspF_Depth_rest_Dist_sum ?_
+              refine cspF_trans_left_eq
+                (cspF_Rep_int_choice_cong_sum rfl
+                  (fun c hc => ih c hc _ _ (hSub c hc))) ?_
+              refine cspF_trans_left_eq ?_ cspF_fnfF_Rep_int_choice_eqF
+              refine cspF_trans_left_eq ?_ (cspF_sym cspF_Depth_rest_Dist_sum)
+              refine cspF_Rep_int_choice_cong_sum rfl (fun c hc => ?_)
+              have hEq := ih c hc _ _ (hSub c hc)
+              refine cspF_trans_left_eq (cspF_sym hEq) ?_
+              refine cspF_trans_left_eq (cspF_sym depth_rest_idem) ?_
+              exact cspF_Depth_rest_cong rfl hEq
+  | @fsfF_proc_ext A Pf Q hPf hQ ih =>
+      intro n NP hrel
+      cases n with
+      | zero => exact cspF_fnfF_fsfF_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot => exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hnot
+          | @step_split _ _ _ NPf _ hSub hDIV _ hQ' =>
+              -- push the depth restriction through the step body
+              refine cspF_trans_left_eq cspF_Depth_rest_Ext_dist ?_
+              refine cspF_trans_left_eq
+                (cspF_Ext_choice_cong cspF_Depth_rest_step cspF_reflex_eq_P) ?_
+              refine cspF_trans_left_eq
+                (cspF_Ext_choice_cong
+                  (cspF_Ext_pre_choice_cong rfl (fun a ha => ih a ha _ _ (hSub a ha)))
+                  cspF_reflex_eq_P) ?_
+              rcases hQ with rfl | rfl | rfl
+              · -- SKIP
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P
+                    (cspF_SKIP_or_DIV_Depth_rest (Or.inl rfl))) ?_
+                rw [if_pos rfl, if_neg (show ¬ ((proc.SKIP : proc p α) = proc.STOP) by
+                  intro h; cases h)]
+                exact cspF_sym
+                  (cspF_trans_left_eq
+                    (cspF_Int_choice_cong cspF_reflex_eq_P cspF_Rep_int_choice_set_DIV)
+                    cspF_Int_choice_unit_r)
+              · -- DIV
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P
+                    (cspF_SKIP_or_DIV_Depth_rest (Or.inr rfl))) ?_
+                rw [if_neg (show ¬ ((proc.DIV : proc p α) = proc.SKIP) by intro h; cases h),
+                  if_neg (show ¬ ((proc.DIV : proc p α) = proc.STOP) by intro h; cases h)]
+                exact cspF_sym
+                  (cspF_trans_left_eq
+                    (cspF_Int_choice_cong cspF_reflex_eq_P cspF_Rep_int_choice_set_DIV)
+                    cspF_Int_choice_unit_r)
+              · -- STOP
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P cspF_STOP_Depth_rest) ?_
+                refine cspF_trans_left_eq cspF_Ext_choice_unit_r ?_
+                rw [if_neg (show ¬ ((proc.STOP : proc p α) = proc.SKIP) by intro h; cases h),
+                  if_pos rfl]
+                refine cspF_trans_left_eq cspF_input_DIV ?_
+                exact cspF_Int_choice_cong cspF_reflex_eq_P
+                  (cspF_sym cspF_Rep_int_choice_set_singleton)
 
 theorem cspF_fnfF_fsfF_rel_eqF
     [HasPNfun p α] [HasFPmode]
