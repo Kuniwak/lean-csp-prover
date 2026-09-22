@@ -195,9 +195,129 @@ theorem fnfF_syntactical_equality_Yf
 
 /- (*** Pf ***) -/
 
+/- the trace argument shared by the two `Pf_T_*_lm` lemmas: an `Ev a`-headed
+   trace of the left-hand side can only come from the `? :A -> Pf1` summand
+   (whose tail is a trace of `Pf1 a`) or from a `? a:Y -> DIV` summand (whose
+   tail is `<>`). -/
+
+private theorem Pf_T_head
+    {a : α} {A : Set α} {Pf1 : α → proc p α} {Ys : Set (Set α)} {Q : proc p α}
+    {t : traceType α} {M : p → domTType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (h : (Abs_trace [event.Ev a] ^^^ t) :t
+      traces ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M) :
+    t :t traces (Pf1 a) M := by
+  rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_Rep_int_choice_set] at h
+  rcases h with (h | h) | (h | ⟨Y, -, h⟩)
+  · rw [in_traces_Ext_pre_choice] at h
+    rcases h with h | ⟨b, s, heq, hs, -⟩
+    · exact absurd h.symm (by simp)
+    · obtain ⟨rfl, rfl⟩ := appt_same_head_only_if heq
+      exact hs
+  · rcases hQ with rfl | rfl
+    · rw [in_traces_SKIP] at h
+      rcases h with h | h
+      · exact absurd h.symm (by simp)
+      · exact absurd h Ev_appt_neq_Tick
+    · rw [in_traces_DIV] at h
+      exact absurd h.symm (by simp)
+  · exact absurd h.symm (by simp)
+  · rw [in_traces_Ext_pre_choice] at h
+    rcases h with h | ⟨b, s, heq, hs, -⟩
+    · exact absurd h.symm (by simp)
+    · obtain ⟨-, rfl⟩ := appt_same_head_only_if heq
+      rw [in_traces_DIV] at hs
+      rw [hs]
+      exact nilt_in_T
+
+private theorem Pf_T_lm
+    {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {Q : proc p α}
+    {M1 M2 : p → domTType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV) (ha : a ∈ A)
+    (h : refT
+      ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+      M1 M2
+      ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))) :
+    refT (Pf1 a) M1 M2 (Pf2 a) := by
+  rw [cspT_refT_semantics] at h ⊢
+  refine subdomTI (fun t ht => ?_)
+  have hR : (Abs_trace [event.Ev a] ^^^ t) :t
+      traces ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M2 := by
+    rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_Ext_pre_choice]
+    exact Or.inl (Or.inl (Or.inr ⟨a, t, rfl, ht, ha⟩))
+  have hL : (Abs_trace [event.Ev a] ^^^ t) :t
+      traces ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M1 := h hR
+  exact Pf_T_head hQ hL
+
+/- the failures counterpart: an `Ev a`-headed failure of the left-hand side can
+   only come from the `? :A -> Pf1` summand.  `DIV` has no failures at all and
+   `SKIP` only has `<>`- and `<Tick>`-failures, and the `? a:Y -> DIV` summands
+   have no `Ev`-headed failure either. -/
+
+private theorem Pf_F_head
+    {a : α} {A : Set α} {Pf1 : α → proc p α} {Ys : Set (Set α)} {Q : proc p α}
+    {s : traceType α} {X : Set (event α)} {M : p → domFType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (h : ((Abs_trace [event.Ev a] ^^^ s), X) :f
+      failures ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M) :
+    (s, X) :f failures (Pf1 a) M := by
+  have hne : (Abs_trace [event.Ev a] ^^^ s) ≠ <> := by simp
+  rw [in_failures_Int_choice, in_failures_Ext_choice,
+    in_failures_Rep_int_choice_set] at h
+  rcases h with (⟨⟨Z, hZ⟩, -, -⟩ | ⟨u, -, hor, -⟩ | ⟨Z, hZ, -, -⟩) | ⟨Y, -, hY⟩
+  · exact absurd (Prod.mk.inj hZ).1 hne
+  · rcases hor with hor | hor
+    · rw [in_failures_Ext_pre_choice] at hor
+      rcases hor with ⟨Z, hZ, -⟩ | ⟨b, s', Z, hZ, hF, -⟩
+      · exact absurd (Prod.mk.inj hZ).1 hne
+      · obtain ⟨heq, rfl⟩ := Prod.mk.inj hZ
+        obtain ⟨rfl, rfl⟩ := appt_same_head_only_if heq
+        exact hF
+    · rcases hQ with rfl | rfl
+      · rw [in_failures_SKIP] at hor
+        rcases hor with ⟨Z, hZ, -⟩ | ⟨Z, hZ⟩
+        · exact absurd (Prod.mk.inj hZ).1 hne
+        · exact absurd (Prod.mk.inj hZ).1 Ev_appt_neq_Tick
+      · exact absurd hor in_failures_DIV
+  · exact absurd (Prod.mk.inj hZ).1 hne
+  · rw [in_failures_Ext_pre_choice] at hY
+    rcases hY with ⟨Z, hZ, -⟩ | ⟨b, s', Z, hZ, hF, -⟩
+    · exact absurd (Prod.mk.inj hZ).1 hne
+    · exact absurd hF in_failures_DIV
+
+private theorem Pf_F_lm
+    {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {Q : proc p α}
+    {M1 M2 : p → domFType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV) (ha : a ∈ A)
+    (h : refF
+      ((((proc.Ext_pre_choice A Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+      M1 M2
+      ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))) :
+    refF (Pf1 a) M1 M2 (Pf2 a) := by
+  rcases cspF_cspT_refF_semantics.mp h with ⟨hT, hF⟩
+  refine cspF_cspT_refF_semantics.mpr ⟨Pf_T_lm hQ ha hT, ?_⟩
+  rw [subsetF_iff]
+  intro s X hs
+  have hR : ((Abs_trace [event.Ev a] ^^^ s), X) :f
+      failures ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M2 := by
+    rw [in_failures_Int_choice, in_failures_Ext_choice]
+    refine Or.inl (Or.inr (Or.inl ⟨_, ⟨X, rfl⟩, Or.inl ?_, by simp⟩))
+    rw [in_failures_Ext_pre_choice]
+    exact Or.inr ⟨a, s, X, rfl, hs, ha⟩
+  exact Pf_F_head hQ (hF hR)
+
 /- T DIV -/
 
-axiom fnfF_syntactical_equality_Pf_T_DIV_lm
+theorem fnfF_syntactical_equality_Pf_T_DIV_lm
     {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {M1 M2 : p → domTType α} :
     a ∈ A →
       refT
@@ -206,11 +326,12 @@ axiom fnfF_syntactical_equality_Pf_T_DIV_lm
         M1 M2
         ((((proc.Ext_pre_choice A Pf2) [+] proc.DIV) |~|
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-        refT (Pf1 a) M1 M2 (Pf2 a)
+        refT (Pf1 a) M1 M2 (Pf2 a) :=
+  fun ha h => Pf_T_lm (Or.inr rfl) ha h
 
 /- T SKIP -/
 
-axiom fnfF_syntactical_equality_Pf_T_SKIP_lm
+theorem fnfF_syntactical_equality_Pf_T_SKIP_lm
     {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {M1 M2 : p → domTType α} :
     a ∈ A →
       refT
@@ -219,11 +340,12 @@ axiom fnfF_syntactical_equality_Pf_T_SKIP_lm
         M1 M2
         ((((proc.Ext_pre_choice A Pf2) [+] proc.SKIP) |~|
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-        refT (Pf1 a) M1 M2 (Pf2 a)
+        refT (Pf1 a) M1 M2 (Pf2 a) :=
+  fun ha h => Pf_T_lm (Or.inl rfl) ha h
 
 /- F DIV -/
 
-axiom fnfF_syntactical_equality_Pf_F_DIV_lm
+theorem fnfF_syntactical_equality_Pf_F_DIV_lm
     {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {M1 M2 : p → domFType α} :
     a ∈ A →
       refF
@@ -232,11 +354,12 @@ axiom fnfF_syntactical_equality_Pf_F_DIV_lm
         M1 M2
         ((((proc.Ext_pre_choice A Pf2) [+] proc.DIV) |~|
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-        refF (Pf1 a) M1 M2 (Pf2 a)
+        refF (Pf1 a) M1 M2 (Pf2 a) :=
+  fun ha h => Pf_F_lm (Or.inr rfl) ha h
 
 /- F SKIP -/
 
-axiom fnfF_syntactical_equality_Pf_F_SKIP_lm
+theorem fnfF_syntactical_equality_Pf_F_SKIP_lm
     {a : α} {A : Set α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)} {M1 M2 : p → domFType α} :
     a ∈ A →
       refF
@@ -245,7 +368,8 @@ axiom fnfF_syntactical_equality_Pf_F_SKIP_lm
         M1 M2
         ((((proc.Ext_pre_choice A Pf2) [+] proc.SKIP) |~|
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-        refF (Pf1 a) M1 M2 (Pf2 a)
+        refF (Pf1 a) M1 M2 (Pf2 a) :=
+  fun ha h => Pf_F_lm (Or.inl rfl) ha h
 
 theorem fnfF_syntactical_equality_Pf
     {a : α} {A : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)}
