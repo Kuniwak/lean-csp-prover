@@ -227,15 +227,43 @@ axiom ep2_ccl_terminal_step2 :
     (ACfun ACName.TConfigurationManagement) << AC_to_CC <=F
       AC_to_CC ACName.TConfigurationManagement
 
-axiom ACDef_AC_to_CC (p : ACName) :
-    (ACfun p) << AC_to_CC <=F AC_to_CC p
+private theorem inj_PairTT : Function.Injective Event.PairTT := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem unwCC (pn : CCName) :
+    eqF (proc.Proc_name pn : proc CCName Event) MF MF (CCfun pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guarded_CC⟩))
+
+theorem ACDef_AC_to_CC (p : ACName) :
+    (ACfun p) << AC_to_CC <=F AC_to_CC p := by
+  cases p with
+  | TInit => exact ep2_ccl_terminal_step1
+  | TConfigurationManagement => exact ep2_ccl_terminal_step2
+  | AcquirerInit =>
+      exact cspF_rw_right_ref (unwCC CCName.CAcquirerInit) cspF_reflex_ref_P
+  | ConfigurationManagement =>
+      refine cspF_rw_right_ref (unwCC CCName.CConfigurationManagement) ?_
+      simp only [ACfun, CCfun, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      exact cspF_reflex_ref_P
 
 /- ****************************
       !!p. AC p <=F CC p
  **************************** -/
 
-axiom ep2_acl_ccl :
-    ∀ p, AC <=F CC p
+theorem ep2_acl_ccl : ∀ p, AC <=F CC p := by
+  intro p
+  rw [AC_def, CC_def]
+  refine cspF_Parallel_mono rfl ?_ ?_
+  · refine cspF_fp_induct_ref_left (Pf := ACfun) (f := AC_to_CC) (p0 := ACName.TInit)
+      rfl (Or.inl rfl) guarded_AC ?_ ACDef_AC_to_CC
+    exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+      (Pf := fun q => proc.Hiding (proc.Proc_name (CCName.CTInit q))
+        (Set.range Event.C_TerminalDisplay))
+      (a := p) inj_PairTT (Set.mem_univ p) cspF_reflex_ref_P
+  · refine cspF_fp_induct_ref_left (Pf := ACfun) (f := AC_to_CC) (p0 := ACName.AcquirerInit)
+      rfl (Or.inl rfl) guarded_AC cspF_reflex_ref_P ACDef_AC_to_CC
 
 /- ****************************
       !!p. Abs <=F CC p
