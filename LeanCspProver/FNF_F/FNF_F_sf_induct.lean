@@ -633,7 +633,7 @@ theorem fsfF_induct2_etc
   · exact fsfF_induct2_rel.fsfF_induct2_rel_etc_left h
   · exact fsfF_induct2_rel.fsfF_induct2_rel_etc_right h
 
-axiom fsfF_induct2_step_int_left
+theorem fsfF_induct2_step_int_left
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {C1 : sets_nats α}
@@ -647,9 +647,14 @@ axiom fsfF_induct2_step_int_left
               (fun c =>
                 if c ∈ sumset C1
                 then fsfF_induct2 Pfun SP_step (Rf1 c) P2
-                else proc.DIV)
+                else proc.DIV) := by
+  intro hC hfsf hP2
+  refine fsfF_induct2_to_rel.mpr
+    (fsfF_induct2_rel.step_int_left_split (fun c hc => ?_) (fun c hc => ?_) hC hfsf hP2)
+  · rw [if_pos hc]; exact fsfF_induct2_in_rel
+  · rw [if_neg hc]
 
-axiom fsfF_induct2_step_int_right
+theorem fsfF_induct2_step_int_right
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 : proc p α}
@@ -664,9 +669,14 @@ axiom fsfF_induct2_step_int_right
                 (fun c =>
                   if c ∈ sumset C2
                   then fsfF_induct2 Pfun SP_step P1 (Rf2 c)
-                  else proc.DIV)
+                  else proc.DIV) := by
+  intro hC hfsf hP1 hEX
+  refine fsfF_induct2_to_rel.mpr
+    (fsfF_induct2_rel.step_int_right_split (fun c hc => ?_) (fun c hc => ?_) hC hfsf hP1 hEX)
+  · rw [if_pos hc]; exact fsfF_induct2_in_rel
+  · rw [if_neg hc]
 
-axiom fsfF_induct2_step
+theorem fsfF_induct2_step
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {A1 A2 : Set α}
@@ -691,7 +701,20 @@ axiom fsfF_induct2_step
                 (fun a =>
                   if a ∈ A2
                   then fsfF_induct2 Pfun SP_step ((proc.Ext_pre_choice A1 Pf1) [+] Q1) (Pf2 a)
-                  else proc.DIV)
+                  else proc.DIV) := by
+  intro hPf1 hPf2 hQ1 hQ2
+  refine fsfF_induct2_to_rel.mpr
+    (fsfF_induct2_rel.step_split
+      (fun a ha => ?_) (fun a ha => ?_)
+      (fun a ha => ?_) (fun a ha => ?_)
+      (fun a ha => ?_) (fun a ha => ?_)
+      hPf1 hPf2 hQ1 hQ2)
+  · rw [if_pos (show a ∈ A1 ∩ A2 from ha)]; exact fsfF_induct2_in_rel
+  · rw [if_neg (show a ∉ A1 ∩ A2 from ha)]
+  · rw [if_pos ha]; exact fsfF_induct2_in_rel
+  · rw [if_neg ha]
+  · rw [if_pos ha]; exact fsfF_induct2_in_rel
+  · rw [if_neg ha]
 
 /- The Isabelle theorem bundle `fsfF_induct2` is represented by
    `fsfF_induct2_etc`, `fsfF_induct2_step_int_left`,
@@ -699,7 +722,7 @@ axiom fsfF_induct2_step
 
 /- in fsfF_proc -/
 
-axiom fsfF_induct2_in
+theorem fsfF_induct2_in
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
@@ -716,7 +739,8 @@ axiom fsfF_induct2_in
                     (Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP) →
                       (Q2 = proc.SKIP ∨ Q2 = proc.DIV ∨ Q2 = proc.STOP) →
                         fsfF_proc (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)) →
-            fsfF_proc (fsfF_induct2 Pfun SP_step P1 P2)
+            fsfF_proc (fsfF_induct2 Pfun SP_step P1 P2) :=
+  fun h1 h2 hstep => fsfF_induct2_rel_in fsfF_induct2_in_rel h1 h2 hstep
 
 /- syntactical transformation to fsfF -/
 
@@ -781,7 +805,7 @@ theorem fsfF_induct1_def
 
 /- in fsfF_proc -/
 
-axiom fsfF_induct1_in
+theorem fsfF_induct1_in
     {Pfun : FsfFInduct1Pfun p α}
     {SP_step : FsfFInduct1Step p α}
     {P1 : proc p α} :
@@ -791,7 +815,12 @@ axiom fsfF_induct1_in
           (∀ a, a ∈ A → fsfF_proc (SPf a)) →
             (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
               fsfF_proc (SP_step A Pf Q SPf)) →
-        fsfF_proc (fsfF_induct1 Pfun SP_step P1)
+        fsfF_proc (fsfF_induct1 Pfun SP_step P1) := by
+  intro h1 hstep
+  rw [fsfF_induct1]
+  exact fsfF_induct2_in h1 fsfF_SDIV_in
+    (fun A1 Pf1 Q1 _A2 _Pf2 _Q2 _SPf SPf1 _SPf2 hPf1 _ _ hSPf1 _ hQ1 _ =>
+      hstep A1 Pf1 Q1 SPf1 hPf1 hSPf1 hQ1)
 
 /- syntactical transformation to fsfF -/
 
