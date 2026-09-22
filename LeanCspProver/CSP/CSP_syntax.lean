@@ -87,8 +87,8 @@ notation:84 P " |. " n => proc.Depth_rest P n
 
 /- Isabelle (HOL `Set.thy`): `the_elem X = (THE x. X = {x})`.
    Previously ported as
-       noncomputable def the_elem (X : Set α) : α := THE fun x => x ∈ X
-   whose `THE` needed `` for the branch Isabelle leaves unspecified, and
+       noncomputable def the_elem [Inhabited α] (X : Set α) : α := THE fun x => x ∈ X
+   whose `THE` needed `[Inhabited α]` for the branch Isabelle leaves unspecified, and
    that assumption then spread to every statement mentioning `! :A .. Pf`.  The value
    is now `Option`-valued: `some a` on a singleton `{a}`, `none` otherwise.  No
    assumption on `α` is needed. -/
@@ -120,7 +120,7 @@ theorem Rep_int_choice_nat_def (N : Set Nat) (Pf : Nat → proc p α) :
 
 /- Isabelle: `! :A .. Pf == !set X:{{a} |a. a : A} .. Pf (the_elem(X))`.
    Previously ported as
-       def Rep_int_choice_com (A : Set α) (Pf : α → proc p α) : proc p α :=
+       def Rep_int_choice_com [Inhabited α] (A : Set α) (Pf : α → proc p α) : proc p α :=
          Rep_int_choice_set {X | ∃ a, a ∈ A ∧ X = ({a} : Set α)} fun X => Pf (the_elem X)
    With the `Option`-valued `the_elem`, the `none` branch (a non-singleton `X`, which
    never occurs in the index set) is `DIV`, the empty internal choice. -/

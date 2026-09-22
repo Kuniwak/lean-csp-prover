@@ -13,6 +13,7 @@
             *------------------------------------------- -/
 
 import LeanCspProver.CSP_T.CSP_T_traces
+import LeanCspProver.CSP_T.CSP_T_law
 
 open SumType
 
@@ -51,17 +52,48 @@ theorem tail_traces_def (T : domTType α) :
           Abs_domT ({<>} : Set (traceType α)) :=
   rfl
 
+/- Isabelle: `Proc_T_rec (Suc n) = (%T. ((! a:(head_traces T) .. a -> Proc_T_rec n
+   (tail_traces T a)) [+] DIV) |~| (IF (<Tick> :t T) THEN SKIP ELSE DIV))` -- a
+   replicated *internal* choice (`Rep_int_choice_com`) over `a` whose branch then
+   performs `a`.  Transcribed literally.  `traces_Proc_T_rec_succ` below rewrites the
+   successor case to the external-prefix-choice form used by the proofs, through the
+   CSP-Prover law `cspT_Ext_pre_choice_Rep_int_choice` (`? :X -> Pf =T ! x:X .. x -> Pf x`). -/
 def Proc_T_rec : Nat → domTType α → proc p α
   | 0 => fun _ => proc.DIV
   | Nat.succ n =>
       fun T =>
-        (((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+]
+        (((Rep_int_choice_com (head_traces T) fun a => a ~> Proc_T_rec n (tail_traces T a)) [+]
             proc.DIV)
           |~|
             (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN
               proc.SKIP
             ELSE
               proc.DIV))
+
+/- `! a:A .. a -> Q a` and `? a:A -> Q a` have the same traces: this is the CSP-Prover law
+   `cspT_Ext_pre_choice_Rep_int_choice` (CSP_T_law.thy), which needs no `[+] DIV`.  Stated
+   under `[+] DIV` because that is the shape in which `Proc_T_rec` / `Proc_F_rec` use it. -/
+theorem traces_Rep_int_choice_com_prefix_Ext_choice_DIV
+    {A : Set α} {Q : α → proc p α} {M : p → domTType α} :
+    traces ((Rep_int_choice_com A fun a => a ~> Q a) [+] proc.DIV) M =
+      traces ((proc.Ext_pre_choice A Q) [+] proc.DIV) M :=
+  cspT_eqT_semantics.mp
+    (cspT_Ext_choice_cong (cspT_sym cspT_Ext_pre_choice_Rep_int_choice) cspT_reflex_eq_P)
+
+theorem traces_Proc_T_rec_succ {n : Nat} {T : domTType α} {M : p → domTType α} :
+    traces (Proc_T_rec (Nat.succ n) T) M =
+      traces
+        ((((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+]
+            proc.DIV)
+          |~|
+            (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN
+              proc.SKIP
+            ELSE
+              proc.DIV))) M :=
+  cspT_eqT_semantics.mp
+    (cspT_Int_choice_cong
+      (cspT_Ext_choice_cong (cspT_sym cspT_Ext_pre_choice_Rep_int_choice) cspT_reflex_eq_P)
+      cspT_reflex_eq_P)
 
 def Proc_T (T : domTType α) : proc p α :=
   Rep_int_choice_nat Set.univ fun n => Proc_T_rec n T
@@ -160,7 +192,7 @@ theorem semT_Proc_T_only_if_lm {M : p → domTType α} :
                     proc.SKIP
                   ELSE
                     proc.DIV))) M := by
-        simpa [Proc_T_rec] using ht
+        rwa [traces_Proc_T_rec_succ] at ht
       rcases
           (in_traces_Int_choice
             (t := t)
@@ -245,7 +277,9 @@ theorem semT_Proc_T_if_lm {M : p → domTType α} :
         (Q := IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN proc.SKIP ELSE
           proc.DIV)
         (M := M)).2 (Or.inr hif)
-    simpa [Proc_T_rec] using hint
+    have hlen : lengtht (Abs_trace [event.Tick] : traceType α) = Nat.succ 0 := by simp
+    rw [hlen, traces_Proc_T_rec_succ]
+    exact hint
   · intro s a ih T ht
     have hspl : a ∈ head_traces T ∧ s :t tail_traces T a := (head_tail_traces).1 ht
     have hrec : s :t traces (Proc_T_rec (lengtht s) (tail_traces T a)) M :=
@@ -286,7 +320,8 @@ theorem semT_Proc_T_if_lm {M : p → domTType α} :
         (Q := IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN proc.SKIP ELSE
           proc.DIV)
         (M := M)).2 (Or.inl hext)
-    simpa [Proc_T_rec, lengtht_app_event_Suc_head, Nat.succ_eq_add_one, Nat.add_comm] using hint
+    rw [lengtht_app_event_Suc_head, traces_Proc_T_rec_succ]
+    exact hint
 
 theorem semT_Proc_T_if {M : p → domTType α} {T : domTType α} {t : traceType α}
     (ht : t :t T) :
