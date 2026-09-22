@@ -518,6 +518,133 @@ theorem cspF_Parallel_Nondet_send_Rec_prefix [Inhabited β]
     (fun h => hB (Set.image_eq_empty.mp h))
 
 /-
+(**************** ! prefix + left ****************)
+-/
+
+/- Lean note:
+   `cspF_Rep_int_choice_com_left_x` phrased for the sugared internal
+   prefixes, which is how Isabelle uses it once `csp_prefix_ss_def` has
+   been unfolded. -/
+
+theorem cspF_Int_pre_choice_left_x
+    {X : Set α} {Pf : α → proc p α} {Q : proc q α} {a : α}
+    {M1 : p → domFType α} {M2 : q → domFType α}
+    (ha : a ∈ X) (hPQ : refF (a ~> Pf a) M1 M2 Q) :
+    refF (Int_pre_choice X Pf) M1 M2 Q := by
+  rw [Int_pre_choice_def]
+  exact cspF_Rep_int_choice_com_left_x ha hPQ
+
+theorem cspF_Nondet_send_prefix_left_x [Inhabited β]
+    {f : β → α} {X : Set β} {Pf : β → proc p α} {Q : proc q α} {a : β}
+    {M1 : p → domFType α} {M2 : q → domFType α}
+    (hf : Injective f) (ha : a ∈ X) (hPQ : refF (f a ~> Pf a) M1 M2 Q) :
+    refF (Nondet_send_prefix f X Pf) M1 M2 Q := by
+  rw [Nondet_send_prefix_def]
+  refine cspF_Int_pre_choice_left_x (a := f a) ⟨a, ha, rfl⟩ ?_
+  rwa [Function.leftInverse_invFun hf a]
+
+/-
+(**************** -- X + prefixes outside X ****************)
+-/
+
+/- Lean note:
+   Another composite that Isabelle derives inside `cspF_hsf`: hiding a set
+   `X` distributes over a prefix whose events all lie outside `X`.  The
+   base case is `cspF_Hiding_step` on the positive branch of its `procIte`;
+   the sugared versions follow by unfolding. -/
+
+theorem cspF_Hiding_Act_prefix_notin [Inhabited α]
+    {a : α} {X : Set α} {P : proc p α} {M : p → domFType α} (ha : a ∉ X) :
+    eqF (proc.Hiding (a ~> P) X) M M (a ~> proc.Hiding P X) := by
+  have hdisj : ({a} : Set α) ∩ X = ∅ := by
+    rw [Set.eq_empty_iff_forall_notMem]
+    rintro x ⟨rfl, hx⟩
+    exact ha hx
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong (X := X) rfl (cspF_Act_prefix_step (a := a) (P := P) (M := M))) ?_
+  refine cspF_trans_left_eq
+    (cspF_Hiding_step (X := X) (Y := ({a} : Set α)) (Pf := fun _ => P) (M := M)) ?_
+  rw [procIte_pos hdisj]
+  exact cspF_sym (cspF_Act_prefix_step (a := a) (P := proc.Hiding P X) (M := M))
+
+theorem cspF_Hiding_Act_prefix_in [Inhabited α]
+    {a : α} {X : Set α} {P : proc p α} {M : p → domFType α} (ha : a ∈ X) :
+    eqF (proc.Hiding (a ~> P) X) M M (proc.Hiding P X) := by
+  have hdisj : ¬ (({a} : Set α) ∩ X = ∅) := by
+    intro h
+    have hm : a ∈ ({a} : Set α) ∩ X := ⟨rfl, ha⟩
+    rw [h] at hm
+    exact hm
+  have hdiff : ({a} : Set α) \ X = (∅ : Set α) :=
+    Set.diff_eq_empty.mpr (Set.singleton_subset_iff.mpr ha)
+  have hinter : ({a} : Set α) ∩ X = ({a} : Set α) := Set.inter_eq_self_of_subset_left
+    (Set.singleton_subset_iff.mpr ha)
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong (X := X) rfl (cspF_Act_prefix_step (a := a) (P := P) (M := M))) ?_
+  refine cspF_trans_left_eq
+    (cspF_Hiding_step (X := X) (Y := ({a} : Set α)) (Pf := fun _ => P) (M := M)) ?_
+  rw [procIte_neg hdisj, hdiff, hinter]
+  refine cspF_trans_left_eq
+    (cspF_Timeout_cong (cspF_sym (cspF_STOP_step (M1 := M)
+      (Pf := fun x => proc.Hiding ((fun _ => P) x) X))) cspF_reflex_eq_P) ?_
+  exact cspF_trans_left_eq cspF_STOP_Timeout cspF_Rep_int_choice_com_singleton
+
+theorem cspF_Hiding_Ext_pre_choice_notin [Inhabited α]
+    {A X : Set α} {Pf : α → proc p α} {M : p → domFType α} (hA : A ∩ X = ∅) :
+    eqF (proc.Hiding (proc.Ext_pre_choice A Pf) X) M M
+      (proc.Ext_pre_choice A fun x => proc.Hiding (Pf x) X) := by
+  refine cspF_trans_left_eq
+    (cspF_Hiding_step (X := X) (Y := A) (Pf := Pf) (M := M)) ?_
+  rw [procIte_pos hA]
+  exact cspF_reflex_eq_P
+
+theorem cspF_Hiding_IF
+    {b : Bool} {P Q : proc p α} {X : Set α} {M : p → domFType α} :
+    eqF (proc.Hiding (IF b THEN P ELSE Q) X) M M
+      (IF b THEN proc.Hiding P X ELSE proc.Hiding Q X) := by
+  cases b with
+  | false =>
+      exact cspF_trans_left_eq (cspF_Hiding_cong rfl cspF_IF_False) (cspF_sym cspF_IF_False)
+  | true =>
+      exact cspF_trans_left_eq (cspF_Hiding_cong rfl cspF_IF_True) (cspF_sym cspF_IF_True)
+
+theorem cspF_STOP_Hiding_Id [Inhabited α]
+    {X : Set α} {M : p → domFType α} :
+    eqF (proc.Hiding (proc.STOP : proc p α) X) M M (proc.STOP : proc p α) := by
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong (X := X) rfl
+      (cspF_STOP_step (M1 := M) (M2 := M) (Pf := fun _ => (proc.STOP : proc p α)))) ?_
+  refine cspF_trans_left_eq (cspF_Hiding_Ext_pre_choice_notin (by simp)) ?_
+  exact cspF_sym (cspF_STOP_step (M1 := M) (M2 := M)
+    (Pf := fun x => proc.Hiding ((fun _ => (proc.STOP : proc p α)) x) X))
+
+theorem cspF_Hiding_Int_pre_choice_notin [Inhabited α]
+    {B X : Set α} {Qf : α → proc p α} {M : p → domFType α} (hB : B ∩ X = ∅) :
+    eqF (proc.Hiding (Int_pre_choice B Qf) X) M M
+      (Int_pre_choice B fun x => proc.Hiding (Qf x) X) := by
+  rw [Int_pre_choice_def, Int_pre_choice_def]
+  refine cspF_trans_left_eq (cspF_Hiding_Dist_com (X := X) (Y := B)) ?_
+  refine cspF_Rep_int_choice_cong_com rfl (fun a ha => ?_)
+  refine cspF_Hiding_Act_prefix_notin (fun haX => ?_)
+  have hm : a ∈ B ∩ X := ⟨ha, haX⟩
+  rw [hB] at hm
+  exact hm
+
+theorem cspF_Hiding_Rec_prefix_notin [Inhabited α] [Inhabited β]
+    {f : β → α} {A : Set β} {X : Set α} {Pf : β → proc p α} {M : p → domFType α}
+    (hA : f '' A ∩ X = ∅) :
+    eqF (proc.Hiding (Rec_prefix f A Pf) X) M M
+      (Rec_prefix f A fun x => proc.Hiding (Pf x) X) :=
+  cspF_Hiding_Ext_pre_choice_notin hA
+
+theorem cspF_Hiding_Nondet_send_prefix_notin [Inhabited α] [Inhabited β]
+    {f : β → α} {B : Set β} {X : Set α} {Qf : β → proc p α} {M : p → domFType α}
+    (hB : f '' B ∩ X = ∅) :
+    eqF (proc.Hiding (Nondet_send_prefix f B Qf) X) M M
+      (Nondet_send_prefix f B fun x => proc.Hiding (Qf x) X) :=
+  cspF_Hiding_Int_pre_choice_notin hB
+
+/-
 (**************** ;; + resolve ****************)
 -/
 
