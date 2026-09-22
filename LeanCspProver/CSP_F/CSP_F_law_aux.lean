@@ -435,6 +435,89 @@ theorem cspF_Parallel_Timeout_input_resolve_DIV_r
    `cspF_Parallel_Timeout_input_resolve_DIV_r`. -/
 
 /-
+(**************** |[X]| + input/output prefix ****************)
+-/
+
+/- Lean note:
+   Isabelle derives the four laws below on the fly inside `cspF_hsf`, by
+   combining `cspF_Parallel_Dist_com`, `cspF_Act_prefix_step` and
+   `cspF_Parallel_step` and then simplifying the resulting event sets.
+   The Lean port has no such tactic, so the composite is recorded here as
+   named laws.  They say that when a process offering the inputs `A`
+   synchronises (over an alphabet `X` containing `A`) with a process
+   offering the outputs `B ⊆ A`, the result is the internal choice over
+   `B` of the componentwise parallel compositions. -/
+
+theorem cspF_Parallel_Ext_Int_pre_choice
+    {A B X : Set α} {Pf Qf : α → proc p α} {M : p → domFType α}
+    (hA : A ⊆ X) (hBA : B ⊆ A) (hB : B ≠ ∅) :
+    eqF ((proc.Ext_pre_choice A Pf) |[X]| (Int_pre_choice B Qf)) M M
+      (Int_pre_choice B fun x => Pf x |[X]| Qf x) := by
+  rw [Int_pre_choice_def, Int_pre_choice_def]
+  refine cspF_trans_left_eq (cspF_Parallel_Dist_com_r_nonempty hB) ?_
+  refine cspF_Rep_int_choice_cong_com rfl (fun a ha => ?_)
+  refine cspF_trans_left_eq
+    (cspF_Parallel_cong (X := X) (P1 := proc.Ext_pre_choice A Pf)
+      (Q1 := proc.Ext_pre_choice A Pf)
+      (P2 := proc.Act_prefix a (Qf a))
+      (Q2 := proc.Ext_pre_choice ({a} : Set α) (fun _ => Qf a))
+      rfl cspF_reflex_eq_P (cspF_Act_prefix_step (a := a) (P := Qf a))) ?_
+  refine cspF_trans_left_eq
+    (cspF_Parallel_step (X := X) (Y := A) (Z := ({a} : Set α))
+      (Pf := Pf) (Qf := fun _ => Qf a)) ?_
+  refine cspF_trans_left_eq ?_
+    (cspF_sym (cspF_Act_prefix_step (a := a) (P := Pf a |[X]| Qf a) (M := M)))
+  have haX : a ∈ X := hA (hBA ha)
+  have hset : ((X ∩ A ∩ ({a} : Set α)) ∪ (A \ X) ∪ (({a} : Set α) \ X)) = ({a} : Set α) := by
+    have h1 : A \ X = (∅ : Set α) := Set.diff_eq_empty.mpr hA
+    have h2 : ({a} : Set α) \ X = (∅ : Set α) :=
+      Set.diff_eq_empty.mpr (Set.singleton_subset_iff.mpr haX)
+    rw [h1, h2]
+    simp only [Set.union_empty]
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_singleton_iff]
+    constructor
+    · rintro ⟨-, rfl⟩; rfl
+    · rintro rfl; exact ⟨⟨haX, hBA ha⟩, rfl⟩
+  refine cspF_Ext_pre_choice_cong hset (fun x hx => ?_)
+  rw [Set.mem_singleton_iff] at hx
+  subst hx
+  rw [procIte_pos haX]
+  exact cspF_reflex_eq_P
+
+theorem cspF_Parallel_Int_Ext_pre_choice
+    {A B X : Set α} {Pf Qf : α → proc p α} {M : p → domFType α}
+    (hA : A ⊆ X) (hBA : B ⊆ A) (hB : B ≠ ∅) :
+    eqF ((Int_pre_choice B Pf) |[X]| (proc.Ext_pre_choice A Qf)) M M
+      (Int_pre_choice B fun x => Pf x |[X]| Qf x) := by
+  refine cspF_trans_left_eq
+    (cspF_Parallel_commut (P := Int_pre_choice B Pf)
+      (Q := proc.Ext_pre_choice A Qf) (X := X) (M := M)) ?_
+  refine cspF_trans_left_eq
+    (cspF_Parallel_Ext_Int_pre_choice (Pf := Qf) (Qf := Pf) hA hBA hB) ?_
+  rw [Int_pre_choice_def, Int_pre_choice_def]
+  refine cspF_Rep_int_choice_cong_com rfl (fun a _ => ?_)
+  exact cspF_Act_prefix_cong rfl cspF_Parallel_commut
+
+theorem cspF_Parallel_Rec_Nondet_send_prefix [Inhabited β]
+    {f : β → α} {A B : Set β} {X : Set α} {Pf Qf : β → proc p α}
+    {M : p → domFType α}
+    (hA : f '' A ⊆ X) (hBA : B ⊆ A) (hB : B ≠ ∅) :
+    eqF ((Rec_prefix f A Pf) |[X]| (Nondet_send_prefix f B Qf)) M M
+      (Nondet_send_prefix f B fun x => Pf x |[X]| Qf x) :=
+  cspF_Parallel_Ext_Int_pre_choice hA (Set.image_mono hBA)
+    (fun h => hB (Set.image_eq_empty.mp h))
+
+theorem cspF_Parallel_Nondet_send_Rec_prefix [Inhabited β]
+    {f : β → α} {A B : Set β} {X : Set α} {Pf Qf : β → proc p α}
+    {M : p → domFType α}
+    (hA : f '' A ⊆ X) (hBA : B ⊆ A) (hB : B ≠ ∅) :
+    eqF ((Nondet_send_prefix f B Pf) |[X]| (Rec_prefix f A Qf)) M M
+      (Nondet_send_prefix f B fun x => Pf x |[X]| Qf x) :=
+  cspF_Parallel_Int_Ext_pre_choice hA (Set.image_mono hBA)
+    (fun h => hB (Set.image_eq_empty.mp h))
+
+/-
 (**************** ;; + resolve ****************)
 -/
 
