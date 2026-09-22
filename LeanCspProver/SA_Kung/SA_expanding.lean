@@ -72,6 +72,11 @@ axiom pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
          proc.Ext_pre_choice ({Event.vert (i + 1, j) x} : Set (Event r)) (fun _ =>
            FIXn (n + n) SAfun (ProcName.pe (i, j) (r0 + x * y))))
 
+private theorem hori_notin_range_vert {r : Type _} {ij kl : Nat × Nat} {y : r} :
+    Event.hori ij y ∉ Set.range (Event.vert (r := r) kl) := by
+  rintro ⟨z, hz⟩
+  exact absurd hz (by simp)
+
 private theorem inj_hori {r : Type _} (ij : Nat × Nat) :
     Function.Injective (Event.hori (r := r) ij) := by
   intro a b h
@@ -114,8 +119,8 @@ theorem EX1_isFailureOf_in_alpha1 {r : Type _} (i j : Nat) :
     · refine ⟨⟨_, ⟨x, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
       rintro ⟨b, (⟨y, rfl⟩ | ⟨y, rfl⟩), hb⟩ <;> (injection hb with hb; simp at hb)
 
-axiom EX1_isFailureOf_in_alpha2
-    {r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
+theorem EX1_isFailureOf_in_alpha2
+{r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
     ({u : failure (Event r) | ∃ x s Y,
         u = (((Abs_trace [Ev (Event.vert (i, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
           (s, Y) ∈ Faiures_in_hori x (i, j) F} ∪
@@ -128,7 +133,28 @@ axiom EX1_isFailureOf_in_alpha2
           (if a ∈ Set.range (Event.vert (i, j))
            then Faiures_in_hori (Function.invFun (Event.vert (i, j)) a) (i, j) F
            else Faiures_in_vert (Function.invFun (Event.hori (i, j)) a) (i, j) F) ∧
-        a ∈ Set.range (Event.vert (i, j)) ∪ Set.range (Event.hori (i, j))}
+        a ∈ Set.range (Event.vert (i, j)) ∪ Set.range (Event.hori (i, j))} := by
+  ext u
+  simp only [Set.mem_union, Set.mem_setOf_eq]
+  constructor
+  · rintro (⟨x, s, Y, rfl, hF⟩ | ⟨y, s, Y, rfl, hF⟩)
+    · refine ⟨Event.vert (i, j) x, s, Y, rfl, ?_, Or.inl ⟨x, rfl⟩⟩
+      rw [if_pos ⟨x, rfl⟩, Function.leftInverse_invFun (inj_vert (i, j)) x]
+      exact hF
+    · refine ⟨Event.hori (i, j) y, s, Y, rfl, ?_, Or.inr ⟨y, rfl⟩⟩
+      rw [if_neg hori_notin_range_vert, Function.leftInverse_invFun (inj_hori (i, j)) y]
+      exact hF
+  · rintro ⟨a, s, Y, rfl, hF, hmem⟩
+    by_cases ha : a ∈ Set.range (Event.vert (i, j))
+    · obtain ⟨x, rfl⟩ := ha
+      refine Or.inl ⟨x, s, Y, rfl, ?_⟩
+      rw [if_pos ⟨x, rfl⟩, Function.leftInverse_invFun (inj_vert (i, j)) x] at hF
+      exact hF
+    · rcases hmem with h | ⟨y, rfl⟩
+      · exact absurd h ha
+      refine Or.inr ⟨y, s, Y, rfl, ?_⟩
+      rw [if_neg ha, Function.leftInverse_invFun (inj_hori (i, j)) y] at hF
+      exact hF
 
 theorem EX1_isFailureOf_in_hori_alpha1 {r : Type _} (i j : Nat) :
     ((<> : traceType (Event r)),
@@ -281,8 +307,8 @@ theorem EX1_isFailureOf_out_alpha1 {r : Type _} (i j : Nat) (x y : r) :
       rintro rfl
       exact hnot ⟨_, Or.inr rfl, rfl⟩
 
-axiom EX1_isFailureOf_out_alpha2 {r : Type _} (i j : Nat) (x y : r)
-    (F : Set (failure (Event r))) :
+theorem EX1_isFailureOf_out_alpha2
+{r : Type _} (i j : Nat) (x y : r) (F : Set (failure (Event r))) :
     ({u : failure (Event r) | ∃ s Y,
         u = (((Abs_trace [Ev (Event.vert (i + 1, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
           (s, Y) ∈ Faiures_out_hori y (i, j) F} ∪
@@ -295,7 +321,20 @@ axiom EX1_isFailureOf_out_alpha2 {r : Type _} (i j : Nat) (x y : r)
           (if a ∈ Set.range (Event.vert (i + 1, j))
            then Faiures_out_hori y (i, j) F
            else Faiures_out_vert x (i, j) F) ∧
-        a ∈ ({Event.vert (i + 1, j) x, Event.hori (i, j + 1) y} : Set (Event r))}
+        a ∈ ({Event.vert (i + 1, j) x, Event.hori (i, j + 1) y} : Set (Event r))} := by
+  ext u
+  simp only [Set.mem_union, Set.mem_setOf_eq, Set.mem_insert_iff, Set.mem_singleton_iff]
+  constructor
+  · rintro (⟨s, Y, rfl, hF⟩ | ⟨s, Y, rfl, hF⟩)
+    · exact ⟨_, s, Y, rfl, by rw [if_pos ⟨x, rfl⟩]; exact hF, Or.inl rfl⟩
+    · exact ⟨_, s, Y, rfl, by rw [if_neg hori_notin_range_vert]; exact hF, Or.inr rfl⟩
+  · rintro ⟨a, s, Y, rfl, hF, (rfl | rfl)⟩
+    · refine Or.inl ⟨s, Y, rfl, ?_⟩
+      rw [if_pos ⟨x, rfl⟩] at hF
+      exact hF
+    · refine Or.inr ⟨s, Y, rfl, ?_⟩
+      rw [if_neg hori_notin_range_vert] at hF
+      exact hF
 
 /- *********************************************************
                   isFailureOf
