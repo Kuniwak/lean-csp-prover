@@ -213,6 +213,9 @@ theorem LineChildAtt_not_nil {c : Att} {s : List Att} :
   | cons a t =>
       simp [LineChildAtt]
 
+private theorem LineChildAtt_one (a : Att) : LineChildAtt [a] = ChildAtt a := by
+  simp [LineChildAtt]
+
 /- *********************************************************
                   for convenience
  ********************************************************* -/
@@ -228,6 +231,15 @@ theorem Line_cong {P Q R : proc PN Event} :
   apply cspF_Alpha_parallel_cong rfl rfl
   · exact cspF_Renaming_cong rfl cspF_reflex_eq_P
   · exact cspF_Renaming_cong rfl hQR
+
+theorem Line_mono {P Q R : proc PN Event} :
+    (Q <=F R) → (P <---> Q <=F P <---> R) := by
+  intro hQR
+  unfold Line Pipe
+  apply cspF_Hiding_mono rfl
+  apply cspF_Alpha_parallel_mono rfl rfl
+  · exact cspF_Renaming_mono rfl cspF_reflex_ref_P
+  · exact cspF_Renaming_mono rfl hQR
 
 theorem PreCirc_cong {P Q R : proc PN Event} :
     Q =F R → P <=-=> Q =F P <=-=> R := by
@@ -722,10 +734,51 @@ theorem LineSpec_One {a : Att} :
    Isabelle's local simp-set updates for `ChkLCR.simps` do not have a direct
    Lean analogue here. -/
 
-axiom LineSpec_LineChild_toStbOne_lm (n : Nat) :
+set_option maxHeartbeats 1000000 in
+-- the `Rep_int_choice_f` index set is `Event.stlist '' {t | toStbOne t = s}`
+-- and its branch function goes through `Function.invFun`; the defeq checks
+-- that drives are past the default budget.
+theorem LineSpec_LineChild_toStbOne_lm (n : Nat) :
     ∀ s, (s.length = n ∧ ChkLCR s ∧ s ≠ []) →
       pLineSpec s <=F
-        Rep_int_choice_f Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t
+        Rep_int_choice_f Event.stlist {t | toStbOne t = s} fun t => LineChildAtt t := by
+  induction n with
+  | zero =>
+      rintro s ⟨hlen, -, hne⟩
+      exact absurd (List.length_eq_zero_iff.mp hlen) hne
+  | succ n ih =>
+      rintro s ⟨hlen, hchk, hne⟩
+      refine cspF_trans_left_ref LineSpec_Step ?_
+      refine cspF_rw_left_ref (IF_pos hchk _ _) ?_
+      refine cspF_Rep_int_choice_f_right inj_stlist ?_
+      rintro t (ht : toStbOne t = s)
+      by_cases htl : tl s = []
+      · refine cspF_rw_left_ref (IF_pos htl _ _) ?_
+        obtain ⟨a, rfl⟩ : ∃ a, s = [a] := by
+          cases s with
+          | nil => exact absurd rfl hne
+          | cons a u =>
+              cases u with
+              | nil => exact ⟨a, rfl⟩
+              | cons b v => exact absurd htl (by simp [tl])
+        obtain rfl : t = [a] := toStbOne_one.mp ht
+        rw [LineChildAtt_one]
+        exact LineSpec_One
+      · refine cspF_rw_left_ref (IF_neg htl _ _) ?_
+        refine cspF_Rep_int_choice_f_left_x inj_stlist ht ?_
+        have htl' : tl (toStbOne t) ≠ [] := by rw [ht]; exact htl
+        obtain ⟨a1, a2, rest, rfl⟩ := tl_toStbOne_not_nil.mp htl'
+        have hchk2 : ChkLCR (a2 :: rest) := ChkLCR_toStbOne_iff.mp (ht ▸ hchk)
+        have hlen2 : (a2 :: rest).length = n := by
+          have h := toStbOne_length (t := a2 :: rest) a1 hchk2
+          rw [ht] at h
+          omega
+        rw [LineChildAtt_not_nil (by simp)]
+        refine Line_mono ?_
+        refine cspF_trans_left_ref (ih (a2 :: rest) ⟨hlen2, hchk2, by simp⟩) ?_
+        exact cspF_Rep_int_choice_f_left_x inj_stlist
+          (show toStbOne (a2 :: rest) = a2 :: rest from ChkLCR_toStbOne_id hchk2)
+          cspF_reflex_ref_P
 
 theorem LineSpec_LineChild_toStbOne {s : List Att} :
     ChkLCR s → s ≠ [] →
@@ -734,8 +787,49 @@ theorem LineSpec_LineChild_toStbOne {s : List Att} :
   intro hChk hs
   exact LineSpec_LineChild_toStbOne_lm s.length s ⟨rfl, hChk, hs⟩
 
-axiom LineSpec_LineChild_toStb_lm (n : Nat) :
-    ∀ t, (t.length = n ∧ t ≠ []) → pLineSpec (toStb t) <=F LineChildAtt t
+set_option maxHeartbeats 1000000 in
+-- the `Rep_int_choice_f` index set is `Event.stlist '' {t | toStbOne t = s}`
+-- and its branch function goes through `Function.invFun`; the defeq checks
+-- that drives are past the default budget.
+theorem LineSpec_LineChild_toStb_lm (n : Nat) :
+    ∀ t, (t.length = n ∧ t ≠ []) → pLineSpec (toStb t) <=F LineChildAtt t := by
+  induction n with
+  | zero =>
+      rintro t ⟨hlen, hne⟩
+      exact absurd (List.length_eq_zero_iff.mp hlen) hne
+  | succ n ih =>
+      rintro t ⟨hlen, hne⟩
+      cases t with
+      | nil => exact absurd rfl hne
+      | cons a u =>
+          cases u with
+          | nil =>
+              have h : toStb [a] = [a] := by simp [toStb, toStbOne]
+              rw [h, LineChildAtt_one]
+              exact LineSpec_One
+          | cons b v =>
+              have hu : (b :: v) ≠ [] := by simp
+              have hst : toStb (a :: b :: v) = toStbOne (a :: toStb (b :: v)) := by
+                simp [toStb]
+              have hchkst : ChkLCR (toStb (b :: v)) := ChkLCR_toStb
+              have hchk : ChkLCR (toStb (a :: b :: v)) := ChkLCR_toStb
+              have hstne : toStb (b :: v) ≠ [] := by simp
+              obtain ⟨c, w, hcw⟩ : ∃ c w, toStb (b :: v) = c :: w := by
+                cases hbv : toStb (b :: v) with
+                | nil => exact absurd hbv hstne
+                | cons c w => exact ⟨c, w, rfl⟩
+              have htl : tl (toStb (a :: b :: v)) ≠ [] := by
+                rw [hst, hcw]
+                exact tl_toStbOne_not_nil.mpr ⟨a, c, w, rfl⟩
+              refine cspF_trans_left_ref LineSpec_Step ?_
+              refine cspF_rw_left_ref (IF_pos hchk _ _) ?_
+              refine cspF_rw_left_ref (IF_neg htl _ _) ?_
+              refine cspF_Rep_int_choice_f_left_x inj_stlist
+                (a := a :: toStb (b :: v)) (show toStbOne (a :: toStb (b :: v))
+                  = toStb (a :: b :: v) from hst.symm) ?_
+              rw [LineChildAtt_not_nil (by simp)]
+              refine Line_mono ?_
+              exact ih (b :: v) ⟨by simp only [List.length_cons] at hlen ⊢; omega, hu⟩
 
 /- --------------------------------- *
           LineSpec (main)
