@@ -1143,13 +1143,191 @@ theorem EX1_ungranted_hori_lm1 {r : Type _}
   · exact absurd h hY
   · exact h
 
-axiom EX1_ungranted_hori_lm2 {r : Type _}
+/-- Every refusal set occurring in `peF_rec _ (i, j+1)` either contains the whole
+    incoming horizontal channel or none of it, so one refused event forces all. -/
+theorem hori_refusal_saturated {r : Type _} (i j : Nat) :
+    ∀ (n : Nat) (Y : Set (event (Event r))) (s : traceType (Event r)),
+      (s, Y) ∈ peF_rec (r := r) n (i, j + 1) →
+        ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y → Ev (Event.hori (i, j + 1) b) ∈ Y := by
+  intro n
+  induction n with
+  | zero =>
+      intro Y s hs
+      exact absurd hs (by simp [peF_rec])
+  | succ m ih =>
+      have hOutHori : ∀ (y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out_hori (r := r) y (i, j + 1) (peF_rec m (i, j + 1)) →
+            ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y →
+              Ev (Event.hori (i, j + 1) b) ∈ Y := by
+        rintro y Y s h
+        simp only [Faiures_out_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨s4, Y4, heq, h4⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inr (Or.inl rfl)⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact ih Y s4 h4
+      have hOutVert : ∀ (x : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out_vert (r := r) x (i, j + 1) (peF_rec m (i, j + 1)) →
+            ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y →
+              Ev (Event.hori (i, j + 1) b) ∈ Y := by
+        rintro x Y s h
+        simp only [Faiures_out_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨s4, Y4, heq, h4⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inl rfl⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact ih Y s4 h4
+      have hOut : ∀ (x y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out (r := r) x y (i, j + 1) (peF_rec m (i, j + 1)) →
+            ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y →
+              Ev (Event.hori (i, j + 1) b) ∈ Y := by
+        rintro x y Y s h
+        simp only [Faiures_out, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with (h0 | ⟨s3, Y3, heq, h3⟩) | ⟨s3, Y3, heq, h3⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inl rfl⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOutHori y Y s3 h3
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOutVert x Y s3 h3
+      have hInHori : ∀ (x : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_in_hori (r := r) x (i, j + 1) (peF_rec m (i, j + 1)) →
+            ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y →
+              Ev (Event.hori (i, j + 1) b) ∈ Y := by
+        rintro x Y s h
+        simp only [Faiures_in_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨y, s2, Y2, heq, h2⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          intro a b ha
+          exact absurd ha (by simp)
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOut x y Y s2 h2
+      have hInVert : ∀ (y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_in_vert (r := r) y (i, j + 1) (peF_rec m (i, j + 1)) →
+            ∀ a b, Ev (Event.hori (i, j + 1) a) ∈ Y →
+              Ev (Event.hori (i, j + 1) b) ∈ Y := by
+        rintro y Y s h
+        simp only [Faiures_in_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨x, s2, Y2, heq, h2⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inl rfl⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOut x y Y s2 h2
+      intro Y s hs
+      rw [peF_rec] at hs
+      simp only [Faiures_in_def, Set.mem_union, Set.mem_setOf_eq,
+        Set.mem_singleton_iff] at hs
+      rcases hs with (h0 | ⟨x', s', Y', heq, h'⟩) | ⟨y', s', Y', heq, h'⟩
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+        intro a b ha
+        exact absurd ha (by simp)
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+        exact hInHori x' Y s' h'
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+        exact hInVert y' Y s' h'
+
+/-- Every refusal set occurring in `peF_rec _ (i+1, j)` either contains the whole
+    incoming vertical channel or none of it, so one refused event forces all. -/
+theorem vert_refusal_saturated {r : Type _} (i j : Nat) :
+    ∀ (n : Nat) (Y : Set (event (Event r))) (s : traceType (Event r)),
+      (s, Y) ∈ peF_rec (r := r) n (i + 1, j) →
+        ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y → Ev (Event.vert (i + 1, j) b) ∈ Y := by
+  intro n
+  induction n with
+  | zero =>
+      intro Y s hs
+      exact absurd hs (by simp [peF_rec])
+  | succ m ih =>
+      have hOutHori : ∀ (y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out_hori (r := r) y (i + 1, j) (peF_rec m (i + 1, j)) →
+            ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y →
+              Ev (Event.vert (i + 1, j) b) ∈ Y := by
+        rintro y Y s h
+        simp only [Faiures_out_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨s4, Y4, heq, h4⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inl rfl⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact ih Y s4 h4
+      have hOutVert : ∀ (x : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out_vert (r := r) x (i + 1, j) (peF_rec m (i + 1, j)) →
+            ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y →
+              Ev (Event.vert (i + 1, j) b) ∈ Y := by
+        rintro x Y s h
+        simp only [Faiures_out_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨s4, Y4, heq, h4⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inr (Or.inl rfl)⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact ih Y s4 h4
+      have hOut : ∀ (x y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_out (r := r) x y (i + 1, j) (peF_rec m (i + 1, j)) →
+            ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y →
+              Ev (Event.vert (i + 1, j) b) ∈ Y := by
+        rintro x y Y s h
+        simp only [Faiures_out, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with (h0 | ⟨s3, Y3, heq, h3⟩) | ⟨s3, Y3, heq, h3⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inr (Or.inl rfl)⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOutHori y Y s3 h3
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOutVert x Y s3 h3
+      have hInHori : ∀ (x : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_in_hori (r := r) x (i + 1, j) (peF_rec m (i + 1, j)) →
+            ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y →
+              Ev (Event.vert (i + 1, j) b) ∈ Y := by
+        rintro x Y s h
+        simp only [Faiures_in_hori, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨y, s2, Y2, heq, h2⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          exact fun a b _ => ⟨b, Or.inl rfl⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOut x y Y s2 h2
+      have hInVert : ∀ (y : r) (Y : Set (event (Event r))) (s : traceType (Event r)),
+          (s, Y) ∈ Faiures_in_vert (r := r) y (i + 1, j) (peF_rec m (i + 1, j)) →
+            ∀ a b, Ev (Event.vert (i + 1, j) a) ∈ Y →
+              Ev (Event.vert (i + 1, j) b) ∈ Y := by
+        rintro y Y s h
+        simp only [Faiures_in_vert, Set.mem_union, Set.mem_setOf_eq,
+          Set.mem_singleton_iff] at h
+        rcases h with h0 | ⟨x, s2, Y2, heq, h2⟩
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+          intro a b ha
+          exact absurd ha (by simp)
+        · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+          exact hOut x y Y s2 h2
+      intro Y s hs
+      rw [peF_rec] at hs
+      simp only [Faiures_in_def, Set.mem_union, Set.mem_setOf_eq,
+        Set.mem_singleton_iff] at hs
+      rcases hs with (h0 | ⟨x', s', Y', heq, h'⟩) | ⟨y', s', Y', heq, h'⟩
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj h0
+        intro a b ha
+        exact absurd ha (by simp)
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+        exact hInHori x' Y s' h'
+      · obtain ⟨-, rfl⟩ := Prod.mk.inj heq
+        exact hInVert y' Y s' h'
+
+theorem EX1_ungranted_hori_lm2 {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     ∀ n x,
       Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1) ∧
           (∃ t : traceType (Event r), (t, Yf (i, j + 1)) ∈ peF_rec (r := r) n (i, j + 1)) →
-        ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1)
+        ∀ x, Ev (Event.hori (i, j + 1) x) ∈ Yf (i, j + 1) := by
+  rintro n x ⟨hx, t, ht⟩ b
+  exact hori_refusal_saturated i j n (Yf (i, j + 1)) t ht x b hx
 
 theorem EX1_ungranted_hori {r : Type _}
     (i j : Nat)
@@ -1195,13 +1373,15 @@ theorem EX1_ungranted_vert_lm1 {r : Type _}
   · exact absurd h hY
   · exact h
 
-axiom EX1_ungranted_vert_lm2 {r : Type _}
+theorem EX1_ungranted_vert_lm2 {r : Type _}
     (i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     ∀ n x,
       Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j) ∧
           (∃ t : traceType (Event r), (t, Yf (i + 1, j)) ∈ peF_rec (r := r) n (i + 1, j)) →
-        ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j)
+        ∀ x, Ev (Event.vert (i + 1, j) x) ∈ Yf (i + 1, j) := by
+  rintro n x ⟨hx, t, ht⟩ b
+  exact vert_refusal_saturated i j n (Yf (i + 1, j)) t ht x b hx
 
 theorem EX1_ungranted_vert {r : Type _}
     (i j : Nat)
