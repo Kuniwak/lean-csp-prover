@@ -154,15 +154,50 @@ theorem step
 
 end fnfF_fsfF_rel
 
-/- (*** function ***) -/
+/- (*** exists ***) -/
 
-private axiom fnfF_fsfF_rel_exists_ax
+theorem fnfF_fsfF_rel_exists_zero
+    (SP : proc p α) :
+    ∃ NP : proc p α, fnfF_fsfF_rel 0 SP NP :=
+  ⟨NDIV, fnfF_fsfF_rel.zero⟩
+
+theorem fnfF_fsfF_rel_exists_notin
+    {n : Nat} {P : proc p α} :
+    ¬ fsfF_proc P →
+      ∃ NP : proc p α, fnfF_fsfF_rel n P NP := by
+  intro hP
+  cases n with
+  | zero =>
+      exact fnfF_fsfF_rel_exists_zero P
+  | succ m =>
+      exact ⟨P |. Nat.succ m, fnfF_fsfF_rel.etc hP⟩
+
+axiom fnfF_fsfF_rel_exists_in
+    {SP : proc p α} :
+    fsfF_proc SP →
+      ∀ n : Nat, ∃ NP : proc p α, fnfF_fsfF_rel n SP NP
+
+/- *-----------------------*
+ |        exists         |
+ *-----------------------* -/
+
+theorem fnfF_fsfF_rel_exists
     (n : Nat) (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP
+    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP := by
+  by_cases hSP : fsfF_proc SP
+  · exact fnfF_fsfF_rel_exists_in hSP n
+  · exact fnfF_fsfF_rel_exists_notin hSP
+
+/- *-----------------------*
+ |    uniquely exists    |
+ *-----------------------* -/
+
+
+/- (*** function ***) -/
 
 def fnfF_fsfF
     (n : Nat) (SP : proc p α) : proc p α :=
-  Classical.choose (fnfF_fsfF_rel_exists_ax n SP)
+  Classical.choose (fnfF_fsfF_rel_exists n SP)
 
 def fnfF [HasPNfun p α] :
     Nat → proc p α → proc p α :=
@@ -345,44 +380,6 @@ theorem fnfF_fsfF_rel_step_iff
  ****************************************************************)
 -/
 
-/- (*** exists ***) -/
-
-theorem fnfF_fsfF_rel_exists_zero
-    (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel 0 SP NP :=
-  ⟨NDIV, fnfF_fsfF_rel.zero⟩
-
-theorem fnfF_fsfF_rel_exists_notin
-    {n : Nat} {P : proc p α} :
-    ¬ fsfF_proc P →
-      ∃ NP : proc p α, fnfF_fsfF_rel n P NP := by
-  intro hP
-  cases n with
-  | zero =>
-      exact fnfF_fsfF_rel_exists_zero P
-  | succ m =>
-      exact ⟨P |. Nat.succ m, fnfF_fsfF_rel.etc hP⟩
-
-axiom fnfF_fsfF_rel_exists_in
-    {SP : proc p α} :
-    fsfF_proc SP →
-      ∀ n : Nat, ∃ NP : proc p α, fnfF_fsfF_rel n SP NP
-
-/- *-----------------------*
- |        exists         |
- *-----------------------* -/
-
-theorem fnfF_fsfF_rel_exists
-    (n : Nat) (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP := by
-  by_cases hSP : fsfF_proc SP
-  · exact fnfF_fsfF_rel_exists_in hSP n
-  · exact fnfF_fsfF_rel_exists_notin hSP
-
-/- *-----------------------*
- |    uniquely exists    |
- *-----------------------* -/
-
 theorem fnfF_fsfF_rel_unique_exists
     (n : Nat) (SP : proc p α) :
     ∃! NP : proc p α, fnfF_fsfF_rel n SP NP :=
@@ -460,7 +457,7 @@ theorem cspF_fnfF_fsfF_rel_eqF
 theorem fnfF_fsfF_in_rel
     {n : Nat} {SP : proc p α} :
     fnfF_fsfF_rel n SP (fnfF_fsfF n SP) :=
-  Classical.choose_spec (fnfF_fsfF_rel_exists_ax n SP)
+  Classical.choose_spec (fnfF_fsfF_rel_exists n SP)
 
 theorem fnfF_fsfF_from_rel
     {n : Nat} {SP NP : proc p α} :

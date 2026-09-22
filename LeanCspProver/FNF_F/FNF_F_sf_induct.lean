@@ -231,25 +231,76 @@ theorem fsfF_induct2_rel_step
 
 end fsfF_induct2_rel
 
-/- function -/
+/- existence -/
 
-private axiom fsfF_induct2_rel_exists_ax
+theorem fsfF_induct2_rel_exists_notin1
+    {Pfun : FsfFInduct2Pfun p α}
+    {SP_step : FsfFInduct2Step p α}
+    {P1 P2 : proc p α} :
+    ¬ fsfF_proc P1 →
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_left h⟩
+
+theorem fsfF_induct2_rel_exists_notin2
+    {Pfun : FsfFInduct2Pfun p α}
+    {SP_step : FsfFInduct2Step p α}
+    {P1 P2 : proc p α} :
+    ¬ fsfF_proc P2 →
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_right h⟩
+
+axiom fsfF_induct2_rel_exists_in_lm1
+    (Pfun : FsfFInduct2Pfun p α)
+    (SP_step : FsfFInduct2Step p α)
+    {P2 : proc p α}
+    {A : Set α}
+    {Pf : α → proc p α}
+    {Q : proc p α} :
+    fsfF_proc P2 →
+      ((∀ a, a ∈ A →
+          fsfF_proc (Pf a) ∧
+            ∀ P2 : proc p α, ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step (Pf a) P2 SP) ∧
+        (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP)) →
+          ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step ((proc.Ext_pre_choice A Pf) [+] Q) P2 SP
+
+axiom fsfF_induct2_rel_exists_in_lm
+    (Pfun : FsfFInduct2Pfun p α)
+    (SP_step : FsfFInduct2Step p α)
+    {P1 : proc p α} :
+    fsfF_proc P1 →
+      ∀ P2 : proc p α, ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+
+theorem fsfF_induct2_rel_exists_in
+    {Pfun : FsfFInduct2Pfun p α}
+    {SP_step : FsfFInduct2Step p α}
+    {P1 P2 : proc p α} :
+    fsfF_proc P1 →
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => fsfF_induct2_rel_exists_in_lm Pfun SP_step h P2
+
+theorem fsfF_induct2_rel_exists
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α)
     (P1 P2 : proc p α) :
-    ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+    ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP := by
+  by_cases h : fsfF_proc P1
+  · exact fsfF_induct2_rel_exists_in h
+  · exact fsfF_induct2_rel_exists_notin1 h
+
+
+/- function -/
 
 def fsfF_induct2
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α) :
     proc p α → proc p α → proc p α :=
-  fun P1 P2 => Classical.choose (fsfF_induct2_rel_exists_ax Pfun SP_step P1 P2)
+  fun P1 P2 => Classical.choose (fsfF_induct2_rel_exists Pfun SP_step P1 P2)
 
 theorem fsfF_induct2_def
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α) :
     fsfF_induct2 Pfun SP_step =
-      (fun P1 P2 => Classical.choose (fsfF_induct2_rel_exists_ax Pfun SP_step P1 P2)) :=
+      (fun P1 P2 => Classical.choose (fsfF_induct2_rel_exists Pfun SP_step P1 P2)) :=
   rfl
 
 /- uniqueness -/
@@ -448,62 +499,6 @@ theorem fsfF_induct2_rel_step_iff
   · rintro rfl
     exact hrel
 
-/- existence -/
-
-theorem fsfF_induct2_rel_exists_notin1
-    {Pfun : FsfFInduct2Pfun p α}
-    {SP_step : FsfFInduct2Step p α}
-    {P1 P2 : proc p α} :
-    ¬ fsfF_proc P1 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
-  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_left h⟩
-
-theorem fsfF_induct2_rel_exists_notin2
-    {Pfun : FsfFInduct2Pfun p α}
-    {SP_step : FsfFInduct2Step p α}
-    {P1 P2 : proc p α} :
-    ¬ fsfF_proc P2 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
-  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_right h⟩
-
-axiom fsfF_induct2_rel_exists_in_lm1
-    (Pfun : FsfFInduct2Pfun p α)
-    (SP_step : FsfFInduct2Step p α)
-    {P2 : proc p α}
-    {A : Set α}
-    {Pf : α → proc p α}
-    {Q : proc p α} :
-    fsfF_proc P2 →
-      ((∀ a, a ∈ A →
-          fsfF_proc (Pf a) ∧
-            ∀ P2 : proc p α, ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step (Pf a) P2 SP) ∧
-        (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP)) →
-          ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step ((proc.Ext_pre_choice A Pf) [+] Q) P2 SP
-
-axiom fsfF_induct2_rel_exists_in_lm
-    (Pfun : FsfFInduct2Pfun p α)
-    (SP_step : FsfFInduct2Step p α)
-    {P1 : proc p α} :
-    fsfF_proc P1 →
-      ∀ P2 : proc p α, ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
-
-theorem fsfF_induct2_rel_exists_in
-    {Pfun : FsfFInduct2Pfun p α}
-    {SP_step : FsfFInduct2Step p α}
-    {P1 P2 : proc p α} :
-    fsfF_proc P1 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
-  fun h => fsfF_induct2_rel_exists_in_lm Pfun SP_step h P2
-
-theorem fsfF_induct2_rel_exists
-    (Pfun : FsfFInduct2Pfun p α)
-    (SP_step : FsfFInduct2Step p α)
-    (P1 P2 : proc p α) :
-    ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP := by
-  by_cases h : fsfF_proc P1
-  · exact fsfF_induct2_rel_exists_in h
-  · exact fsfF_induct2_rel_exists_notin1 h
-
 theorem fsfF_induct2_rel_unique_exists
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α)
@@ -596,7 +591,7 @@ theorem fsfF_induct2_in_rel
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
     fsfF_induct2_rel Pfun SP_step P1 P2 (fsfF_induct2 Pfun SP_step P1 P2) :=
-  Classical.choose_spec (fsfF_induct2_rel_exists_ax Pfun SP_step P1 P2)
+  Classical.choose_spec (fsfF_induct2_rel_exists Pfun SP_step P1 P2)
 
 theorem fsfF_induct2_from_rel
     {Pfun : FsfFInduct2Pfun p α}
