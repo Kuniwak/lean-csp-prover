@@ -341,8 +341,190 @@ def LineSpec_to_One : PN → proc PN Event
 
 /- ---------- LineSpec [a] <=F ChildAtt a ---------- -/
 
-axiom LineSpec_One {a : Att} :
-    pLineSpec [a] <=F ChildAtt a
+private theorem IF_pos {c : Prop} [Decidable c] (h : c) (P Q : proc PN Event) :
+    eqF (IF c THEN P ELSE Q) MF MF P := by
+  rw [decide_eq_true h]
+  exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+private theorem IF_neg {c : Prop} [Decidable c] (h : ¬ c) (P Q : proc PN Event) :
+    eqF (IF c THEN P ELSE Q) MF MF Q := by
+  rw [decide_eq_false h]
+  exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+private theorem rec_right_cong {Pf Qf : Nat → proc PN Event}
+    (h : ∀ y, eqF (Pf y) MF MF (Qf y)) :
+    eqF (Rec_prefix Event.right Set.univ Pf) MF MF (Rec_prefix Event.right Set.univ Qf) := by
+  rw [Rec_prefix, Rec_prefix]
+  exact cspF_Ext_pre_choice_cong rfl (fun e _ => h _)
+
+private theorem unw (pn : PN) : eqF (proc.Proc_name pn : proc PN Event) MF MF (PNdef pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PN⟩))
+
+/- ---------- `ChkLCR` / `guardL` / `guardR` on singletons ---------- -/
+
+private theorem chk_AttL (n z : Nat) : ChkLCR [Att.AttL (n, z)] :=
+  Or.inl ⟨⟨(n, z), rfl⟩, trivial⟩
+private theorem chk_AttC (n : Nat) : ChkLCR [Att.AttC n] :=
+  Or.inr (Or.inl ⟨⟨n, rfl⟩, trivial⟩)
+private theorem chk_AttR (n : Nat) : ChkLCR [Att.AttR n] :=
+  Or.inr (Or.inr ⟨⟨n, rfl⟩, trivial⟩)
+
+private theorem gL_AttL (n z : Nat) : guardL [Att.AttL (n, z)] := Or.inl ⟨n, z, rfl⟩
+private theorem gL_AttC (n : Nat) : guardL [Att.AttC n] := Or.inr ⟨n, rfl⟩
+private theorem gL_AttR (n : Nat) : ¬ guardL [Att.AttR n] := by
+  rintro (⟨m, y, hm⟩ | ⟨m, hm⟩) <;> cases hm
+
+private theorem gR_AttL (n z : Nat) : ¬ guardR [Att.AttL (n, z)] := by
+  rintro (⟨m, hm⟩ | ⟨m, hm⟩) <;> cases hm
+private theorem gR_AttC (n : Nat) : guardR [Att.AttC n] := Or.inl ⟨n, rfl⟩
+private theorem gR_AttR (n : Nat) : guardR [Att.AttR n] := Or.inr ⟨n, rfl⟩
+
+private theorem nextL_AttL (n z : Nat) :
+    nextL [Att.AttL (n, z)] = [Att.AttC (fill (n / 2 + z))] := by simp [nextL]
+private theorem nextL_AttC (n : Nat) : nextL [Att.AttC n] = [Att.AttR (n / 2)] := by simp [nextL]
+private theorem nextR_AttC (n y : Nat) :
+    nextR ([Att.AttC n], y) = [Att.AttL (n, y)] := by simp [nextR]
+private theorem nextR_AttR (n y : Nat) :
+    nextR ([Att.AttR n], y) = [Att.AttC (fill (n + y))] := by simp [nextR]
+
+/- ---------- one step of `$LineSpec [a]` ---------- -/
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+private theorem step_AttL (n z : Nat) :
+    refF ((PNdef (PN.LineSpec [Att.AttL (n, z)])) << LineSpec_to_One) MF MF
+      (ChildAtt (Att.AttL (n, z))) := by
+  refine cspF_rw_left_ref (IF_pos (chk_AttL n z) _ _) ?_
+  refine cspF_rw_left_ref
+    (cspF_Ext_choice_cong (IF_pos (gL_AttL n z) _ _) (IF_neg (gR_AttL n z) _ _)) ?_
+  refine cspF_rw_left_ref cspF_Ext_choice_unit_r ?_
+  rw [nextL_AttL n z]
+  refine cspF_rw_left_ref
+    (cspF_Act_prefix_cong rfl (IF_pos ⟨Att.AttC (fill (n / 2 + z)), rfl⟩ _ _)) ?_
+  exact cspF_rw_right_ref (unw (PN.ChildL (n, z))) cspF_reflex_ref_P
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+private theorem step_AttC (n : Nat) :
+    refF ((PNdef (PN.LineSpec [Att.AttC n])) << LineSpec_to_One) MF MF
+      (ChildAtt (Att.AttC n)) := by
+  have hpt : ∀ y : Nat,
+      eqF (LineSpec_to_One (PN.LineSpec (nextR ([Att.AttC n], y)))) MF MF (pChildL (n, y)) := by
+    intro y
+    rw [nextR_AttC n y]
+    exact IF_pos ⟨Att.AttL (n, y), rfl⟩ _ _
+  refine cspF_rw_left_ref (IF_pos (chk_AttC n) _ _) ?_
+  refine cspF_rw_left_ref
+    (cspF_Ext_choice_cong (IF_pos (gL_AttC n) _ _) (IF_pos (gR_AttC n) _ _)) ?_
+  rw [nextL_AttC n]
+  refine cspF_rw_left_ref
+    (cspF_Ext_choice_cong
+      (cspF_Act_prefix_cong rfl (IF_pos ⟨Att.AttR (n / 2), rfl⟩ _ _))
+      (rec_right_cong hpt)) ?_
+  exact cspF_rw_right_ref (unw (PN.Child n)) cspF_reflex_ref_P
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+private theorem step_AttR (n : Nat) :
+    refF ((PNdef (PN.LineSpec [Att.AttR n])) << LineSpec_to_One) MF MF
+      (ChildAtt (Att.AttR n)) := by
+  have hpt : ∀ y : Nat,
+      eqF (LineSpec_to_One (PN.LineSpec (nextR ([Att.AttR n], y)))) MF MF
+        (pChild (fill (n + y))) := by
+    intro y
+    rw [nextR_AttR n y]
+    exact IF_pos ⟨Att.AttC (fill (n + y)), rfl⟩ _ _
+  refine cspF_rw_left_ref (IF_pos (chk_AttR n) _ _) ?_
+  refine cspF_rw_left_ref
+    (cspF_Ext_choice_cong (IF_neg (gL_AttR n) _ _) (IF_pos (gR_AttR n) _ _)) ?_
+  refine cspF_rw_left_ref cspF_Ext_choice_unit_l ?_
+  refine cspF_rw_left_ref (rec_right_cong hpt) ?_
+  exact cspF_rw_right_ref (unw (PN.ChildR n)) cspF_reflex_ref_P
+
+/- ---------- the non-singleton case ---------- -/
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+private theorem step_many {x : List Att} (hchk : ChkLCR x) (hone : ¬ ∃ b : Att, x = [b]) :
+    refF ((PNdef (PN.LineSpec x)) << LineSpec_to_One) MF MF (pLineSpec x) := by
+  have hptR : ∀ y : Nat,
+      eqF (LineSpec_to_One (PN.LineSpec (nextR (x, y)))) MF MF (pLineSpec (nextR (x, y))) := by
+    intro y
+    refine IF_neg ?_ _ _
+    rintro ⟨b, hb⟩
+    exact hone (nextR_one_EX hchk hb)
+  have hptL : eqF (LineSpec_to_One (PN.LineSpec (nextL x))) MF MF (pLineSpec (nextL x)) := by
+    refine IF_neg ?_ _ _
+    rintro ⟨b, hb⟩
+    exact hone (nextL_one_EX hchk hb)
+  refine cspF_rw_right_ref (unw (PN.LineSpec x)) ?_
+  refine cspF_rw_left_ref (IF_pos hchk _ _) ?_
+  refine cspF_rw_right_ref (IF_pos hchk _ _) ?_
+  refine cspF_Ext_choice_mono ?_ ?_
+  · by_cases hgL : guardL x
+    · refine cspF_rw_left_ref (IF_pos hgL _ _) ?_
+      refine cspF_rw_right_ref (IF_pos hgL _ _) ?_
+      exact cspF_Act_prefix_mono rfl (cspF_rw_left_ref hptL cspF_reflex_ref_P)
+    · refine cspF_rw_left_ref (IF_neg hgL _ _) ?_
+      exact cspF_rw_right_ref (IF_neg hgL _ _) cspF_reflex_ref_P
+  · by_cases hgR : guardR x
+    · refine cspF_rw_left_ref (IF_pos hgR _ _) ?_
+      refine cspF_rw_right_ref (IF_pos hgR _ _) ?_
+      exact cspF_rw_left_ref
+        (rec_right_cong (Pf := fun y => LineSpec_to_One (PN.LineSpec (nextR (x, y))))
+          (Qf := fun y => pLineSpec (nextR (x, y))) hptR) cspF_reflex_ref_P
+    · refine cspF_rw_left_ref (IF_neg hgR _ _) ?_
+      exact cspF_rw_right_ref (IF_neg hgR _ _) cspF_reflex_ref_P
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+private theorem step_many' {x : List Att} (hone : ¬ ∃ b : Att, x = [b]) :
+    refF ((PNdef (PN.LineSpec x)) << LineSpec_to_One) MF MF (pLineSpec x) := by
+  by_cases hchk : ChkLCR x
+  · exact step_many hchk hone
+  · refine cspF_rw_right_ref (unw (PN.LineSpec x)) ?_
+    refine cspF_rw_left_ref (IF_neg hchk _ _) ?_
+    exact cspF_rw_right_ref (IF_neg hchk _ _) cspF_reflex_ref_P
+
+set_option maxHeartbeats 1000000 in
+-- `PNdef (PN.LineSpec _) << LineSpec_to_One` has to be unfolded through
+-- `Rec_prefix`, whose index set is `Event.right '' Set.univ` and whose
+-- branch function goes through `Function.invFun`; the defeq checks that
+-- drives are past the default budget.
+theorem LineSpec_One {a : Att} :
+    pLineSpec [a] <=F ChildAtt a := by
+  refine cspF_fp_induct_ref_left (Pf := PNdef) (f := LineSpec_to_One) (p0 := PN.LineSpec [a])
+    rfl (Or.inl rfl) guardedfun_PN ?_ ?_
+  · exact cspF_rw_left_ref (IF_pos ⟨a, rfl⟩ _ _) cspF_reflex_ref_P
+  · intro p
+    cases p with
+    | Child n => exact cspF_rw_right_ref (unw (PN.Child n)) cspF_reflex_ref_P
+    | ChildL cx => exact cspF_rw_right_ref (unw (PN.ChildL cx)) cspF_reflex_ref_P
+    | ChildR c => exact cspF_rw_right_ref (unw (PN.ChildR c)) cspF_reflex_ref_P
+    | LineSpec x =>
+        by_cases hone : ∃ b : Att, x = [b]
+        · obtain ⟨b, rfl⟩ := hone
+          refine cspF_rw_right_ref (IF_pos ⟨b, rfl⟩ _ _) ?_
+          rcases Att_or b with ⟨n, z, rfl⟩ | ⟨n, rfl⟩ | ⟨n, rfl⟩
+          · exact step_AttL n z
+          · exact step_AttC n
+          · exact step_AttR n
+        · exact cspF_rw_right_ref (IF_neg hone _ _) (step_many' hone)
 
 /- Lean note:
    Isabelle's local simp-set updates for `ChkLCR.simps` do not have a direct
