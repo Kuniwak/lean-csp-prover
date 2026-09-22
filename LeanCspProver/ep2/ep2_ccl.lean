@@ -220,14 +220,12 @@ def AC_to_CC : ACName → proc CCName Event
 /- Lean note:
    Isabelle's `declare inj_on_def [simp]` has no direct Lean analogue here. -/
 
-axiom ep2_ccl_terminal_step1 :
-    (ACfun ACName.TInit) << AC_to_CC <=F AC_to_CC ACName.TInit
-
-axiom ep2_ccl_terminal_step2 :
-    (ACfun ACName.TConfigurationManagement) << AC_to_CC <=F
-      AC_to_CC ACName.TConfigurationManagement
-
 private theorem inj_PairTT : Function.Injective Event.PairTT := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem inj_C_SI_Init : Function.Injective Event.C_SI_Init := by
   intro a b h
   cases h
   rfl
@@ -235,6 +233,98 @@ private theorem inj_PairTT : Function.Injective Event.PairTT := by
 private theorem unwCC (pn : CCName) :
     eqF (proc.Proc_name pn : proc CCName Event) MF MF (CCfun pn) :=
   «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guarded_CC⟩))
+
+/-- Hiding the terminal display leaves a `C_SI_Init` prefix untouched. -/
+private theorem hide_C_SI_Init (x : D_SI_Init) (P : proc CCName Event) :
+    eqF (proc.Hiding (Event.C_SI_Init x ~> P) (Set.range Event.C_TerminalDisplay)) MF MF
+      (Event.C_SI_Init x ~> proc.Hiding P (Set.range Event.C_TerminalDisplay)) :=
+  cspF_Hiding_Act_prefix_notin (by simp)
+
+theorem ep2_ccl_terminal_step1 :
+    (ACfun ACName.TInit) << AC_to_CC <=F AC_to_CC ACName.TInit := by
+  simp only [AC_to_CC]
+  refine cspF_Rep_int_choice_f_right inj_PairTT (fun q _ => ?_)
+  refine cspF_rw_right_ref
+    (cspF_trans_left_eq (cspF_Hiding_cong rfl (unwCC (CCName.CTInit q)))
+      (hide_C_SI_Init _ _)) ?_
+  simp only [ACfun, AC_to_CC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+  refine cspF_Nondet_send_prefix_left_x
+    (a := D_SI_Init.SStart (sessionStart (trigger q))) inj_C_SI_Init ⟨_, rfl⟩ ?_
+  refine cspF_Act_prefix_mono rfl ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+    (Pf := fun r => proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement r))
+      (Set.range Event.C_TerminalDisplay))
+    (a := q) inj_PairTT (Set.mem_univ q) cspF_reflex_ref_P
+
+/-- A single acknowledgement branch of the loop: the abstract side picks the
+    very value that the concrete side is about to send, and then the internal
+    choice over terminal states picks the concrete successor state. -/
+private theorem step2_branch {γ : Type} [Inhabited γ] (g : γ → D_SI_Init) (v : γ)
+    (r : TerminalState × Trigger) :
+    refF
+      (Nondet_send_prefix Event.C_SI_Init (Set.range g) fun _ =>
+        Rep_int_choice_f Event.PairTT Set.univ fun s =>
+          proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement s))
+            (Set.range Event.C_TerminalDisplay))
+      MF MF
+      (proc.Hiding
+        (Event.C_SI_Init (g v) ~> proc.Proc_name (CCName.CTConfigurationManagement r))
+        (Set.range Event.C_TerminalDisplay)) := by
+  refine cspF_rw_right_ref (hide_C_SI_Init _ _) ?_
+  refine cspF_Nondet_send_prefix_left_x (a := g v) inj_C_SI_Init ⟨v, rfl⟩ ?_
+  refine cspF_Act_prefix_mono rfl ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+    (Pf := fun s => proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement s))
+      (Set.range Event.C_TerminalDisplay))
+    (a := r) inj_PairTT (Set.mem_univ r) cspF_reflex_ref_P
+
+/-- The session-end branch: the concrete side reports on the terminal display,
+    which is hidden, and both sides terminate. -/
+private theorem step2_SEnd :
+    refF (proc.SKIP : proc CCName Event) MF MF
+      (proc.Hiding
+        (Event.C_TerminalDisplay InitialisationFinished ~> (proc.SKIP : proc CCName Event))
+        (Set.range Event.C_TerminalDisplay)) :=
+  cspF_rw_right_ref
+    (cspF_trans_left_eq (cspF_Hiding_Act_prefix_in ⟨_, rfl⟩) cspF_SKIP_Hiding_Id)
+    cspF_reflex_ref_P
+
+theorem ep2_ccl_terminal_step2 :
+    (ACfun ACName.TConfigurationManagement) << AC_to_CC <=F
+      AC_to_CC ACName.TConfigurationManagement := by
+  have hdisj :
+      Event.C_SI_Init '' (Set.univ : Set D_SI_Init) ∩
+        Set.range Event.C_TerminalDisplay = ∅ := by
+    rw [Set.eq_empty_iff_forall_notMem]
+    rintro e ⟨⟨x, -, rfl⟩, y, hy⟩
+    exact absurd hy (by simp)
+  simp only [AC_to_CC]
+  refine cspF_Rep_int_choice_f_right inj_PairTT (fun q _ => ?_)
+  refine cspF_rw_right_ref
+    (cspF_Hiding_cong rfl (unwCC (CCName.CTConfigurationManagement q))) ?_
+  simp only [CCfun, ACfun, AC_to_CC, Subst_procfun_Rec_prefix,
+    Subst_procfun_Nondet_send_prefix, Subst_procfun]
+  refine cspF_rw_right_ref (cspF_Hiding_Rec_prefix_notin hdisj) ?_
+  refine cspF_Rec_prefix_mono inj_C_SI_Init rfl rfl (fun x _ => ?_)
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.CDRes
+      (configDataResponse (Function.invFun D_SI_Init.CDReq x, state q)) q) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.CDA configDataAcknowledge
+      (configData (Function.invFun D_SI_Init.CDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.RCDA removeDataAcknowledge
+      (removeData (Function.invFun D_SI_Init.RCDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.ACDA activateDataAcknowledge
+      (activateData (Function.invFun D_SI_Init.ACDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl step2_SEnd ?_
+  exact cspF_rw_right_ref cspF_STOP_Hiding_Id cspF_reflex_ref_P
 
 theorem ACDef_AC_to_CC (p : ACName) :
     (ACfun p) << AC_to_CC <=F AC_to_CC p := by
