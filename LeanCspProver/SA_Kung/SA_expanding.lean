@@ -640,7 +640,7 @@ theorem EX1_isFailureOf_out {r : Type _} [Ring r]
 
 /- in -/
 
-axiom EX1_isFailureOf_in_hori {r : Type _} [Ring r]
+theorem EX1_isFailureOf_in_hori {r : Type _} [Ring r]
     (n i j : Nat) (r0 : r) (a : Event r) :
     (∀ r1 : r,
       peF_rec (r := r) n (i, j) <=EX
@@ -662,9 +662,49 @@ axiom EX1_isFailureOf_in_hori {r : Type _} [Ring r]
                FIXn (Nat.succ (n + n)) SAfun
                  (ProcName.pe' (i, j) r0
                    b (Function.invFun (Event.hori (i, j)) a)))) MF)
-        (Ev '' Alpha_pe (r := r) (i, j))
+        (Ev '' Alpha_pe (r := r) (i, j)) := by
+  intro hyp _ha
+  have hS : (Ev '' Alpha_pe (r := r) (i, j) \
+        Ev '' Set.range (Event.hori (i, j) (r := r)))
+      = {e | ∃ z, e = Ev (Event.vert (i, j) z) ∨ e = Ev (Event.hori (i, j + 1) z) ∨
+          e = Ev (Event.vert (i + 1, j) z)} := by
+    ext e
+    simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_range]
+    constructor
+    · rintro ⟨⟨b, ⟨z, hb⟩, rfl⟩, hnot⟩
+      refine ⟨z, ?_⟩
+      rcases hb with rfl | rfl | rfl | rfl
+      · exact Or.inl rfl
+      · exact absurd ⟨_, ⟨z, rfl⟩, rfl⟩ hnot
+      · exact Or.inr (Or.inr rfl)
+      · exact Or.inr (Or.inl rfl)
+    · rintro ⟨z, (rfl | rfl | rfl)⟩
+      · exact ⟨⟨_, ⟨z, Or.inl rfl⟩, rfl⟩, by rintro ⟨b, ⟨w, rfl⟩, hb⟩; cases hb⟩
+      · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+        rintro ⟨b, ⟨w, rfl⟩, hb⟩
+        injection hb with hb
+        injection hb with hb
+        simp at hb
+      · exact ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩,
+          by rintro ⟨b, ⟨w, rfl⟩, hb⟩; cases hb⟩
+  refine cspF_subseteqEX_Ext_pre_choice
+    (X := Set.range (Event.hori (i, j) (r := r)))
+    (Pf := fun b => FIXn (Nat.succ (n + n)) SAfun
+      (ProcName.pe' (i, j) r0 (Function.invFun (Event.vert (i, j)) a)
+        (Function.invFun (Event.hori (i, j)) b)))
+    (Ff := fun b => Faiures_out (Function.invFun (Event.vert (i, j)) a)
+      (Function.invFun (Event.hori (i, j)) b) (i, j) (peF_rec (r := r) n (i, j)))
+    ?_ ?_ ?_
+  · simp only [Rec_prefix_def, Set.image_univ]
+    exact cspF_reflex_eq_P
+  · rw [Faiures_in_hori, ← hS,
+      EX1_isFailureOf_in_hori_alpha2 i j a (peF_rec (r := r) n (i, j))]
+    exact (Set.insert_eq _ _).symm
+  · intro b _
+    exact EX1_isFailureOf_out n i j (Function.invFun (Event.vert (i, j)) a)
+      (Function.invFun (Event.hori (i, j)) b) r0 hyp
 
-axiom EX1_isFailureOf_in_vert {r : Type _} [Ring r]
+theorem EX1_isFailureOf_in_vert {r : Type _} [Ring r]
     (n i j : Nat) (r0 : r) (a : Event r) :
     (∀ r1 : r,
       peF_rec (r := r) n (i, j) <=EX
@@ -687,9 +727,50 @@ axiom EX1_isFailureOf_in_vert {r : Type _} [Ring r]
                FIXn (Nat.succ (n + n)) SAfun
                  (ProcName.pe' (i, j) r0
                    b (Function.invFun (Event.hori (i, j)) a)))) MF)
-        (Ev '' Alpha_pe (r := r) (i, j))
+        (Ev '' Alpha_pe (r := r) (i, j)) := by
+  intro hyp _ha _ha2
+  have hS : (Ev '' Alpha_pe (r := r) (i, j) \
+        Ev '' Set.range (Event.vert (i, j) (r := r)))
+      = {e | ∃ z, e = Ev (Event.hori (i, j) z) ∨ e = Ev (Event.vert (i + 1, j) z) ∨
+          e = Ev (Event.hori (i, j + 1) z)} := by
+    ext e
+    simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_range]
+    constructor
+    · rintro ⟨⟨b, ⟨z, hb⟩, rfl⟩, hnot⟩
+      refine ⟨z, ?_⟩
+      rcases hb with rfl | rfl | rfl | rfl
+      · exact absurd ⟨_, ⟨z, rfl⟩, rfl⟩ hnot
+      · exact Or.inl rfl
+      · exact Or.inr (Or.inl rfl)
+      · exact Or.inr (Or.inr rfl)
+    · rintro ⟨z, (rfl | rfl | rfl)⟩
+      · exact ⟨⟨_, ⟨z, Or.inr (Or.inl rfl)⟩, rfl⟩,
+          by rintro ⟨b, ⟨w, rfl⟩, hb⟩; cases hb⟩
+      · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+        rintro ⟨b, ⟨w, rfl⟩, hb⟩
+        injection hb with hb
+        injection hb with hb
+        simp at hb
+      · exact ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩,
+          by rintro ⟨b, ⟨w, rfl⟩, hb⟩; cases hb⟩
+  refine cspF_subseteqEX_Ext_pre_choice
+    (X := Set.range (Event.vert (i, j) (r := r)))
+    (Pf := fun b => FIXn (Nat.succ (n + n)) SAfun
+      (ProcName.pe' (i, j) r0 (Function.invFun (Event.vert (i, j)) b)
+        (Function.invFun (Event.hori (i, j)) a)))
+    (Ff := fun b => Faiures_out (Function.invFun (Event.vert (i, j)) b)
+      (Function.invFun (Event.hori (i, j)) a) (i, j) (peF_rec (r := r) n (i, j)))
+    ?_ ?_ ?_
+  · simp only [Rec_prefix_def, Set.image_univ]
+    exact cspF_reflex_eq_P
+  · rw [Faiures_in_vert, ← hS,
+      EX1_isFailureOf_in_vert_alpha2 i j a (peF_rec (r := r) n (i, j))]
+    exact (Set.insert_eq _ _).symm
+  · intro b _
+    exact EX1_isFailureOf_out n i j (Function.invFun (Event.vert (i, j)) b)
+      (Function.invFun (Event.hori (i, j)) a) r0 hyp
 
-axiom EX1_isFailureOf_in {r : Type _} [Ring r]
+theorem EX1_isFailureOf_in {r : Type _} [Ring r]
     (n i j : Nat) (r0 : r) :
     (∀ r0 : r,
       peF_rec (r := r) n (i, j) <=EX
@@ -699,7 +780,77 @@ axiom EX1_isFailureOf_in {r : Type _} [Ring r]
     Faiures_in (r := r) (i, j) (peF_rec (r := r) n (i, j)) <=EX
       restRefusal
         (failures (FIXn (Nat.succ (Nat.succ (n + n))) SAfun (ProcName.pe (i, j) r0)) MF)
-        (Ev '' Alpha_pe (r := r) (i, j))
+        (Ev '' Alpha_pe (r := r) (i, j)) := by
+  intro hyp
+  have hS : (Ev '' Alpha_pe (r := r) (i, j) \
+        Ev '' (Set.range (Event.vert (i, j) (r := r)) ∪ Set.range (Event.hori (i, j) (r := r))))
+      = {e | ∃ z, e = Ev (Event.vert (i + 1, j) z) ∨ e = Ev (Event.hori (i, j + 1) z)} := by
+    ext e
+    simp only [Alpha_pe, Set.mem_diff, Set.mem_image, Set.mem_setOf_eq, Set.mem_union,
+      Set.mem_range]
+    constructor
+    · rintro ⟨⟨b, ⟨z, hb⟩, rfl⟩, hnot⟩
+      refine ⟨z, ?_⟩
+      rcases hb with rfl | rfl | rfl | rfl
+      · exact absurd ⟨_, Or.inl ⟨z, rfl⟩, rfl⟩ hnot
+      · exact absurd ⟨_, Or.inr ⟨z, rfl⟩, rfl⟩ hnot
+      · exact Or.inl rfl
+      · exact Or.inr rfl
+    · rintro ⟨z, (rfl | rfl)⟩
+      · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inl rfl))⟩, rfl⟩, ?_⟩
+        rintro ⟨b, (⟨w, rfl⟩ | ⟨w, rfl⟩), hb⟩
+        · injection hb with hb
+          injection hb with hb
+          simp at hb
+        · cases hb
+      · refine ⟨⟨_, ⟨z, Or.inr (Or.inr (Or.inr rfl))⟩, rfl⟩, ?_⟩
+        rintro ⟨b, (⟨w, rfl⟩ | ⟨w, rfl⟩), hb⟩
+        · cases hb
+        · injection hb with hb
+          injection hb with hb
+          simp at hb
+  refine cspF_subseteqEX_Ext_pre_choice
+    (X := Set.range (Event.vert (i, j) (r := r)) ∪ Set.range (Event.hori (i, j) (r := r)))
+    (Pf := fun a =>
+      IF a ∈ Set.range (Event.vert (i, j))
+      THEN
+        Rec_prefix (Event.hori (i, j)) Set.univ (fun b =>
+          FIXn (Nat.succ (n + n)) SAfun
+            (ProcName.pe' (i, j) r0 (Function.invFun (Event.vert (i, j)) a) b))
+      ELSE
+        Rec_prefix (Event.vert (i, j)) Set.univ (fun b =>
+          FIXn (Nat.succ (n + n)) SAfun
+            (ProcName.pe' (i, j) r0 b (Function.invFun (Event.hori (i, j)) a))))
+    (Ff := fun a =>
+      if a ∈ Set.range (Event.vert (i, j) (r := r))
+      then Faiures_in_hori (Function.invFun (Event.vert (i, j)) a) (i, j)
+        (peF_rec (r := r) n (i, j))
+      else Faiures_in_vert (Function.invFun (Event.hori (i, j)) a) (i, j)
+        (peF_rec (r := r) n (i, j)))
+    (pe_expand_in n i j r0) ?_ ?_
+  · rw [Faiures_in, ← hS, Set.union_assoc,
+      EX1_isFailureOf_in_alpha2 i j (peF_rec (r := r) n (i, j))]
+    exact (Set.insert_eq _ _).symm
+  · rintro a ha
+    dsimp only
+    by_cases hv : a ∈ Set.range (Event.vert (i, j) (r := r))
+    · rw [if_pos hv]
+      refine cspF_subseteqEX_eqF
+        (cspF_trans_left_eq cspF_IF_split
+          (by rw [if_pos (show (decide (a ∈ Set.range (Event.vert (i, j) (r := r)))) = true
+                    from by simpa using hv)]
+              exact cspF_reflex_eq_P)) ?_
+      exact EX1_isFailureOf_in_hori n i j r0 a hyp hv
+    · rw [if_neg hv]
+      refine cspF_subseteqEX_eqF
+        (cspF_trans_left_eq cspF_IF_split
+          (by rw [if_neg (show ¬ ((decide (a ∈ Set.range (Event.vert (i, j) (r := r)))) = true)
+                    from by simpa using hv)]
+              exact cspF_reflex_eq_P)) ?_
+      refine EX1_isFailureOf_in_vert n i j r0 a hyp ?_ hv
+      rcases ha with h | h
+      · exact absurd h hv
+      · exact h
 
 theorem EX1_isFailureOf_in_ALL {r : Type _} [Ring r]
     (n i j : Nat) :
