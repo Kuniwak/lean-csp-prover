@@ -72,6 +72,18 @@ axiom pe_expand_out {r : Type _} [Ring r] (n i j : Nat) (r0 x y : r) :
          proc.Ext_pre_choice ({Event.vert (i + 1, j) x} : Set (Event r)) (fun _ =>
            FIXn (n + n) SAfun (ProcName.pe (i, j) (r0 + x * y))))
 
+private theorem inj_hori {r : Type _} (ij : Nat × Nat) :
+    Function.Injective (Event.hori (r := r) ij) := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem inj_vert {r : Type _} (ij : Nat × Nat) :
+    Function.Injective (Event.vert (r := r) ij) := by
+  intro a b h
+  cases h
+  rfl
+
 /- *********************************************************
                   alphabet lemma
  ********************************************************* -/
@@ -152,7 +164,7 @@ theorem EX1_isFailureOf_in_hori_alpha1 {r : Type _} (i j : Nat) :
     · exact Or.inr (Or.inr rfl)
     · exact Or.inr (Or.inl rfl)
 
-axiom EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
+theorem EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
     {u : failure (Event r) | ∃ y s Y,
       u = (((Abs_trace [Ev (Event.hori (i, j) y)] : traceType (Event r)) ^^^ s), Y) ∧
@@ -163,7 +175,16 @@ axiom EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a :
           Faiures_out
             (Function.invFun (Event.vert (i, j)) a)
             (Function.invFun (Event.hori (i, j)) aa) (i, j) F ∧
-        aa ∈ Set.range (Event.hori (i, j))}
+        aa ∈ Set.range (Event.hori (i, j))} := by
+  ext u
+  simp only [Set.mem_setOf_eq, Set.mem_range]
+  constructor
+  · rintro ⟨y, s, Y, rfl, hF⟩
+    refine ⟨Event.hori (i, j) y, s, Y, rfl, ?_, ⟨y, rfl⟩⟩
+    rwa [Function.leftInverse_invFun (inj_hori (i, j)) y]
+  · rintro ⟨aa, s, Y, rfl, hF, ⟨y, rfl⟩⟩
+    refine ⟨y, s, Y, rfl, ?_⟩
+    rwa [Function.leftInverse_invFun (inj_hori (i, j)) y] at hF
 
 theorem EX1_isFailureOf_in_vert_alpha1 {r : Type _} (i j : Nat) :
     ((<> : traceType (Event r)),
@@ -199,7 +220,7 @@ theorem EX1_isFailureOf_in_vert_alpha1 {r : Type _} (i j : Nat) :
     · exact Or.inr (Or.inl rfl)
     · exact Or.inr (Or.inr rfl)
 
-axiom EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
+theorem EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
     {u : failure (Event r) | ∃ x s Y,
       u = (((Abs_trace [Ev (Event.vert (i, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
@@ -210,7 +231,16 @@ axiom EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a :
           Faiures_out
             (Function.invFun (Event.vert (i, j)) aa)
             (Function.invFun (Event.hori (i, j)) a) (i, j) F ∧
-        aa ∈ Set.range (Event.vert (i, j))}
+        aa ∈ Set.range (Event.vert (i, j))} := by
+  ext u
+  simp only [Set.mem_setOf_eq, Set.mem_range]
+  constructor
+  · rintro ⟨x, s, Y, rfl, hF⟩
+    refine ⟨Event.vert (i, j) x, s, Y, rfl, ?_, ⟨x, rfl⟩⟩
+    rwa [Function.leftInverse_invFun (inj_vert (i, j)) x]
+  · rintro ⟨aa, s, Y, rfl, hF, ⟨x, rfl⟩⟩
+    refine ⟨x, s, Y, rfl, ?_⟩
+    rwa [Function.leftInverse_invFun (inj_vert (i, j)) x] at hF
 
 theorem EX1_isFailureOf_out_alpha1 {r : Type _} (i j : Nat) (x y : r) :
     ((<> : traceType (Event r)),
