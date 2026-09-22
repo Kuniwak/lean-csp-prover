@@ -534,6 +534,27 @@ theorem cspF_Int_pre_choice_left_x
   rw [Int_pre_choice_def]
   exact cspF_Rep_int_choice_com_left_x ha hPQ
 
+theorem cspF_Int_pre_choice_subset
+    {X Y : Set α} {Pf : α → proc p α} {Qf : α → proc q α}
+    {M1 : p → domFType α} {M2 : q → domFType α}
+    (hYX : Y ⊆ X) (hPQ : ∀ a, a ∈ Y → refF (Pf a) M1 M2 (Qf a)) :
+    refF (Int_pre_choice X Pf) M1 M2 (Int_pre_choice Y Qf) := by
+  rw [Int_pre_choice_def, Int_pre_choice_def]
+  exact cspF_Rep_int_choice_com_subset hYX
+    (fun a ha => cspF_Act_prefix_mono rfl (hPQ a ha))
+
+theorem cspF_Nondet_send_prefix_subset [Inhabited β]
+    {f : β → α} {X Y : Set β} {Pf : β → proc p α} {Qf : β → proc q α}
+    {M1 : p → domFType α} {M2 : q → domFType α}
+    (hf : Injective f) (hYX : Y ⊆ X)
+    (hPQ : ∀ a, a ∈ Y → refF (Pf a) M1 M2 (Qf a)) :
+    refF (Nondet_send_prefix f X Pf) M1 M2 (Nondet_send_prefix f Y Qf) := by
+  rw [Nondet_send_prefix_def, Nondet_send_prefix_def]
+  refine cspF_Int_pre_choice_subset (Set.image_mono hYX) (fun a ha => ?_)
+  obtain ⟨b, hb, rfl⟩ := ha
+  rw [Function.leftInverse_invFun hf b]
+  exact hPQ b hb
+
 theorem cspF_Nondet_send_prefix_left_x [Inhabited β]
     {f : β → α} {X : Set β} {Pf : β → proc p α} {Q : proc q α} {a : β}
     {M1 : p → domFType α} {M2 : q → domFType α}
