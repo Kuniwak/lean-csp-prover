@@ -180,10 +180,11 @@ axiom PreCircSpecC_Step_lm {n : Nat} {s : List Att} :
           PreCircSpecC (step main)
  * --------------------------------- -/
 
-axiom cspF_tr_left_ref2
+theorem cspF_tr_left_ref2
     {P1 : proc p α} {P2 : proc q α} {P3 : proc r α}
     {M1 : p → domFType α} {M2 : q → domFType α} {M3 : r → domFType α} :
-    refF P1 M1 M2 P2 → refF P2 M2 M3 P3 → refF P1 M1 M3 P3
+    refF P1 M1 M2 P2 → refF P2 M2 M3 P3 → refF P1 M1 M3 P3 :=
+  cspF_trans_left_ref
 
 theorem PreCircSpecC_Step {n : Nat} {s : List Att} :
   ChkLCR s → s ≠ [] → guardL s → guardR s →
@@ -345,6 +346,26 @@ theorem Set_PNSdef_def (pn : PNS) :
   cases pn
   simp [PNSdef, Send_prefix, guarded, noHide]
 
+/- `(a ~> P) ;; Q =F a ~> (P ;; Q)` -/
+
+private theorem prefix_Seq {a : Event} {P Q : proc PNS Event} :
+    eqF ((a ~> P) ;; Q) MF MF (a ~> (P ;; Q)) := by
+  refine cspF_trans_left_eq (cspF_Seq_compo_cong cspF_Act_prefix_step cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq cspF_Seq_compo_step ?_
+  exact cspF_sym cspF_Act_prefix_step
+
+private theorem IF_true' (P Q : proc PNR Event) :
+    eqF (IF true THEN P ELSE Q) MF MF P :=
+  cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
+
+private theorem unwind_CircSpec {s : List Nat} (hs : tl s ≠ []) :
+    eqF (pCircSpec s) MF MF (Event.left (hd s / 2) ~> pCircSpec (circNext s)) := by
+  refine cspF_trans_left_eq
+    («cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PNR⟩))) ?_
+  change eqF (IF decide (tl s ≠ []) THEN _ ELSE _) MF MF _
+  rw [decide_eq_true hs]
+  exact IF_true' _ _
+
 def Unstable : Nat → List Nat → proc PNS Event
   | 0, _ => proc.SKIP
   | Nat.succ n, s => Send_prefix Event.left (hd s / 2) (Unstable n (circNext s))
@@ -362,21 +383,66 @@ def EventuallyStable_to_CircSpec : Nat → PNS → proc PNR Event
 
 /- ---------- lemmas ---------- -/
 
-axiom Unstable_CircSpec_lm {N : Nat} {P : proc PNS Event} :
-  ∀ s : List Nat, tl s ≠ [] → refF P MF MF (pCircSpec (circNexts N s)) →
-    refF (Unstable N s ;; P) MF MF (pCircSpec s)
+theorem Unstable_CircSpec_lm {N : Nat} {P : proc PNS Event} :
+    ∀ s : List Nat, tl s ≠ [] → refF P MF MF (pCircSpec (circNexts N s)) →
+      refF (Unstable N s ;; P) MF MF (pCircSpec s) := by
+  induction N with
+  | zero =>
+      intro s _ hP
+      exact cspF_rw_left_ref cspF_Seq_compo_unit_l hP
+  | succ N ih =>
+      intro s hs hP
+      refine cspF_rw_left_ref (prefix_Seq (a := Event.left (hd s / 2))) ?_
+      refine cspF_rw_right_ref (unwind_CircSpec hs) ?_
+      exact cspF_Act_prefix_mono rfl (ih (circNext s) (by simpa using hs) hP)
 
-axiom Unstable_CircSpec {N : Nat} {s : List Nat} {P : proc PNS Event} :
-  tl s ≠ [] → refF P MF MF (pCircSpec (circNexts N s)) →
-    refF (Unstable N s ;; P) MF MF (pCircSpec s)
+theorem Unstable_CircSpec {N : Nat} {s : List Nat} {P : proc PNS Event} :
+    tl s ≠ [] → refF P MF MF (pCircSpec (circNexts N s)) →
+      refF (Unstable N s ;; P) MF MF (pCircSpec s) :=
+  fun hs hP => Unstable_CircSpec_lm s hs hP
 
-axiom Stable_CircSpec {l n : Nat} {s : List Nat} :
-  LT.lt (Nat.succ 0) l → s = makeStableList l (2 * n) →
-    refF (pStable n) MF MF (pCircSpec s)
+theorem Stable_CircSpec {l n : Nat} {s : List Nat} :
+    LT.lt (Nat.succ 0) l → s = makeStableList l (2 * n) →
+      refF (pStable n) MF MF (pCircSpec s) := by
+  intro hl hs
+  subst hs
+  refine cspF_fp_induct_ref_left (Pf := PNSdef) (f := EventuallyStable_to_CircSpec l)
+    rfl (Or.inl rfl) guardedfun_PNS cspF_reflex_ref_P ?_
+  intro p
+  cases p with
+  | Stable m =>
+      have hEven : allEven (makeStableList l (2 * m)) :=
+        allEven_makeStableList ⟨m, by omega⟩
+      have hStable : stableList (makeStableList l (2 * m)) := stableList_makeStableList_lm
+      have hcirc : circNext (makeStableList l (2 * m)) = makeStableList l (2 * m) :=
+        stable_circNext hEven hStable
+      have htl : tl (makeStableList l (2 * m)) ≠ [] := by
+        intro hc
+        have := tl_makeStableList_nil (l := l) (n := 2 * m) |>.mp hc
+        omega
+      have hhd : hd (makeStableList l (2 * m)) = 2 * m := makeStableList_hd (by omega)
+      refine cspF_rw_right_ref (unwind_CircSpec htl) ?_
+      rw [hcirc, hhd, Nat.mul_div_cancel_left m (by omega : 0 < 2)]
+      exact cspF_reflex_ref_P
 
-axiom EventuallyStable_CircSpec {s : List Nat} :
-  LT.lt (Nat.succ 0) s.length → allEven s →
-    refF (EventuallyStable s) MF MF (pCircSpec s)
+theorem EventuallyStable_CircSpec {s : List Nat} :
+    LT.lt (Nat.succ 0) s.length → allEven s → refF (EventuallyStable s) MF MF (pCircSpec s) := by
+  intro hlen hEven
+  obtain ⟨hs, htl⟩ := list_length_more_one.mp hlen
+  obtain ⟨N, hStable⟩ := circNexts_eventually_stable hs hEven
+  have hEvenN : allEven (circNexts N s) := circNexts_even hEven
+  have hsN : circNexts N s ≠ [] := by
+    intro hc
+    exact hs ((circNexts_nil_iff (N := N) s).mp hc)
+  rw [EventuallyStable]
+  refine cspF_rw_left_ref cspF_Seq_compo_Dist_nat ?_
+  refine cspF_Rep_int_choice_nat_left_x (Set.mem_univ N) ?_
+  refine Unstable_CircSpec htl ?_
+  refine cspF_Rep_int_choice_nat_left_x
+    (n := hd (circNexts N s) / 2) (Set.mem_univ _) ?_
+  refine Stable_CircSpec (l := s.length) hlen ?_
+  rw [allEven_div hsN hEvenN]
+  exact makeStableList_hd_stableList.mpr ⟨length_circNexts (N := N) s, hStable⟩
 
 /- -------------------------------------------- *
 
@@ -387,5 +453,8 @@ axiom EventuallyStable_CircSpec {s : List Nat} :
 
  * -------------------------------------------- -/
 
-axiom EventuallyStable_CircChild {s : List Nat} :
-  LT.lt 1 s.length → allEven s → refF (EventuallyStable s) MF MF (CircChild s)
+theorem EventuallyStable_CircChild {s : List Nat} :
+    LT.lt 1 s.length → allEven s → refF (EventuallyStable s) MF MF (CircChild s) := by
+  intro hlen hEven
+  exact cspF_tr_left_ref2 (EventuallyStable_CircSpec hlen hEven)
+    (CircSpec_CircChild (list_length_more_one.mp hlen).2)
