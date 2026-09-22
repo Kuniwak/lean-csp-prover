@@ -256,7 +256,10 @@ theorem fnfF_Rep_int_choice_step_subexp
  |         one step equality          |
  *------------------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_one_step
+set_option maxHeartbeats 1000000 in
+-- The chain rewrites a replicated internal choice through four distribution
+-- laws in a row, each of which carries the whole indexed family along.
+theorem cspF_fnfF_Rep_int_choice_one_step
     [HasPNfun p α] [HasFPmode]
     {C : sets_nats α}
     {Af : aset_anat α → Set α}
@@ -273,7 +276,43 @@ axiom cspF_fnfF_Rep_int_choice_one_step
                   (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))))
           (fnfF_Rep_int_choice_step C Af Ysf
             (fun a => proc.Rep_int_choice (sub_sumset C fun c => a ∈ Af c) (fun c => Pff c a))
-            Qf)
+            Qf) := by
+  intro hYA hQ
+  -- push the internal choice inside
+  refine cspF_trans_left_eq (cspF_Rep_int_choice_sum_dist) ?_
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong (cspF_Rep_int_choice_Ext_Dist_sum hQ)
+      cspF_Rep_int_choice_sum_set_Ext_pre_choice_DIV) ?_
+  -- merge the prefix choices and collapse the terminal part
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong
+      (cspF_Ext_choice_cong cspF_Rep_int_choice_sum_input_set
+        (cspF_SKIP_DIV_Rep_int_choice_sum hQ))
+      cspF_reflex_eq_P) ?_
+  -- distribute the merged prefix choice over the terminal part
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong
+      (cspF_Rep_int_choice_input_Dist
+        (by by_cases h : ∃ c, c ∈ sumset C ∧ Qf c = proc.SKIP
+            · rw [if_pos h]; exact Or.inl rfl
+            · rw [if_neg h]; exact Or.inr rfl))
+      cspF_reflex_eq_P) ?_
+  -- the merged prefix set is exactly the one `fnfF_Rep_int_choice_step` uses
+  have hUnion : Set.sUnion (Af '' sumset C)
+      = Set.sUnion {A | ∃ x, x ∈ sumset C ∧ A = Af x} := by
+    congr 1
+    ext A
+    exact ⟨fun ⟨c, hc, hA⟩ => ⟨c, hc, hA.symm⟩, fun ⟨c, hc, hA⟩ => ⟨c, hc, hA.symm⟩⟩
+  unfold fnfF_Rep_int_choice_step
+  rw [hUnion]
+  -- finally enlarge the refusal sets to the completion
+  refine cspF_input_Rep_int_choice_set_subset fnfF_set_completion_subset (fun Y hY => ?_)
+  obtain ⟨⟨Y0, hY0, hY0Y⟩, hYsub⟩ := hY
+  refine ⟨Y0, hY0, hY0Y, ?_⟩
+  intro x hx
+  rcases hYsub hx with hA | hYs
+  · exact hA
+  · exact step_Ys_Union_subset_A hYA hYs
 
 /- (*------------------------------------*
  |              induction             |
