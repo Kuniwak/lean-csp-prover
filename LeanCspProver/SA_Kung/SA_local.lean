@@ -32,7 +32,7 @@ attribute [local instance] Classical.propDecidable
  |     small lemma      |
  *---------------------- -/
 
-axiom possible_pairs {r : Type _}
+theorem possible_pairs {r : Type _}
     (i1 j1 i2 j2 : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
@@ -44,7 +44,20 @@ axiom possible_pairs {r : Type _}
       (i1 = i2 ∧ j1 = j2 + 1) ∨
         (i1 = i2 ∧ j2 = j1 + 1) ∨
         (i1 = i2 + 1 ∧ j1 = j2) ∨
-        (i2 = i1 + 1 ∧ j1 = j2)
+        (i2 = i1 + 1 ∧ j1 = j2) := by
+  rintro ⟨⟨⟨-, hne12, -, -, hne⟩, -⟩, -⟩
+  have hne' : ¬ (i1 = i2 ∧ j1 = j2) := by
+    rintro ⟨rfl, rfl⟩
+    exact hne12 rfl
+  rcases Set.nonempty_iff_ne_empty.mpr hne with ⟨e, ⟨⟨a, ha, rfl⟩, -⟩, ⟨b, hb, hb'⟩⟩
+  obtain rfl : b = a := by injection hb'
+  obtain ⟨x, hx⟩ := ha
+  obtain ⟨y, hy⟩ := hb
+  rcases hx with rfl | rfl | rfl | rfl <;> rcases hy with h | h | h | h <;>
+    first
+      | simp only [reduceCtorEq] at h
+      | (simp only [Event.vert.injEq, Event.hori.injEq, Prod.mk.injEq] at h
+         omega)
 
 /- --------------------------------*
  |       local calculation        |
