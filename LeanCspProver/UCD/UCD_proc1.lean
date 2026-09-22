@@ -603,54 +603,157 @@ private theorem Line_fold_both {P' Q' : proc PN Event} :
   rw [Line_eq_pipe]
   exact cspF_reflex_eq_P
 
-/- --------------------- LineSpec_Step (lemmas) --------------------- -/
 
-axiom LineSpec_Step_ref1_AttL_AttL {t : List Att} {n x na xa : Nat} :
-    ChkLCR t →
-      lineSpecStepBody (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) <=F
-        (pChildL (n, x) <---> pLineSpec (Att.AttL (na, xa) :: t))
+/- ---------- normal forms of the UCD processes ---------- -/
 
-axiom LineSpec_Step_ref1_AttL_AttC {t : List Att} {n x na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttL (n, x) :: Att.AttC na :: t) <=F
-        (pChildL (n, x) <---> pLineSpec (Att.AttC na :: t))
+private theorem LR_normal (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Event) :
+    eqFfix ((Event.left v ~> P) [+] (Rec_prefix Event.right Set.univ Qf))
+      (proc.Ext_pre_choice (({Event.left v} : Set Event) ∪ Set.range Event.right) fun y =>
+        procIte (y = Event.left v) P (Qf (Function.invFun Event.right y))) := by
+  rw [Rec_prefix_def]
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong (cspF_Act_prefix_step (a := Event.left v) (P := P))
+      cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq cspF_Ext_choice_step ?_
+  have himg : (({Event.left v} : Set Event)) ∪ Event.right '' (Set.univ : Set Nat)
+      = (({Event.left v} : Set Event)) ∪ Set.range Event.right := by
+    rw [Set.image_univ]
+  refine cspF_Ext_pre_choice_cong himg (fun y hy => ?_)
+  rcases hy with hy | ⟨m, rfl⟩
+  · have hyv : y = Event.left v := hy
+    subst hyv
+    have hmem : Event.left v ∈ ({Event.left v} : Set Event) := Set.mem_singleton_iff.mpr rfl
+    have hnot : ¬ (Event.left v ∈ ({Event.left v} : Set Event) ∧
+        Event.left v ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    simp only [procIte_neg hnot, procIte_pos hmem, procIte_pos True.intro]
+    exact cspF_reflex_eq_P
+  · have hnot1 : ¬ (Event.right m ∈ ({Event.left v} : Set Event) ∧
+        Event.right m ∈ Event.right '' (Set.univ : Set Nat)) := by simp
+    have hnot2 : ¬ (Event.right m ∈ ({Event.left v} : Set Event)) := by simp
+    have hnot3 : ¬ (Event.right m = Event.left v) := by simp
+    simp only [procIte_neg hnot1, procIte_neg hnot2, procIte_neg hnot3]
+    exact cspF_reflex_eq_P
 
-axiom LineSpec_Step_ref1_AttL_AttR {t : List Att} {n x na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttL (n, x) :: Att.AttR na :: t) <=F
-        (pChildL (n, x) <---> pLineSpec (Att.AttR na :: t))
+private theorem renL_ChildL (cx : Nat × Nat) :
+    eqFfix ((pChildL cx)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice ({Event.left (cx.1 / 2)} : Set Event)
+        (fun _ => (pChild (fill (cx.1 / 2 + cx.2)))[[fun_to_rel fL]])) :=
+  cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.ChildL cx)))
+    (renL_Act_left (cx.1 / 2) _)
 
-axiom LineSpec_Step_ref1_AttC_AttC {t : List Att} {n na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttL (n, na / 2) :: Att.AttR (na / 2) :: t) <=F
-        (pChild n <---> pLineSpec (Att.AttC na :: t))
+private theorem renL_ChildR (c : Nat) :
+    eqFfix ((pChildR c)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice (Set.range Event.mid)
+        (fun y => (pChild (fill (c + Function.invFun Event.mid y)))[[fun_to_rel fL]])) :=
+  cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.ChildR c)))
+    (renL_R (fun x => pChild (fill (c + x))))
 
-axiom LineSpec_Step_ref1_AttC_AttL {t : List Att} {na n x : Nat} :
-    ChkLCR t →
-      lineSpecStepBody (Att.AttL (na, n / 2) :: nextL (Att.AttL (n, x) :: t)) <=F
-        (pChild na <---> pLineSpec (Att.AttL (n, x) :: t))
+private theorem renL_Child (c : Nat) :
+    eqFfix ((pChild c)[[fun_to_rel fL]])
+      (proc.Ext_pre_choice (({Event.left (c / 2)} : Set Event) ∪ Set.range Event.mid)
+        (fun y => procIte (y = Event.left (c / 2))
+          ((pChildR (c / 2))[[fun_to_rel fL]])
+          ((pChildL (c, Function.invFun Event.mid y))[[fun_to_rel fL]]))) :=
+  cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.Child c)))
+    (renL_LR (c / 2) (pChildR (c / 2)) (fun x => pChildL (c, x)))
 
-axiom LineSpec_Step_ref1_AttR_AttL {t : List Att} {na n x : Nat} :
-    ChkLCR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) →
-      lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) <=F
-        (pChildR na <---> pLineSpec (Att.AttL (n, x) :: t))
+private theorem renR_LineSpec_both {s : List Att}
+    (hchk : ChkLCR s) (hgL : guardL s) (hgR : guardR s) :
+    eqFfix ((pLineSpec s)[[fun_to_rel fR]])
+      (proc.Ext_pre_choice
+        (({Event.mid (getNat (hd s) / 2)} : Set Event) ∪ Set.range Event.right)
+        (fun y => procIte (y = Event.mid (getNat (hd s) / 2))
+          ((pLineSpec (nextL s))[[fun_to_rel fR]])
+          ((pLineSpec (nextR (s, Function.invFun Event.right y)))[[fun_to_rel fR]]))) := by
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.LineSpec s))) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (IF_pos hchk _ _)) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl
+    (cspF_Ext_choice_cong (IF_pos hgL _ _) (IF_pos hgR _ _))) ?_
+  exact renR_LR (getNat (hd s) / 2) (pLineSpec (nextL s)) (fun x => pLineSpec (nextR (s, x)))
 
-axiom LineSpec_Step_ref1_AttC_AttR {t : List Att} {n na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttC n :: Att.AttR na :: t) <=F
-        (pChild n <---> pLineSpec (Att.AttR na :: t))
+private theorem renR_LineSpec_L {s : List Att}
+    (hchk : ChkLCR s) (hgL : guardL s) (hgR : ¬ guardR s) :
+    eqFfix ((pLineSpec s)[[fun_to_rel fR]])
+      (proc.Ext_pre_choice ({Event.mid (getNat (hd s) / 2)} : Set Event)
+        (fun _ => (pLineSpec (nextL s))[[fun_to_rel fR]])) := by
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.LineSpec s))) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (IF_pos hchk _ _)) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl
+    (cspF_Ext_choice_cong (IF_pos hgL _ _) (IF_neg hgR _ _))) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl cspF_Ext_choice_unit_r) ?_
+  exact renR_L (getNat (hd s) / 2) (pLineSpec (nextL s))
 
-axiom LineSpec_Step_ref1_AttR_AttC {t : List Att} {n na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttC (fill (n + na / 2)) :: Att.AttR (na / 2) :: t) <=F
-        (pChildR n <---> pLineSpec (Att.AttC na :: t))
+private theorem stepBody_LR {s : List Att} (hgL : guardL s) (hgR : guardR s) :
+    eqFfix (lineSpecStepBody s)
+      (proc.Ext_pre_choice
+        (({Event.left (getNat (hd s) / 2)} : Set Event) ∪ Set.range Event.right)
+        (fun y => procIte (y = Event.left (getNat (hd s) / 2))
+          (LineSpec_to_Step (PN.LineSpec (nextL s)))
+          (LineSpec_to_Step (PN.LineSpec (nextR (s, Function.invFun Event.right y)))))) := by
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong (IF_pos hgL _ _) (IF_pos hgR _ _)) ?_
+  exact LR_normal (getNat (hd s) / 2) (LineSpec_to_Step (PN.LineSpec (nextL s)))
+    (fun x => LineSpec_to_Step (PN.LineSpec (nextR (s, x))))
 
-axiom LineSpec_Step_ref1_AttR_AttR {t : List Att} {n na : Nat} :
-    ChkR t →
-      lineSpecStepBody (Att.AttR n :: Att.AttR na :: t) <=F
-        (pChildR n <---> pLineSpec (Att.AttR na :: t))
+private theorem toStep_long {w : List Att} (hchk : ChkLCR w) (htl : tl w ≠ []) :
+    eqFfix (LineSpec_to_Step (PN.LineSpec w)) (lineSpecSendStep w) := by
+  refine cspF_trans_left_eq (IF_pos hchk _ _) ?_
+  exact IF_neg htl _ _
 
-/- -------------------------- LineSpec_Step -------------------------- -/
+
+private theorem stepBody_L {s : List Att} (hgL : guardL s) (hgR : ¬ guardR s) :
+    eqFfix (lineSpecStepBody s)
+      (proc.Ext_pre_choice ({Event.left (getNat (hd s) / 2)} : Set Event)
+        (fun _ => LineSpec_to_Step (PN.LineSpec (nextL s)))) := by
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong (IF_pos hgL _ _) (IF_neg hgR _ _)) ?_
+  refine cspF_trans_left_eq cspF_Ext_choice_unit_r ?_
+  exact cspF_Act_prefix_step
+
+/- ---------- set computations for the pipe expansion ---------- -/
+
+private theorem left_sub_XL (v : Nat) : ({Event.left v} : Set Event) ⊆ XL := by
+  rintro e he
+  have : e = Event.left v := he
+  subst this
+  exact Or.inl ⟨v, rfl⟩
+
+private theorem midR_sub_XR (w : Nat) :
+    (({Event.mid w} : Set Event) ∪ Set.range Event.right) ⊆ XR := by
+  rintro e (he | ⟨m, rfl⟩)
+  · have : e = Event.mid w := he
+    subst this
+    exact Or.inl ⟨w, rfl⟩
+  · exact Or.inr ⟨m, rfl⟩
+
+private theorem mid_sub_XR (w : Nat) : ({Event.mid w} : Set Event) ⊆ XR := by
+  rintro e he
+  have : e = Event.mid w := he
+  subst this
+  exact Or.inl ⟨w, rfl⟩
+
+private theorem sync_empty_LR (v w : Nat) :
+    ({Event.left v} : Set Event) ∩ (({Event.mid w} : Set Event) ∪ Set.range Event.right) = ∅ := by
+  ext e
+  cases e <;> simp
+
+private theorem sync_empty_L (v w : Nat) :
+    ({Event.left v} : Set Event) ∩ ({Event.mid w} : Set Event) = ∅ := by
+  ext e
+  cases e <;> simp
+
+private theorem expand_set_LR (v w : Nat) :
+    ((({Event.left v} : Set Event) \ XR) ∪
+      ((({Event.mid w} : Set Event) ∪ Set.range Event.right) \ XL))
+      = (({Event.left v} : Set Event) ∪ Set.range Event.right) := by
+  ext e
+  cases e <;> simp
+
+private theorem expand_set_L (v w : Nat) :
+    ((({Event.left v} : Set Event) \ XR) ∪ (({Event.mid w} : Set Event) \ XL))
+      = ({Event.left v} : Set Event) := by
+  ext e
+  cases e <;> simp
 
 /- ---------- list-level computations ---------- -/
 
@@ -699,6 +802,392 @@ private theorem chkR_of_AttR {n : Nat} {t : List Att}
   · exact h
 
 /- ---------- `tl x ≠ []`: the nine shapes ---------- -/
+
+
+private theorem renR_LineSpec_R {s : List Att}
+    (hchk : ChkLCR s) (hgL : ¬ guardL s) (hgR : guardR s) :
+    eqFfix ((pLineSpec s)[[fun_to_rel fR]])
+      (proc.Ext_pre_choice (Set.range Event.right)
+        (fun y => (pLineSpec (nextR (s, Function.invFun Event.right y)))[[fun_to_rel fR]])) := by
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (unw (PN.LineSpec s))) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl (IF_pos hchk _ _)) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl
+    (cspF_Ext_choice_cong (IF_neg hgL _ _) (IF_pos hgR _ _))) ?_
+  refine cspF_trans_left_eq (cspF_Renaming_cong rfl cspF_Ext_choice_unit_l) ?_
+  exact renR_R (fun x => pLineSpec (nextR (s, x)))
+
+private theorem right_sub_XR : Set.range Event.right ⊆ XR := by
+  rintro e ⟨m, rfl⟩
+  exact Or.inr ⟨m, rfl⟩
+
+private theorem sync_empty_R (v : Nat) :
+    ({Event.left v} : Set Event) ∩ Set.range Event.right = ∅ := by
+  ext e
+  cases e <;> simp
+
+private theorem expand_set_R (v : Nat) :
+    ((({Event.left v} : Set Event) \ XR) ∪ (Set.range Event.right \ XL))
+      = (({Event.left v} : Set Event) ∪ Set.range Event.right) := by
+  ext e
+  cases e <;> simp
+
+/- --------------------- LineSpec_Step (lemmas) --------------------- -/
+
+set_option maxHeartbeats 1000000 in
+-- The pipe expansion has to unfold `Rec_prefix`, whose index set is
+-- `Event.right '' Set.univ` and whose branch function goes through
+-- `Function.invFun`; the defeq checks that drives are past the default budget.
+theorem LineSpec_Step_ref1_AttL_AttL {t : List Att} {n x na xa : Nat} :
+    ChkLCR t →
+      lineSpecStepBody (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) <=F
+        (pChildL (n, x) <---> pLineSpec (Att.AttL (na, xa) :: t)) := by
+  intro hchk
+  have hchk2 : ChkLCR (Att.AttL (na, xa) :: t) := Or.inl ⟨⟨(na, xa), rfl⟩, hchk⟩
+  have hchk1 : ChkLCR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) :=
+    Or.inl ⟨⟨(n, x), rfl⟩, hchk2⟩
+  have hgL2 : guardL (Att.AttL (na, xa) :: t) := Or.inl ⟨na, xa, rfl⟩
+  have hgL1 : guardL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) := Or.inl ⟨n, x, rfl⟩
+  have hP : eqFfix ((pChildL (n, x))[[fun_to_rel fL]])
+      (proc.Ext_pre_choice ({Event.left (n / 2)} : Set Event)
+        (fun _ => (pChild (fill (n / 2 + x)))[[fun_to_rel fL]])) :=
+    renL_ChildL (n, x)
+  have hnextL : nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)
+      = Att.AttL (fill (n / 2 + x), na / 2) :: nextL (Att.AttL (na, xa) :: t) := by
+    simp [nextL]
+  have hleft : refFfix
+      (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t))))
+      (Line (pChild (fill (n / 2 + x))) (pLineSpec (Att.AttL (na, xa) :: t))) := by
+    have hchkL : ChkLCR (nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)) :=
+      (ChkLCR_nextL hgL1).mpr hchk1
+    have htlL : tl (nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)) ≠ [] := by
+      rw [hnextL]
+      exact nextL_not_nil
+    refine cspF_rw_left_ref (toStep_long hchkL htlL) ?_
+    refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+      (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)})
+      (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+      (a := Att.AttC (fill (n / 2 + x)) :: Att.AttL (na, xa) :: t) inj_stlist ?_ ?_
+    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttL (na, xa) :: t)
+        = nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)
+      rw [toStbOne_AttC_AttL, hnextL]
+    · exact cspF_reflex_ref_P
+  by_cases hgR2 : guardR (Att.AttL (na, xa) :: t)
+  · have hgR1 : guardR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) := by
+      rw [guardR_AttL]
+      exact hgR2
+    have hnextR : ∀ m : Nat, nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)
+        = Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m) := by
+      intro m
+      simp [nextR]
+    have hright : ∀ m : Nat, refFfix
+        (LineSpec_to_Step (PN.LineSpec (nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m))))
+        (Line (pChildL (n, x)) (pLineSpec (nextR (Att.AttL (na, xa) :: t, m)))) := by
+      intro m
+      have hchkR : ChkLCR (nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)) :=
+        (ChkLCR_nextR hgR1).mpr hchk1
+      have htlR : tl (nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)) ≠ [] := by
+        rw [hnextR m]
+        exact nextR_not_nil
+      refine cspF_rw_left_ref (toStep_long hchkR htlR) ?_
+      refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+        (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)})
+        (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+        (a := Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m)) inj_stlist ?_ ?_
+      · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m))
+          = nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)
+        rw [toStbOne_AttL, hnextR m]
+      · exact cspF_reflex_ref_P
+    have hQ : eqFfix ((pLineSpec (Att.AttL (na, xa) :: t))[[fun_to_rel fR]])
+        (proc.Ext_pre_choice (({Event.mid (na / 2)} : Set Event) ∪ Set.range Event.right)
+          (fun y => procIte (y = Event.mid (na / 2))
+            ((pLineSpec (nextL (Att.AttL (na, xa) :: t)))[[fun_to_rel fR]])
+            ((pLineSpec (nextR (Att.AttL (na, xa) :: t,
+              Function.invFun Event.right y)))[[fun_to_rel fR]]))) :=
+      renR_LineSpec_both hchk2 hgL2 hgR2
+    refine cspF_rw_right_ref
+      (Line_step_nosync hP hQ (left_sub_XL (n / 2)) (midR_sub_XR (na / 2))
+        (sync_empty_LR (n / 2) (na / 2))) ?_
+    have hL : eqFfix (lineSpecStepBody (Att.AttL (n, x) :: Att.AttL (na, xa) :: t))
+        (proc.Ext_pre_choice (({Event.left (n / 2)} : Set Event) ∪ Set.range Event.right)
+          (fun y => procIte (y = Event.left (n / 2))
+            (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t))))
+            (LineSpec_to_Step (PN.LineSpec
+              (nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t,
+                Function.invFun Event.right y)))))) :=
+      stepBody_LR hgL1 hgR1
+    refine cspF_rw_left_ref hL ?_
+    refine cspF_Ext_pre_choice_mono (expand_set_LR (n / 2) (na / 2)).symm (fun y hy => ?_)
+    rcases hy with ⟨hy, -⟩ | ⟨hy, hyXL⟩
+    · have hyv : y = Event.left (n / 2) := hy
+      subst hyv
+      have hmem : Event.left (n / 2) ∈ ({Event.left (n / 2)} : Set Event) :=
+        Set.mem_singleton_iff.mpr rfl
+      simp only [procIte_pos hmem, procIte_pos True.intro]
+      exact cspF_rw_right_ref (Line_fold_left hQ) hleft
+    · rcases hy with hy | ⟨m, rfl⟩
+      · have hyw : y = Event.mid (na / 2) := hy
+        subst hyw
+        exact absurd (Or.inr ⟨na / 2, rfl⟩) hyXL
+      · have hn1 : ¬ (Event.right m = Event.left (n / 2)) := by simp
+        have hn2 : ¬ (Event.right m ∈ ({Event.left (n / 2)} : Set Event)) := by simp
+        have hn3 : ¬ (Event.right m = Event.mid (na / 2)) := by simp
+        simp only [procIte_neg hn1, procIte_neg hn2, procIte_neg hn3]
+        rw [Function.leftInverse_invFun inj_event.2.1 m]
+        exact cspF_rw_right_ref (Line_fold_right hP) (hright m)
+  · have hgR1 : ¬ guardR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t) := by
+      rw [guardR_AttL]
+      exact hgR2
+    have hQ : eqFfix ((pLineSpec (Att.AttL (na, xa) :: t))[[fun_to_rel fR]])
+        (proc.Ext_pre_choice ({Event.mid (na / 2)} : Set Event)
+          (fun _ => (pLineSpec (nextL (Att.AttL (na, xa) :: t)))[[fun_to_rel fR]])) :=
+      renR_LineSpec_L hchk2 hgL2 hgR2
+    refine cspF_rw_right_ref
+      (Line_step_nosync hP hQ (left_sub_XL (n / 2)) (mid_sub_XR (na / 2))
+        (sync_empty_L (n / 2) (na / 2))) ?_
+    have hL : eqFfix (lineSpecStepBody (Att.AttL (n, x) :: Att.AttL (na, xa) :: t))
+        (proc.Ext_pre_choice ({Event.left (n / 2)} : Set Event)
+          (fun _ => LineSpec_to_Step (PN.LineSpec
+            (nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t))))) :=
+      stepBody_L hgL1 hgR1
+    refine cspF_rw_left_ref hL ?_
+    refine cspF_Ext_pre_choice_mono (expand_set_L (n / 2) (na / 2)).symm (fun y hy => ?_)
+    rcases hy with ⟨hy, -⟩ | ⟨hy, hyXL⟩
+    · have hyv : y = Event.left (n / 2) := hy
+      subst hyv
+      have hmem : Event.left (n / 2) ∈ ({Event.left (n / 2)} : Set Event) :=
+        Set.mem_singleton_iff.mpr rfl
+      simp only [procIte_pos hmem]
+      exact cspF_rw_right_ref (Line_fold_left hQ) hleft
+    · have hyw : y = Event.mid (na / 2) := hy
+      subst hyw
+      exact absurd (Or.inr ⟨na / 2, rfl⟩) hyXL
+
+set_option maxHeartbeats 1000000 in
+-- The pipe expansion has to unfold `Rec_prefix`, whose index set is
+-- `Event.right '' Set.univ` and whose branch function goes through
+-- `Function.invFun`; the defeq checks that drives are past the default budget.
+theorem LineSpec_Step_ref1_AttL_AttC {t : List Att} {n x na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttL (n, x) :: Att.AttC na :: t) <=F
+        (pChildL (n, x) <---> pLineSpec (Att.AttC na :: t)) := by
+  intro hchk
+  have hchk2 : ChkLCR (Att.AttC na :: t) := Or.inr (Or.inl ⟨⟨na, rfl⟩, hchk⟩)
+  have hchk1 : ChkLCR (Att.AttL (n, x) :: Att.AttC na :: t) :=
+    Or.inl ⟨⟨(n, x), rfl⟩, hchk2⟩
+  have hgL2 : guardL (Att.AttC na :: t) := Or.inr ⟨na, rfl⟩
+  have hgR2 : guardR (Att.AttC na :: t) := ChkR_guardR_AttC na hchk
+  have hgL1 : guardL (Att.AttL (n, x) :: Att.AttC na :: t) := Or.inl ⟨n, x, rfl⟩
+  have hgR1 : guardR (Att.AttL (n, x) :: Att.AttC na :: t) := by
+    rw [guardR_AttL]
+    exact hgR2
+  have hP : eqFfix ((pChildL (n, x))[[fun_to_rel fL]])
+      (proc.Ext_pre_choice ({Event.left (n / 2)} : Set Event)
+        (fun _ => (pChild (fill (n / 2 + x)))[[fun_to_rel fL]])) :=
+    renL_ChildL (n, x)
+  have hnextL : nextL (Att.AttL (n, x) :: Att.AttC na :: t)
+      = Att.AttL (fill (n / 2 + x), na / 2) :: Att.AttR (na / 2) :: t := by
+    simp [nextL]
+  have hleft : refFfix
+      (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttC na :: t))))
+      (Line (pChild (fill (n / 2 + x))) (pLineSpec (Att.AttC na :: t))) := by
+    have hchkL : ChkLCR (nextL (Att.AttL (n, x) :: Att.AttC na :: t)) :=
+      (ChkLCR_nextL hgL1).mpr hchk1
+    have htlL : tl (nextL (Att.AttL (n, x) :: Att.AttC na :: t)) ≠ [] := by
+      rw [hnextL]
+      exact List.cons_ne_nil _ _
+    refine cspF_rw_left_ref (toStep_long hchkL htlL) ?_
+    refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+      (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttC na :: t)})
+      (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+      (a := Att.AttC (fill (n / 2 + x)) :: Att.AttC na :: t) inj_stlist ?_ ?_
+    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttC na :: t)
+        = nextL (Att.AttL (n, x) :: Att.AttC na :: t)
+      rw [toStbOne_AttC_AttC', nextL_AttC_cons, hnextL]
+    · exact cspF_reflex_ref_P
+  have hnextR : ∀ m : Nat, nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)
+      = Att.AttL (n, x) :: nextR (Att.AttC na :: t, m) := fun m =>
+    guardR_nextR_AttL hgR2
+  have hright : ∀ m : Nat, refFfix
+      (LineSpec_to_Step (PN.LineSpec (nextR (Att.AttL (n, x) :: Att.AttC na :: t, m))))
+      (Line (pChildL (n, x)) (pLineSpec (nextR (Att.AttC na :: t, m)))) := by
+    intro m
+    have hchkR : ChkLCR (nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)) :=
+      (ChkLCR_nextR hgR1).mpr hchk1
+    have htlR : tl (nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)) ≠ [] := by
+      rw [hnextR m]
+      exact nextR_not_nil
+    refine cspF_rw_left_ref (toStep_long hchkR htlR) ?_
+    refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+      (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)})
+      (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+      (a := Att.AttL (n, x) :: nextR (Att.AttC na :: t, m)) inj_stlist ?_ ?_
+    · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttC na :: t, m))
+        = nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)
+      rw [toStbOne_AttL, hnextR m]
+    · exact cspF_reflex_ref_P
+  have hQ : eqFfix ((pLineSpec (Att.AttC na :: t))[[fun_to_rel fR]])
+      (proc.Ext_pre_choice (({Event.mid (na / 2)} : Set Event) ∪ Set.range Event.right)
+        (fun y => procIte (y = Event.mid (na / 2))
+          ((pLineSpec (nextL (Att.AttC na :: t)))[[fun_to_rel fR]])
+          ((pLineSpec (nextR (Att.AttC na :: t,
+            Function.invFun Event.right y)))[[fun_to_rel fR]]))) :=
+    renR_LineSpec_both hchk2 hgL2 hgR2
+  refine cspF_rw_right_ref
+    (Line_step_nosync hP hQ (left_sub_XL (n / 2)) (midR_sub_XR (na / 2))
+      (sync_empty_LR (n / 2) (na / 2))) ?_
+  have hL : eqFfix (lineSpecStepBody (Att.AttL (n, x) :: Att.AttC na :: t))
+      (proc.Ext_pre_choice (({Event.left (n / 2)} : Set Event) ∪ Set.range Event.right)
+        (fun y => procIte (y = Event.left (n / 2))
+          (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttC na :: t))))
+          (LineSpec_to_Step (PN.LineSpec
+            (nextR (Att.AttL (n, x) :: Att.AttC na :: t,
+              Function.invFun Event.right y)))))) :=
+    stepBody_LR hgL1 hgR1
+  refine cspF_rw_left_ref hL ?_
+  refine cspF_Ext_pre_choice_mono (expand_set_LR (n / 2) (na / 2)).symm (fun y hy => ?_)
+  rcases hy with ⟨hy, -⟩ | ⟨hy, hyXL⟩
+  · have hyv : y = Event.left (n / 2) := hy
+    subst hyv
+    have hmem : Event.left (n / 2) ∈ ({Event.left (n / 2)} : Set Event) :=
+      Set.mem_singleton_iff.mpr rfl
+    simp only [procIte_pos hmem, procIte_pos True.intro]
+    exact cspF_rw_right_ref (Line_fold_left hQ) hleft
+  · rcases hy with hy | ⟨m, rfl⟩
+    · have hyw : y = Event.mid (na / 2) := hy
+      subst hyw
+      exact absurd (Or.inr ⟨na / 2, rfl⟩) hyXL
+    · have hn1 : ¬ (Event.right m = Event.left (n / 2)) := by simp
+      have hn2 : ¬ (Event.right m ∈ ({Event.left (n / 2)} : Set Event)) := by simp
+      have hn3 : ¬ (Event.right m = Event.mid (na / 2)) := by simp
+      simp only [procIte_neg hn1, procIte_neg hn2, procIte_neg hn3]
+      rw [Function.leftInverse_invFun inj_event.2.1 m]
+      exact cspF_rw_right_ref (Line_fold_right hP) (hright m)
+
+set_option maxHeartbeats 1000000 in
+-- The pipe expansion has to unfold `Rec_prefix`, whose index set is
+-- `Event.right '' Set.univ` and whose branch function goes through
+-- `Function.invFun`; the defeq checks that drives are past the default budget.
+theorem LineSpec_Step_ref1_AttL_AttR {t : List Att} {n x na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttL (n, x) :: Att.AttR na :: t) <=F
+        (pChildL (n, x) <---> pLineSpec (Att.AttR na :: t)) := by
+  intro hchk
+  have hchk2 : ChkLCR (Att.AttR na :: t) := Or.inr (Or.inr ⟨⟨na, rfl⟩, hchk⟩)
+  have hchk1 : ChkLCR (Att.AttL (n, x) :: Att.AttR na :: t) :=
+    Or.inl ⟨⟨(n, x), rfl⟩, hchk2⟩
+  have hgL2 : ¬ guardL (Att.AttR na :: t) := by
+    rintro (⟨m, z, hm⟩ | ⟨m, hm⟩) <;> cases hm
+  have hgR2 : guardR (Att.AttR na :: t) := ChkR_guardR_AttR na hchk
+  have hgL1 : guardL (Att.AttL (n, x) :: Att.AttR na :: t) := Or.inl ⟨n, x, rfl⟩
+  have hgR1 : guardR (Att.AttL (n, x) :: Att.AttR na :: t) := by
+    rw [guardR_AttL]
+    exact hgR2
+  have hP : eqFfix ((pChildL (n, x))[[fun_to_rel fL]])
+      (proc.Ext_pre_choice ({Event.left (n / 2)} : Set Event)
+        (fun _ => (pChild (fill (n / 2 + x)))[[fun_to_rel fL]])) :=
+    renL_ChildL (n, x)
+  have hnextL : nextL (Att.AttL (n, x) :: Att.AttR na :: t)
+      = Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t := by
+    simp [nextL]
+  have hleft : refFfix
+      (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttR na :: t))))
+      (Line (pChild (fill (n / 2 + x))) (pLineSpec (Att.AttR na :: t))) := by
+    have hchkL : ChkLCR (nextL (Att.AttL (n, x) :: Att.AttR na :: t)) :=
+      (ChkLCR_nextL hgL1).mpr hchk1
+    have htlL : tl (nextL (Att.AttL (n, x) :: Att.AttR na :: t)) ≠ [] := by
+      rw [hnextL]
+      exact List.cons_ne_nil _ _
+    refine cspF_rw_left_ref (toStep_long hchkL htlL) ?_
+    refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+      (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttR na :: t)})
+      (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+      (a := Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t) inj_stlist ?_ ?_
+    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t)
+        = nextL (Att.AttL (n, x) :: Att.AttR na :: t)
+      rw [toStbOne_AttC_AttR, hnextL]
+    · exact cspF_reflex_ref_P
+  have hnextR : ∀ m : Nat, nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)
+      = Att.AttL (n, x) :: nextR (Att.AttR na :: t, m) := fun m =>
+    guardR_nextR_AttL hgR2
+  have hright : ∀ m : Nat, refFfix
+      (LineSpec_to_Step (PN.LineSpec (nextR (Att.AttL (n, x) :: Att.AttR na :: t, m))))
+      (Line (pChildL (n, x)) (pLineSpec (nextR (Att.AttR na :: t, m)))) := by
+    intro m
+    have hchkR : ChkLCR (nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)) :=
+      (ChkLCR_nextR hgR1).mpr hchk1
+    have htlR : tl (nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)) ≠ [] := by
+      rw [hnextR m]
+      exact nextR_not_nil
+    refine cspF_rw_left_ref (toStep_long hchkR htlR) ?_
+    refine cspF_Rep_int_choice_f_left_x (f := Event.stlist)
+      (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)})
+      (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
+      (a := Att.AttL (n, x) :: nextR (Att.AttR na :: t, m)) inj_stlist ?_ ?_
+    · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttR na :: t, m))
+        = nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)
+      rw [toStbOne_AttL, hnextR m]
+    · exact cspF_reflex_ref_P
+  have hQ : eqFfix ((pLineSpec (Att.AttR na :: t))[[fun_to_rel fR]])
+      (proc.Ext_pre_choice (Set.range Event.right)
+        (fun y => (pLineSpec (nextR (Att.AttR na :: t,
+          Function.invFun Event.right y)))[[fun_to_rel fR]])) :=
+    renR_LineSpec_R hchk2 hgL2 hgR2
+  refine cspF_rw_right_ref
+    (Line_step_nosync hP hQ (left_sub_XL (n / 2)) right_sub_XR (sync_empty_R (n / 2))) ?_
+  have hL : eqFfix (lineSpecStepBody (Att.AttL (n, x) :: Att.AttR na :: t))
+      (proc.Ext_pre_choice (({Event.left (n / 2)} : Set Event) ∪ Set.range Event.right)
+        (fun y => procIte (y = Event.left (n / 2))
+          (LineSpec_to_Step (PN.LineSpec (nextL (Att.AttL (n, x) :: Att.AttR na :: t))))
+          (LineSpec_to_Step (PN.LineSpec
+            (nextR (Att.AttL (n, x) :: Att.AttR na :: t,
+              Function.invFun Event.right y)))))) :=
+    stepBody_LR hgL1 hgR1
+  refine cspF_rw_left_ref hL ?_
+  refine cspF_Ext_pre_choice_mono (expand_set_R (n / 2)).symm (fun y hy => ?_)
+  rcases hy with ⟨hy, -⟩ | ⟨⟨m, rfl⟩, -⟩
+  · have hyv : y = Event.left (n / 2) := hy
+    subst hyv
+    have hmem : Event.left (n / 2) ∈ ({Event.left (n / 2)} : Set Event) :=
+      Set.mem_singleton_iff.mpr rfl
+    simp only [procIte_pos hmem, procIte_pos True.intro]
+    exact cspF_rw_right_ref (Line_fold_left hQ) hleft
+  · have hn1 : ¬ (Event.right m = Event.left (n / 2)) := by simp
+    have hn2 : ¬ (Event.right m ∈ ({Event.left (n / 2)} : Set Event)) := by simp
+    simp only [procIte_neg hn1, procIte_neg hn2]
+    rw [Function.leftInverse_invFun inj_event.2.1 m]
+    exact cspF_rw_right_ref (Line_fold_right hP) (hright m)
+
+axiom LineSpec_Step_ref1_AttC_AttC {t : List Att} {n na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttL (n, na / 2) :: Att.AttR (na / 2) :: t) <=F
+        (pChild n <---> pLineSpec (Att.AttC na :: t))
+
+axiom LineSpec_Step_ref1_AttC_AttL {t : List Att} {na n x : Nat} :
+    ChkLCR t →
+      lineSpecStepBody (Att.AttL (na, n / 2) :: nextL (Att.AttL (n, x) :: t)) <=F
+        (pChild na <---> pLineSpec (Att.AttL (n, x) :: t))
+
+axiom LineSpec_Step_ref1_AttR_AttL {t : List Att} {na n x : Nat} :
+    ChkLCR (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) →
+      lineSpecStepBody (toStbOne (Att.AttR na :: Att.AttL (n, x) :: t)) <=F
+        (pChildR na <---> pLineSpec (Att.AttL (n, x) :: t))
+
+axiom LineSpec_Step_ref1_AttC_AttR {t : List Att} {n na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttC n :: Att.AttR na :: t) <=F
+        (pChild n <---> pLineSpec (Att.AttR na :: t))
+
+axiom LineSpec_Step_ref1_AttR_AttC {t : List Att} {n na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttC (fill (n + na / 2)) :: Att.AttR (na / 2) :: t) <=F
+        (pChildR n <---> pLineSpec (Att.AttC na :: t))
+
+axiom LineSpec_Step_ref1_AttR_AttR {t : List Att} {n na : Nat} :
+    ChkR t →
+      lineSpecStepBody (Att.AttR n :: Att.AttR na :: t) <=F
+        (pChildR n <---> pLineSpec (Att.AttR na :: t))
+
+/- -------------------------- LineSpec_Step -------------------------- -/
 
 private theorem step_pair (a1 a2 : Att) (rest : List Att)
     (hchk : ChkLCR (toStbOne (a1 :: a2 :: rest))) :
