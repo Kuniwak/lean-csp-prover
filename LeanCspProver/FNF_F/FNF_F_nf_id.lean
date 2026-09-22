@@ -65,7 +65,7 @@ axiom fnfF_syntactical_equality_Q_lm
         Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
       False
 
-axiom fnfF_syntactical_equality_Q
+theorem fnfF_syntactical_equality_Q
     {Q1 Q2 : proc p α} {A1 A2 : Set α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
     {M1 M2 : p → domFType α} :
     (Q1 = proc.SKIP ∨ Q1 = proc.DIV) →
@@ -76,7 +76,14 @@ axiom fnfF_syntactical_equality_Q
           M1 M2
           ((((proc.Ext_pre_choice A2 Pf2) [+] Q2) |~|
             Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-          Q1 = Q2
+          Q1 = Q2 := by
+  intro hQ1 hQ2 h
+  rcases cspF_eq_ref_iff.mp h with ⟨h12, h21⟩
+  rcases hQ1 with rfl | rfl <;> rcases hQ2 with rfl | rfl
+  · rfl
+  · exact absurd (fnfF_syntactical_equality_Q_lm h21) id
+  · exact absurd (fnfF_syntactical_equality_Q_lm h12) id
+  · rfl
 
 /- (*** A ***) -/
 
@@ -94,7 +101,7 @@ axiom fnfF_syntactical_equality_Union_lm
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
             A2 ⊆ A1
 
-axiom fnfF_syntactical_equality_Union
+theorem fnfF_syntactical_equality_Union
     {A1 A2 : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
     {M1 M2 : p → domFType α} :
     Set.sUnion Ys1 ⊆ A1 →
@@ -106,7 +113,12 @@ axiom fnfF_syntactical_equality_Union
             M1 M2
             ((((proc.Ext_pre_choice A2 Pf2) [+] Q) |~|
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-            A1 = A2
+            A1 = A2 := by
+  intro hY1 hY2 hQ h
+  rcases cspF_eq_ref_iff.mp h with ⟨h12, h21⟩
+  exact Set.Subset.antisymm
+    (fnfF_syntactical_equality_Union_lm hY2 hY1 hQ h21)
+    (fnfF_syntactical_equality_Union_lm hY1 hY2 hQ h12)
 
 /- (*** Yf ***) -/
 
@@ -136,7 +148,7 @@ axiom fnfF_syntactical_equality_Yf_SKIP_lm
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
             Ys2 ⊆ Ys1
 
-axiom fnfF_syntactical_equality_Yf
+theorem fnfF_syntactical_equality_Yf
     {A : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
     {M1 M2 : p → domFType α} :
     Set.sUnion Ys1 ⊆ A →
@@ -150,7 +162,16 @@ axiom fnfF_syntactical_equality_Yf
                 M1 M2
                 ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
                   Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-                Ys1 = Ys2
+                Ys1 = Ys2 := by
+  intro hY1 hY2 hc1 hc2 hQ h
+  rcases cspF_eq_ref_iff.mp h with ⟨h12, h21⟩
+  rcases hQ with rfl | rfl
+  · exact Set.Subset.antisymm
+      (fnfF_syntactical_equality_Yf_SKIP_lm hY2 hY1 hc2 h21)
+      (fnfF_syntactical_equality_Yf_SKIP_lm hY1 hY2 hc1 h12)
+  · exact Set.Subset.antisymm
+      (fnfF_syntactical_equality_Yf_DIV_lm hY2 hY1 hc2 h21)
+      (fnfF_syntactical_equality_Yf_DIV_lm hY1 hY2 hc1 h12)
 
 /- (*** Pf ***) -/
 
@@ -206,7 +227,7 @@ axiom fnfF_syntactical_equality_Pf_F_SKIP_lm
           Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
         refF (Pf1 a) M1 M2 (Pf2 a)
 
-axiom fnfF_syntactical_equality_Pf
+theorem fnfF_syntactical_equality_Pf
     {a : α} {A : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys : Set (Set α)}
     {M1 M2 : p → domFType α} :
     a ∈ A →
@@ -217,7 +238,16 @@ axiom fnfF_syntactical_equality_Pf
           M1 M2
           ((((proc.Ext_pre_choice A Pf2) [+] Q) |~|
             Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-          eqF (Pf1 a) M1 M2 (Pf2 a)
+          eqF (Pf1 a) M1 M2 (Pf2 a) := by
+  intro ha hQ h
+  rcases cspF_eq_ref_iff.mp h with ⟨h12, h21⟩
+  rcases hQ with rfl | rfl
+  · exact cspF_eq_ref_iff.mpr
+      ⟨fnfF_syntactical_equality_Pf_F_SKIP_lm ha h12,
+        fnfF_syntactical_equality_Pf_F_SKIP_lm ha h21⟩
+  · exact cspF_eq_ref_iff.mpr
+      ⟨fnfF_syntactical_equality_Pf_F_DIV_lm ha h12,
+        fnfF_syntactical_equality_Pf_F_DIV_lm ha h21⟩
 
 /- (*------------------------------------------------------------------*
  |                fnfF_proc ---> syntactical equality               |
