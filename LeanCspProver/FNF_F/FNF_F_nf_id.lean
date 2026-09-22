@@ -528,10 +528,28 @@ theorem fnfF_syntactical_equality_Pf
  |                fnfF_proc ---> syntactical equality               |
  *------------------------------------------------------------------*) -/
 
-axiom fnfF_syntactical_equality_only_if_lm
+theorem fnfF_syntactical_equality_only_if_lm
     {P1 : proc p α} {M1 M2 : p → domFType α} :
     fnfF_proc P1 →
-      ∀ P2 : proc p α, (fnfF_proc P2 ∧ eqF P1 M1 M2 P2) → P1 = P2
+      ∀ P2 : proc p α, (fnfF_proc P2 ∧ eqF P1 M1 M2 P2) → P1 = P2 := by
+  intro hP1
+  induction hP1 with
+  | @fnfF_proc_rule A1 Ys1 Pf1 Q1 hPf1 hPf1DIV hc1 hU1 hQ1 ih =>
+      rintro P2 ⟨hP2, hEq⟩
+      cases hP2 with
+      | @fnfF_proc_rule A2 Ys2 Pf2 Q2 hPf2 hPf2DIV hc2 hU2 hQ2 =>
+        have hQ : Q1 = Q2 := fnfF_syntactical_equality_Q hQ1 hQ2 hEq
+        subst hQ
+        have hA : A1 = A2 := fnfF_syntactical_equality_Union hU1 hU2 hQ1 hEq
+        subst hA
+        have hYs : Ys1 = Ys2 := fnfF_syntactical_equality_Yf hU1 hU2 hc1 hc2 hQ1 hEq
+        subst hYs
+        have hPf : Pf1 = Pf2 := by
+          funext a
+          by_cases ha : a ∈ A1
+          · exact ih a ha (Pf2 a) ⟨hPf2 a ha, fnfF_syntactical_equality_Pf ha hQ1 hEq⟩
+          · rw [hPf1DIV a ha, hPf2DIV a ha]
+        rw [hPf]
 
 theorem fnfF_syntactical_equality_only_if
     {P1 P2 : proc p α} {M1 M2 : p → domFType α} :
@@ -563,11 +581,25 @@ theorem fnfF_syntactical_equality [HasPNfun p α] [HasFPmode]
  |                        XfnfF_proc                         |
  *===========================================================*) -/
 
-axiom XfnfF_syntactical_equality [HasPNfun p α] [HasFPmode]
+theorem XfnfF_syntactical_equality [HasPNfun p α] [HasFPmode]
     {P1 P2 : proc p α} :
     P1 ∈ XfnfF_proc (p := p) (α := α) →
       P2 ∈ XfnfF_proc (p := p) (α := α) →
-        (eqFfix P1 P2 ↔ P1 = P2)
+        (eqFfix P1 P2 ↔ P1 = P2) := by
+  rintro ⟨Pf, rfl, hPf, hPfin⟩ ⟨Qf, rfl, hQf, hQfin⟩
+  constructor
+  · intro hEq
+    have hfun : Pf = Qf := by
+      funext n
+      refine (fnfF_syntactical_equality (hPfin n) (hQfin n)).mp ?_
+      refine cspF_trans_left_eq (hPf n) ?_
+      refine cspF_trans_left_eq (cspF_Depth_rest_cong rfl hEq) ?_
+      exact cspF_sym (hQf n)
+    rw [hfun]
+  · intro hEq
+    rw [hEq]
+    simpa [eqFfix] using
+      (cspF_reflex_eq_P (P := Rep_int_choice_nat Set.univ Qf) (M := MF))
 
 /- (****************** to add them again ******************) -/
 
