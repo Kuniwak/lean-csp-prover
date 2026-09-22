@@ -503,7 +503,7 @@ axiom local_hori_lm {r : Type _}
 
 /- local_hori -/
 
-axiom local_hori {r : Type _}
+theorem local_hori {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -514,7 +514,9 @@ axiom local_hori {r : Type _}
       LT.lt
         (Nat.succ (Nat.succ (lengtht (t rest-tr (Alpha_pe (r := r) (i, j + 1)))))
         )
-        (lengtht (t rest-tr (Alpha_pe (r := r) (i, j))))
+        (lengtht (t rest-tr (Alpha_pe (r := r) (i, j)))) := by
+  intro h
+  exact EX1_cal1 _ _ _ (local_hori_lm N i j t Yf h).1 (local_hori_lm N i j t Yf h).2
 
 /- (****** vert ******) -/
 
@@ -533,7 +535,7 @@ axiom local_vert_lm {r : Type _}
 
 /- local_vert -/
 
-axiom local_vert {r : Type _}
+theorem local_vert {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -544,7 +546,9 @@ axiom local_vert {r : Type _}
       LT.lt
         (Nat.succ (Nat.succ (lengtht (t rest-tr (Alpha_pe (r := r) (i + 1, j)))))
         )
-        (lengtht (t rest-tr (Alpha_pe (r := r) (i, j))))
+        (lengtht (t rest-tr (Alpha_pe (r := r) (i, j)))) := by
+  intro h
+  exact EX1_cal1 _ _ _ (local_vert_lm N i j t Yf h).1 (local_vert_lm N i j t Yf h).2
 
 /- (****** hori rev ******) -/
 
@@ -563,7 +567,7 @@ axiom local_hori_rev_lm {r : Type _}
 
 /- local_hori_rev -/
 
-axiom local_hori_rev {r : Type _}
+theorem local_hori_rev {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -574,7 +578,9 @@ axiom local_hori_rev {r : Type _}
       LT.lt
         (lengtht (t rest-tr (Alpha_pe (r := r) (i, j))))
         (Nat.succ (Nat.succ (lengtht (t rest-tr (Alpha_pe (r := r) (i, j + 1)))))
-        )
+        ) := by
+  intro h
+  exact EX1_cal1_rev _ _ _ (local_hori_rev_lm N i j t Yf h).2 (local_hori_rev_lm N i j t Yf h).1
 
 /- (****** vert rev ******) -/
 
@@ -593,7 +599,7 @@ axiom local_vert_rev_lm {r : Type _}
 
 /- local_vert_rev -/
 
-axiom local_vert_rev {r : Type _}
+theorem local_vert_rev {r : Type _}
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -604,6 +610,8 @@ axiom local_vert_rev {r : Type _}
       LT.lt
         (lengtht (t rest-tr (Alpha_pe (r := r) (i, j))))
         (Nat.succ (Nat.succ (lengtht (t rest-tr (Alpha_pe (r := r) (i + 1, j)))))
-        )
+        ) := by
+  intro h
+  exact EX1_cal1_rev _ _ _ (local_vert_rev_lm N i j t Yf h).2 (local_vert_rev_lm N i j t Yf h).1
 
 end SA_local
