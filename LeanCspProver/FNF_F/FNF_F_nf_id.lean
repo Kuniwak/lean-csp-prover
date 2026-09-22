@@ -107,7 +107,48 @@ theorem fnfF_syntactical_equality_Q
 
 /- (*** A ***) -/
 
-axiom fnfF_syntactical_equality_Union_lm
+/- a one-event trace of `(? :A1 -> Pf1 [+] Q) |~| !set Y:Ys1 .. ? a:Y -> DIV`
+   is offered either by `A1` itself or by one of the `Y ∈ Ys1`. -/
+
+private theorem Union_head
+    {x : α} {A1 : Set α} {Pf1 : α → proc p α} {Ys1 : Set (Set α)} {Q : proc p α}
+    {M : p → domTType α}
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV)
+    (hY1 : Set.sUnion Ys1 ⊆ A1)
+    (h : (Abs_trace [event.Ev x] : traceType α) :t
+      traces ((((proc.Ext_pre_choice A1 Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys1 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) M) :
+    x ∈ A1 := by
+  have hcancel : ∀ (b : α) (s : traceType α),
+      (Abs_trace [event.Ev x] : traceType α) = Abs_trace [event.Ev b] ^^^ s → b = x := by
+    intro b s heq
+    have heq' : (Abs_trace [event.Ev x] : traceType α) ^^^ (<> : traceType α)
+        = Abs_trace [event.Ev b] ^^^ s := by
+      rw [appt_nil_right]
+      exact heq
+    exact (appt_same_head_only_if heq').1.symm
+  rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_Rep_int_choice_set] at h
+  rcases h with (h | h) | (h | ⟨Y, hYs, h⟩)
+  · rw [in_traces_Ext_pre_choice] at h
+    rcases h with h | ⟨b, s, heq, -, hb⟩
+    · exact absurd h (by simp)
+    · rw [hcancel b s heq] at hb
+      exact hb
+  · rcases hQ with rfl | rfl
+    · rw [in_traces_SKIP] at h
+      rcases h with h | h
+      · exact absurd h (by simp)
+      · exact absurd h.symm (by simp)
+    · rw [in_traces_DIV] at h
+      exact absurd h (by simp)
+  · exact absurd h (by simp)
+  · rw [in_traces_Ext_pre_choice] at h
+    rcases h with h | ⟨b, s, heq, -, hb⟩
+    · exact absurd h (by simp)
+    · rw [hcancel b s heq] at hb
+      exact hY1 ⟨Y, hYs, hb⟩
+
+theorem fnfF_syntactical_equality_Union_lm
     {A1 A2 : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
     {M1 M2 : p → domFType α} :
     Set.sUnion Ys1 ⊆ A1 →
@@ -119,7 +160,22 @@ axiom fnfF_syntactical_equality_Union_lm
             M1 M2
             ((((proc.Ext_pre_choice A2 Pf2) [+] Q) |~|
               Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) →
-            A2 ⊆ A1
+            A2 ⊆ A1 := by
+  intro hY1 _ hQ h x hx
+  have hT := (cspF_cspT_refF_semantics.mp h).1
+  rw [cspT_refT_semantics] at hT
+  have hR : (Abs_trace [event.Ev x] : traceType α) :t
+      traces ((((proc.Ext_pre_choice A2 Pf2) [+] Q) |~|
+        Rep_int_choice_set Ys2 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+        (fstF ∘ M2) := by
+    rw [in_traces_Int_choice, in_traces_Ext_choice, in_traces_Ext_pre_choice]
+    refine Or.inl (Or.inl (Or.inr ⟨x, <>, ?_, nilt_in_T, hx⟩))
+    rw [appt_nil_right]
+  have hL : (Abs_trace [event.Ev x] : traceType α) :t
+      traces ((((proc.Ext_pre_choice A1 Pf1) [+] Q) |~|
+        Rep_int_choice_set Ys1 (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+        (fstF ∘ M1) := hT hR
+  exact Union_head hQ hY1 hL
 
 theorem fnfF_syntactical_equality_Union
     {A1 A2 : Set α} {Q : proc p α} {Pf1 Pf2 : α → proc p α} {Ys1 Ys2 : Set (Set α)}
