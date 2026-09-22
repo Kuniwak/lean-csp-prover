@@ -695,6 +695,25 @@ theorem cspF_Nondet_send_prefix_left_x [Inhabited β]
   refine cspF_Int_pre_choice_left_x (a := f a) ⟨a, ha, rfl⟩ ?_
   rwa [Function.leftInverse_invFun hf a]
 
+
+/-- When both components only offer events inside the synchronisation set,
+    the parallel expansion collapses to the events they agree on. -/
+theorem cspF_Parallel_step_sub [Inhabited α]
+    {A B X : Set α} {Pf Qf : α → proc p α} {M : p → domFType α}
+    (hA : A ⊆ X) (hB : B ⊆ X) :
+    eqF ((proc.Ext_pre_choice A Pf) |[X]| (proc.Ext_pre_choice B Qf)) M M
+      (proc.Ext_pre_choice (A ∩ B) fun x => Pf x |[X]| Qf x) := by
+  have hset : ((X ∩ A ∩ B) ∪ (A \ X) ∪ (B \ X)) = A ∩ B := by
+    rw [Set.diff_eq_empty.mpr hA, Set.diff_eq_empty.mpr hB]
+    simp only [Set.union_empty]
+    ext a
+    exact ⟨fun h => ⟨h.1.2, h.2⟩, fun h => ⟨⟨hA h.1, h.1⟩, h.2⟩⟩
+  refine cspF_trans_left_eq
+    (cspF_Parallel_step (X := X) (Y := A) (Z := B) (Pf := Pf) (Qf := Qf) (M := M)) ?_
+  refine cspF_Ext_pre_choice_cong hset (fun x hx => ?_)
+  rw [procIte_pos (hA hx.1)]
+  exact cspF_reflex_eq_P
+
 /-
 (**************** -- X + prefixes outside X ****************)
 -/
