@@ -74,28 +74,19 @@ theorem Proc_F_def {p : Type _} {α : Type _} (SF : domFType α) :
   rfl
 
 /- Under `_ [+] DIV`, the internal choice `! a:A .. a -> Q a` and the external prefix
-   choice `? a:A -> Q a` have the same traces and the same failures: `DIV` has no
-   stable failures, so the nil refusals in which the two differ are discarded, and
-   their non-nil failures and their traces coincide. -/
+   choice `? a:A -> Q a` have the same traces and the same failures.  The traces half is
+   the CSP-Prover law `cspT_Ext_pre_choice_Rep_int_choice` (no `[+] DIV` needed; see
+   `traces_Rep_int_choice_com_prefix_Ext_choice_DIV` in CSP_T_surj).  The failures half
+   is where the two models differ (CSP_T_law.thy: "these rules show the difference between
+   models T and F") and the `[+] DIV` is essential: `DIV` has no stable failures, so the
+   nil refusals in which the two choices differ are discarded, and their non-nil failures
+   coincide. -/
 
 theorem in_traces_Rep_int_choice_com_prefix_Ext_choice_DIV
     {A : Set α} {Q : α → proc p α} {t : traceType α} {M : p → domTType α} :
     (t :t traces ((Rep_int_choice_com A fun a => a ~> Q a) [+] proc.DIV) M) ↔
       (t :t traces ((proc.Ext_pre_choice A Q) [+] proc.DIV) M) := by
-  rw [in_traces_Ext_choice, in_traces_Ext_choice, in_traces_Rep_int_choice_com,
-    in_traces_Ext_pre_choice, in_traces_DIV]
-  constructor
-  · rintro ((rfl | ⟨a, ha, hpre⟩) | rfl)
-    · exact Or.inl (Or.inl rfl)
-    · rw [in_traces_Act_prefix] at hpre
-      rcases hpre with rfl | ⟨s, rfl, hs⟩
-      · exact Or.inl (Or.inl rfl)
-      · exact Or.inl (Or.inr ⟨a, s, rfl, hs, ha⟩)
-    · exact Or.inl (Or.inl rfl)
-  · rintro ((rfl | ⟨a, s, rfl, hs, ha⟩) | rfl)
-    · exact Or.inl (Or.inl rfl)
-    · exact Or.inl (Or.inr ⟨a, ha, in_traces_Act_prefix.2 (Or.inr ⟨s, rfl, hs⟩)⟩)
-    · exact Or.inl (Or.inl rfl)
+  rw [traces_Rep_int_choice_com_prefix_Ext_choice_DIV]
 
 private theorem Tick_notin_traces_Rep_int_choice_com_prefix
     {A : Set α} {Q : α → proc p α} {M : p → domTType α} :
@@ -108,7 +99,7 @@ private theorem Tick_notin_traces_Rep_int_choice_com_prefix
   · rw [in_traces_Act_prefix] at h
     rcases h with h | ⟨s, h, -⟩ <;> simp at h
 
-private theorem Tick_notin_traces_Ext_pre_choice
+private theorem Tick_notin_traces_Ext_pre_choice_DIV
     {A : Set α} {Q : α → proc p α} {M : p → domTType α} :
     (Abs_trace [event.Tick] : traceType α) ~:t traces (proc.Ext_pre_choice A Q) M := by
   intro h
@@ -150,7 +141,7 @@ theorem in_failures_Rep_int_choice_com_prefix_Ext_choice_DIV
         exact ⟨a, ha, in_failures_Act_prefix.2 (Or.inr ⟨s', _, rfl, hs'⟩)⟩
     · exfalso
       rcases hT with hT | hT
-      · exact Tick_notin_traces_Ext_pre_choice hT
+      · exact Tick_notin_traces_Ext_pre_choice_DIV hT
       · rw [in_traces_DIV] at hT
         simp at hT
 
@@ -173,6 +164,21 @@ theorem in_failures_Proc_F_rec_succ
         proc.DIV) M) := by
   simp only [Proc_F_rec]
   exact in_failures_Rep_int_choice_com_prefix_Ext_choice_DIV
+
+/- Isabelle temporarily removes simplification rules around the lemma that unfolds
+   `Proc_T_rec (Suc n)`; Lean has no direct analogue for local simp-set mutation here. -/
+theorem in_failures_Proc_T_rec_succ {n : Nat} {T : domTType α} {f : failure α}
+    {M : p → domFType α} :
+    (f :f failures (Proc_T_rec (Nat.succ n) T) M) ↔
+      (f :f failures
+        ((((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+]
+            proc.DIV)
+          |~|
+            (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN proc.SKIP ELSE
+              proc.DIV))) M) := by
+  simp only [Proc_T_rec]
+  rw [in_failures_Int_choice, in_failures_Int_choice,
+    in_failures_Rep_int_choice_com_prefix_Ext_choice_DIV]
 
 /-
 (*********************************************************
@@ -299,8 +305,7 @@ theorem failures_Proc_T_rec_noTick_lm {M : p → domFType α} :
       exact absurd h in_failures_DIV
   | succ n ih =>
       intro T s X h hNo
-      simp only [Proc_T_rec] at h
-      rw [in_failures_Int_choice] at h
+      rw [in_failures_Proc_T_rec_succ, in_failures_Int_choice] at h
       rcases h with hL | hR
       · rw [in_failures_Ext_choice] at hL
         rcases hL with ⟨-, -, hdiv⟩ | ⟨s', ⟨Y, hEq⟩, hor, hne⟩ | ⟨-, -, hTick, -⟩
@@ -356,8 +361,7 @@ theorem failures_Proc_T_rec_lm {M : p → domFType α} :
       exact absurd h in_failures_DIV
   | succ n ih =>
       intro T s X h
-      simp only [Proc_T_rec] at h
-      rw [in_failures_Int_choice] at h
+      rw [in_failures_Proc_T_rec_succ, in_failures_Int_choice] at h
       rcases h with hL | hR
       · rw [in_failures_Ext_choice] at hL
         rcases hL with ⟨-, -, hdiv⟩ | ⟨s', ⟨Y, hEq⟩, hor, hne⟩ | ⟨Y, hEq, -, -⟩
@@ -512,8 +516,7 @@ theorem Proc_T_to_F_lm {M : p → domFType α} :
       exact absurd h in_failures_DIV
   | succ n ih =>
       intro SF s X h
-      simp only [Proc_T_rec] at h
-      rw [in_failures_Int_choice] at h
+      rw [in_failures_Proc_T_rec_succ, in_failures_Int_choice] at h
       rcases h with hL | hR
       · rw [in_failures_Ext_choice] at hL
         rcases hL with ⟨-, -, hdiv⟩ | ⟨s', ⟨Y, hEq⟩, hor, hne⟩ | ⟨-, -, hTick, -⟩
@@ -751,18 +754,6 @@ theorem F_Proc_F {M : p → domFType α} {SF : domFType α} {s : traceType α}
     (s, X) :f failures (Proc_F_rec (lengtht s) SF) M :=
   F_Proc_F_lm ⟨hs, hNo, hTick⟩
 
-/- Isabelle temporarily removes simplification rules around the next lemma.
-   Lean has no direct analogue for local simp-set mutation here. -/
-
-theorem Proc_T_rec_succ {p : Type _} {α : Type _} (n : Nat) (T : domTType α) :
-    Proc_T_rec (p := p) (Nat.succ n) T =
-      (((proc.Ext_pre_choice (head_traces T) fun a => Proc_T_rec n (tail_traces T a)) [+]
-          proc.DIV)
-        |~|
-          (IF decide ((Abs_trace [event.Tick] : traceType α) :t T) THEN proc.SKIP ELSE
-            proc.DIV)) :=
-  rfl
-
 theorem F_Proc_T_noTick_lm {M : p → domFType α} {s : traceType α} :
     ∀ {SF : domFType α} {X : Set (event α)},
       ((s, X) :f sndF SF ∧ noTick s ∧ event.Tick ∉ X ∧
@@ -784,7 +775,7 @@ theorem F_Proc_T_noTick_lm {M : p → domFType α} {s : traceType α} :
       have hskip : ((<> : traceType α), X) :f failures (proc.SKIP : proc p α) M := by
         rw [in_failures_SKIP]
         exact Or.inl ⟨X, rfl, fun e he hTe => hTickX (hTe ▸ he)⟩
-      rw [lengtht_nil_zero, Proc_T_rec_succ, in_failures_Int_choice]
+      rw [lengtht_nil_zero, in_failures_Proc_T_rec_succ, in_failures_Int_choice]
       refine Or.inr ?_
       rw [in_failures_IF]
       simpa [hT] using hskip
@@ -806,7 +797,8 @@ theorem F_Proc_T_noTick_lm {M : p → domFType α} {s : traceType α} :
           ⟨by rw [pairF_sndF hdom]; exact hsplF.2, hNow, hTickX,
             by rw [pairF_fstF hdom]; exact hsplT.2⟩
         rwa [pairF_fstF hdom] at this
-      rw [lengtht_app_event_Suc_head, Proc_T_rec_succ, in_failures_Int_choice]
+      rw [lengtht_app_event_Suc_head, in_failures_Proc_T_rec_succ,
+        in_failures_Int_choice]
       refine Or.inl ?_
       rw [in_failures_Ext_choice]
       refine Or.inr (Or.inl ⟨Abs_trace [event.Ev a] ^^^ w, ⟨X, rfl⟩, Or.inl ?_, by simp⟩)
@@ -851,7 +843,7 @@ theorem F_Proc_T_Tick_lm {M : p → domFType α} {s : traceType α} :
         rw [in_failures_SKIP]
         exact Or.inr ⟨X, rfl⟩
       have hlen : lengtht (Abs_trace [event.Tick] : traceType α) = Nat.succ 0 := by simp [lengtht]
-      rw [hlen, Proc_T_rec_succ, in_failures_Int_choice]
+      rw [hlen, in_failures_Proc_T_rec_succ, in_failures_Int_choice]
       refine Or.inr ?_
       rw [in_failures_IF]
       simpa [hT] using hskip
@@ -865,7 +857,8 @@ theorem F_Proc_T_Tick_lm {M : p → domFType α} {s : traceType α} :
         have := ih (tail_traces (fstF SF) a ,, tail_failures (sndF SF) a) X
           ⟨by rw [pairF_sndF hdom]; exact hsplF.2, hNow⟩
         rwa [pairF_fstF hdom] at this
-      rw [lengtht_app_event_Suc_head, Proc_T_rec_succ, in_failures_Int_choice]
+      rw [lengtht_app_event_Suc_head, in_failures_Proc_T_rec_succ,
+        in_failures_Int_choice]
       refine Or.inl ?_
       rw [in_failures_Ext_choice]
       refine Or.inr (Or.inl ⟨Abs_trace [event.Ev a] ^^^ w, ⟨X, rfl⟩, Or.inl ?_, by simp⟩)
