@@ -441,8 +441,21 @@ theorem EX1_isFailureOf_in_ALL {r : Type _} [Ring r]
 
 /- main -/
 
-axiom EX1_isFailureOf {r : Type _} [Ring r] (N : Nat) :
-   isFailureOf (Systolic_ArrayF (r := r) N) (Systolic_Array (r := r) N)
+theorem EX1_isFailureOf {r : Type _} [Ring r] (N : Nat) :
+    isFailureOf (Systolic_ArrayF (r := r) N) (Systolic_Array (r := r) N) := by
+  refine ⟨rfl, ?_⟩
+  rintro ⟨i, j⟩ -
+  refine ⟨?_, rfl⟩
+  refine cspF_subseteqEX_Rep_int_choice_nat_UNIV
+    (P := (proc.Proc_name (ProcName.pe (i, j) (0 : r)) : proc (ProcName r) (Event r)))
+    (Pf := fun n => FIXn (n + n) SAfun (ProcName.pe (i, j) (0 : r)))
+    (Ff := fun n => peF_rec (r := r) n (i, j))
+    ?_ ?_ (fun n => EX1_isFailureOf_in_ALL n i j 0)
+  · exact cspF_trans_left_eq (pe_FIX (i, j) 0) (cspF_FIX_plus_eq (fun n => n) _)
+  · change peF (r := r) (i, j) = _
+    rw [peF_def]
+    ext f
+    simp
 
 /- Lean note:
    Isabelle's `declare inj_on_def [simp del]` has no direct Lean analogue. -/
