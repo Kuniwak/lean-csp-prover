@@ -51,20 +51,59 @@ variable {p : Type u} {α : Type v}
  |                          fsfF --> fnfF                           |
  *==================================================================*) -/
 
-axiom fnfF_fsfF_rel : Nat → proc p α → proc p α → Prop
+/- Lean note:
+   Isabelle declares `fnfF_fsfF_rel` with `inductive_set` (`FNF_F_nf.thy:39`);
+   the port had the relation and its four introduction rules as axioms, which
+   constrains nothing and leaves the uniqueness / existence facts about it
+   unprovable.  It is now a real `inductive`.  The `int` and `step`
+   introduction rules keep their Isabelle statements (with an
+   `if _ then _ else _` premise); since a recursive occurrence under `ite` is
+   not strictly positive for Lean's kernel, the constructors themselves
+   (`int_split` / `step_split`) take the two implications separately, and the
+   original rules are derived -- the same shape as
+   `FNF_F_sf_rest.fsfF_Depth_rest_rel`. -/
+
+inductive fnfF_fsfF_rel : Nat → proc p α → proc p α → Prop where
+  | zero
+      {P : proc p α} :
+      fnfF_fsfF_rel 0 P NDIV
+  | etc
+      {n : Nat} {P : proc p α} :
+      ¬ fsfF_proc P →
+        fnfF_fsfF_rel (Nat.succ n) P (P |. Nat.succ n)
+  | int_split
+      {n : Nat}
+      {C : sets_nats α}
+      {SPf NPf : aset_anat α → proc p α} :
+      (∀ c, c ∈ sumset C → fnfF_fsfF_rel (Nat.succ n) (SPf c) (NPf c)) →
+        (∀ c, c ∉ sumset C → NPf c = proc.DIV) →
+          sumset C ≠ ∅ →
+            (∀ c, c ∈ sumset C → fsfF_proc (SPf c)) →
+              fnfF_fsfF_rel
+                (Nat.succ n)
+                (proc.Rep_int_choice C SPf)
+                (fnfF_Rep_int_choice (Nat.succ n) C NPf)
+  | step_split
+      {n : Nat}
+      {A : Set α}
+      {SPf NPf : α → proc p α}
+      {Q : proc p α} :
+      (∀ a, a ∈ A → fnfF_fsfF_rel n (SPf a) (NPf a)) →
+        (∀ a, a ∉ A → NPf a = proc.DIV) →
+          (∀ a, a ∈ A → fsfF_proc (SPf a)) →
+            (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
+              fnfF_fsfF_rel
+                (Nat.succ n)
+                ((proc.Ext_pre_choice A SPf) [+] Q)
+                (((proc.Ext_pre_choice A NPf) [+]
+                    (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
+                  Rep_int_choice_set
+                    (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
+                    (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
 
 namespace fnfF_fsfF_rel
 
-axiom zero
-    {P : proc p α} :
-    fnfF_fsfF_rel 0 P NDIV
-
-axiom etc
-    {n : Nat} {P : proc p α} :
-    ¬ fsfF_proc P →
-      fnfF_fsfF_rel (Nat.succ n) P (P |. Nat.succ n)
-
-axiom int
+theorem int
     {n : Nat}
     {C : sets_nats α}
     {SPf NPf : aset_anat α → proc p α} :
@@ -76,9 +115,17 @@ axiom int
             fnfF_fsfF_rel
               (Nat.succ n)
               (proc.Rep_int_choice C SPf)
-              (fnfF_Rep_int_choice (Nat.succ n) C NPf)
+              (fnfF_Rep_int_choice (Nat.succ n) C NPf) := by
+  intro h hC hSPf
+  refine int_split ?_ ?_ hC hSPf
+  · intro c hc
+    have hc' := h c
+    rwa [if_pos hc] at hc'
+  · intro c hc
+    have hc' := h c
+    rwa [if_neg hc] at hc'
 
-axiom step
+theorem step
     {n : Nat}
     {A : Set α}
     {SPf NPf : α → proc p α}
@@ -95,7 +142,15 @@ axiom step
                   (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
                 Rep_int_choice_set
                   (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
-                  (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
+                  (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) := by
+  intro h hSPf hQ
+  refine step_split ?_ ?_ hSPf hQ
+  · intro a ha
+    have ha' := h a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h a
+    rwa [if_neg ha] at ha'
 
 end fnfF_fsfF_rel
 

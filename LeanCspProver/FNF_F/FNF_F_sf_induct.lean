@@ -67,28 +67,78 @@ private abbrev FsfFInduct1Step (p : Type u) (α : Type v) :=
 
 /- relation -/
 
-axiom fsfF_induct2_rel
+/- Lean note:
+   Isabelle declares `fsfF_induct2_rel` with `inductive_set`; the port had the
+   relation and its five introduction rules as axioms, which constrains nothing
+   and leaves the uniqueness / existence facts about it unprovable.  It is now
+   a real `inductive`.  The three rules with an `if _ then _ else _` premise
+   keep their Isabelle statements; since a recursive occurrence under `ite` is
+   not strictly positive for Lean's kernel, the constructors themselves
+   (`*_split`) take the implications separately and the original rules are
+   derived -- the same shape as `FNF_F_sf_rest.fsfF_Depth_rest_rel`. -/
+
+inductive fsfF_induct2_rel
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α) :
-    proc p α → proc p α → proc p α → Prop
+    proc p α → proc p α → proc p α → Prop where
+  | fsfF_induct2_rel_etc_left
+      {P1 P2 : proc p α} :
+      ¬ fsfF_proc P1 →
+        fsfF_induct2_rel Pfun SP_step P1 P2 (Pfun P1 P2)
+  | fsfF_induct2_rel_etc_right
+      {P1 P2 : proc p α} :
+      ¬ fsfF_proc P2 →
+        fsfF_induct2_rel Pfun SP_step P1 P2 (Pfun P1 P2)
+  | step_int_left_split
+      {C1 : sets_nats α}
+      {Rf1 SRf : aset_anat α → proc p α}
+      {P2 : proc p α} :
+      (∀ c, c ∈ sumset C1 → fsfF_induct2_rel Pfun SP_step (Rf1 c) P2 (SRf c)) →
+        (∀ c, c ∉ sumset C1 → SRf c = proc.DIV) →
+          sumset C1 ≠ ∅ →
+            (∀ c, c ∈ sumset C1 → fsfF_proc (Rf1 c)) →
+              fsfF_proc P2 →
+                fsfF_induct2_rel Pfun SP_step
+                  (proc.Rep_int_choice C1 Rf1) P2 (proc.Rep_int_choice C1 SRf)
+  | step_int_right_split
+      {P1 : proc p α}
+      {C2 : sets_nats α}
+      {Rf2 SRf : aset_anat α → proc p α} :
+      (∀ c, c ∈ sumset C2 → fsfF_induct2_rel Pfun SP_step P1 (Rf2 c) (SRf c)) →
+        (∀ c, c ∉ sumset C2 → SRf c = proc.DIV) →
+          sumset C2 ≠ ∅ →
+            (∀ c, c ∈ sumset C2 → fsfF_proc (Rf2 c)) →
+              fsfF_proc P1 →
+                (∃ A Pf Q, P1 = (proc.Ext_pre_choice A Pf) [+] Q) →
+                  fsfF_induct2_rel Pfun SP_step
+                    P1 (proc.Rep_int_choice C2 Rf2) (proc.Rep_int_choice C2 SRf)
+  | step_split
+      {A1 A2 : Set α}
+      {Pf1 Pf2 SPf SPf1 SPf2 : α → proc p α}
+      {Q1 Q2 : proc p α} :
+      (∀ a, a ∈ A1 ∧ a ∈ A2 →
+        fsfF_induct2_rel Pfun SP_step (Pf1 a) (Pf2 a) (SPf a)) →
+        (∀ a, ¬ (a ∈ A1 ∧ a ∈ A2) → SPf a = proc.DIV) →
+          (∀ a, a ∈ A1 →
+            fsfF_induct2_rel Pfun SP_step
+              (Pf1 a) ((proc.Ext_pre_choice A2 Pf2) [+] Q2) (SPf1 a)) →
+            (∀ a, a ∉ A1 → SPf1 a = proc.DIV) →
+              (∀ a, a ∈ A2 →
+                fsfF_induct2_rel Pfun SP_step
+                  ((proc.Ext_pre_choice A1 Pf1) [+] Q1) (Pf2 a) (SPf2 a)) →
+                (∀ a, a ∉ A2 → SPf2 a = proc.DIV) →
+                  (∀ a, a ∈ A1 → fsfF_proc (Pf1 a)) →
+                    (∀ a, a ∈ A2 → fsfF_proc (Pf2 a)) →
+                      (Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP) →
+                        (Q2 = proc.SKIP ∨ Q2 = proc.DIV ∨ Q2 = proc.STOP) →
+                          fsfF_induct2_rel Pfun SP_step
+                            ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
+                            ((proc.Ext_pre_choice A2 Pf2) [+] Q2)
+                            (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)
 
 namespace fsfF_induct2_rel
 
-axiom fsfF_induct2_rel_etc_left
-    {Pfun : FsfFInduct2Pfun p α}
-    {SP_step : FsfFInduct2Step p α}
-    {P1 P2 : proc p α} :
-    ¬ fsfF_proc P1 →
-      fsfF_induct2_rel Pfun SP_step P1 P2 (Pfun P1 P2)
-
-axiom fsfF_induct2_rel_etc_right
-    {Pfun : FsfFInduct2Pfun p α}
-    {SP_step : FsfFInduct2Step p α}
-    {P1 P2 : proc p α} :
-    ¬ fsfF_proc P2 →
-      fsfF_induct2_rel Pfun SP_step P1 P2 (Pfun P1 P2)
-
-axiom fsfF_induct2_rel_step_int_left
+theorem fsfF_induct2_rel_step_int_left
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {C1 : sets_nats α}
@@ -101,9 +151,17 @@ axiom fsfF_induct2_rel_step_int_left
         (∀ c, c ∈ sumset C1 → fsfF_proc (Rf1 c)) →
           fsfF_proc P2 →
             fsfF_induct2_rel Pfun SP_step
-              (proc.Rep_int_choice C1 Rf1) P2 (proc.Rep_int_choice C1 SRf)
+              (proc.Rep_int_choice C1 Rf1) P2 (proc.Rep_int_choice C1 SRf) := by
+  intro h hC hRf hP2
+  refine step_int_left_split ?_ ?_ hC hRf hP2
+  · intro c hc
+    have hc' := h c
+    rwa [if_pos hc] at hc'
+  · intro c hc
+    have hc' := h c
+    rwa [if_neg hc] at hc'
 
-axiom fsfF_induct2_rel_step_int_right
+theorem fsfF_induct2_rel_step_int_right
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 : proc p α}
@@ -117,9 +175,17 @@ axiom fsfF_induct2_rel_step_int_right
           fsfF_proc P1 →
             (∃ A Pf Q, P1 = (proc.Ext_pre_choice A Pf) [+] Q) →
               fsfF_induct2_rel Pfun SP_step
-                P1 (proc.Rep_int_choice C2 Rf2) (proc.Rep_int_choice C2 SRf)
+                P1 (proc.Rep_int_choice C2 Rf2) (proc.Rep_int_choice C2 SRf) := by
+  intro h hC hRf hP1 hEX
+  refine step_int_right_split ?_ ?_ hC hRf hP1 hEX
+  · intro c hc
+    have hc' := h c
+    rwa [if_pos hc] at hc'
+  · intro c hc
+    have hc' := h c
+    rwa [if_neg hc] at hc'
 
-axiom fsfF_induct2_rel_step
+theorem fsfF_induct2_rel_step
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {A1 A2 : Set α}
@@ -141,7 +207,27 @@ axiom fsfF_induct2_rel_step
                   fsfF_induct2_rel Pfun SP_step
                     ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
                     ((proc.Ext_pre_choice A2 Pf2) [+] Q2)
-                    (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)
+                    (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2) := by
+  intro h h1 h2 hPf1 hPf2 hQ1 hQ2
+  refine step_split ?_ ?_ ?_ ?_ ?_ ?_ hPf1 hPf2 hQ1 hQ2
+  · intro a ha
+    have ha' := h a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h a
+    rwa [if_neg ha] at ha'
+  · intro a ha
+    have ha' := h1 a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h1 a
+    rwa [if_neg ha] at ha'
+  · intro a ha
+    have ha' := h2 a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h2 a
+    rwa [if_neg ha] at ha'
 
 end fsfF_induct2_rel
 

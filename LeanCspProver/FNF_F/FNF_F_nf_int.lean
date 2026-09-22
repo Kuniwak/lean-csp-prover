@@ -267,9 +267,15 @@ theorem cspF_fnfF_Rep_int_choice_eqF
  |     auxiliary laws     |
  *------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_Depth_rest
+theorem cspF_fnfF_Rep_int_choice_Depth_rest
     [HasPNfun p α] [HasFPmode]
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
-    eqFfix ((fnfF_Rep_int_choice n C SPf) |. n) (fnfF_Rep_int_choice n C SPf)
+    eqFfix ((fnfF_Rep_int_choice n C SPf) |. n) (fnfF_Rep_int_choice n C SPf) := by
+  refine cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_sym (cspF_fnfF_Rep_int_choice_eqF
+      (n := n) (C := C) (SPf := SPf)))) ?_
+  refine cspF_trans_left_eq cspF_Depth_rest_min ?_
+  rw [Nat.min_self]
+  exact cspF_fnfF_Rep_int_choice_eqF
 
 end
