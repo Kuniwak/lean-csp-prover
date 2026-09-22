@@ -247,6 +247,12 @@ theorem PreCirc_cong {P Q R : proc PN Event} :
   unfold PreCirc
   exact cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_Renaming_cong rfl hQR)
 
+theorem PreCirc_mono {P Q R : proc PN Event} :
+    (Q <=F R) → (P <=-=> Q <=F P <=-=> R) := by
+  intro hQR
+  unfold PreCirc
+  exact cspF_Parallel_mono rfl cspF_reflex_ref_P (cspF_Renaming_mono rfl hQR)
+
 theorem Circ_cong {P Q R : proc PN Event} :
     Q =F R → P <===> Q =F P <===> R := by
   intro hQR
@@ -292,12 +298,12 @@ private abbrev lineSpecStepBody (s : List Att) : proc PN Event :=
     ELSE
       proc.STOP)
 
-private theorem IF_pos {c : Prop} [Decidable c] (h : c) (P Q : proc PN Event) :
+theorem IF_pos {c : Prop} [Decidable c] (h : c) (P Q : proc PN Event) :
     eqF (IF c THEN P ELSE Q) MF MF P := by
   rw [decide_eq_true h]
   exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
 
-private theorem IF_neg {c : Prop} [Decidable c] (h : ¬ c) (P Q : proc PN Event) :
+theorem IF_neg {c : Prop} [Decidable c] (h : ¬ c) (P Q : proc PN Event) :
     eqF (IF c THEN P ELSE Q) MF MF Q := by
   rw [decide_eq_false h]
   exact cspF_trans_left_eq cspF_IF_split cspF_reflex_eq_P
@@ -308,7 +314,7 @@ private theorem rec_right_cong {Pf Qf : Nat → proc PN Event}
   rw [Rec_prefix, Rec_prefix]
   exact cspF_Ext_pre_choice_cong rfl (fun e _ => h _)
 
-private theorem unw (pn : PN) : eqF (proc.Proc_name pn : proc PN Event) MF MF (PNdef pn) :=
+theorem unw (pn : PN) : eqF (proc.Proc_name pn : proc PN Event) MF MF (PNdef pn) :=
   «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PN⟩))
 
 /- *********************************************************
@@ -606,7 +612,7 @@ private theorem Line_fold_both {P' Q' : proc PN Event} :
 
 /- ---------- normal forms of the UCD processes ---------- -/
 
-private theorem LR_normal (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Event) :
+theorem LR_normal (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Event) :
     eqFfix ((Event.left v ~> P) [+] (Rec_prefix Event.right Set.univ Qf))
       (proc.Ext_pre_choice (({Event.left v} : Set Event) ∪ Set.range Event.right) fun y =>
         procIte (y = Event.left v) P (Qf (Function.invFun Event.right y))) := by
