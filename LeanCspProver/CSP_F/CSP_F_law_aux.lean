@@ -900,6 +900,58 @@ theorem cspF_Pipe_step_sync [Inhabited α]
     rw [procIte_pos (hABsub hx)]
     exact cspF_reflex_eq_P
 
+
+/- Lean note:
+   `cspF_Timeout_right` asks for `P <=F Q1`, which is more than a sliding
+   choice needs: the initial refusals of `Q1 [> Q2` are those of `Q2`
+   alone, because the internal transition is always available.  When `Q1`
+   is an input prefix over a subset of what `P` offers, that gap matters --
+   `P` may offer events `Q1` does not, so `P <=F Q1` simply fails.  The
+   two laws below close it: the first is the standard expansion of a
+   sliding choice, the second uses it. -/
+
+theorem cspF_Timeout_Int_choice
+    {P Q : proc p α} {M : p → domFType α} :
+    eqF (P [> Q) M M ((P [+] Q) |~| Q) := by
+  have hDist : eqF (((P |~| (proc.STOP : proc p α)) [+] Q)) M M
+      ((P [+] Q) |~| ((proc.STOP : proc p α) [+] Q)) := by
+    simpa using
+      (cspF_Ext_choice_dist_l (P1 := P) (P2 := (proc.STOP : proc p α)) (Q := Q) (M := M))
+  refine cspF_trans_left_eq hDist ?_
+  exact cspF_Int_choice_cong cspF_reflex_eq_P cspF_Ext_choice_unit_l
+
+/-- An input prefix duplicates over a subset of its own alphabet. -/
+theorem cspF_Ext_pre_choice_split
+    {A B : Set α} {Pf : α → proc p α} {M : p → domFType α} (hBA : B ⊆ A) :
+    eqF (proc.Ext_pre_choice A Pf) M M
+      ((proc.Ext_pre_choice B Pf) [+] (proc.Ext_pre_choice A Pf)) := by
+  refine cspF_trans_left_eq ?_ (cspF_sym (cspF_Ext_choice_step (X := B) (Y := A) (Pf := Pf)
+    (Qf := Pf) (M := M)))
+  have hBu : B ∪ A = A := Set.union_eq_self_of_subset_left hBA
+  refine cspF_Ext_pre_choice_cong hBu.symm (fun x hx => ?_)
+  by_cases hb : x ∈ B ∧ x ∈ A
+  · rw [procIte_pos hb]
+    exact cspF_sym cspF_Int_choice_idem
+  · rw [procIte_neg hb]
+    by_cases hb' : x ∈ B
+    · rw [procIte_pos hb']
+      exact cspF_reflex_eq_P
+    · rw [procIte_neg hb']
+      exact cspF_reflex_eq_P
+
+theorem cspF_Timeout_right_subset
+    {A B : Set α} {Pf : α → proc p α} {Qf : α → proc q α} {T : proc q α}
+    {M1 : p → domFType α} {M2 : q → domFType α}
+    (hBA : B ⊆ A)
+    (h1 : ∀ a, a ∈ B → refF (Pf a) M1 M2 (Qf a))
+    (h2 : refF (proc.Ext_pre_choice A Pf) M1 M2 T) :
+    refF (proc.Ext_pre_choice A Pf) M1 M2 ((proc.Ext_pre_choice B Qf) [> T) := by
+  have hsplit := cspF_Ext_pre_choice_split (Pf := Pf) (M := M1) hBA
+  refine cspF_rw_right_ref cspF_Timeout_Int_choice ?_
+  refine cspF_Int_choice_right ?_ h2
+  refine cspF_rw_left_ref hsplit ?_
+  exact cspF_Ext_choice_mono (cspF_Ext_pre_choice_mono rfl h1) h2
+
 /-
 (**************** ;; + resolve ****************)
 -/
