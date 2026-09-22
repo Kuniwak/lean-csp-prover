@@ -318,10 +318,72 @@ theorem cspF_fnfF_Rep_int_choice_one_step
  |              induction             |
  *------------------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_eqF_lm
+set_option maxHeartbeats 1000000 in
+-- The step case chains four rewrites over the whole indexed family and then
+-- feeds the induction hypothesis in at every branch of the merged prefix.
+theorem cspF_fnfF_Rep_int_choice_eqF_lm
     [HasPNfun p α] [HasFPmode]
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
-    eqFfix ((proc.Rep_int_choice C SPf) |. n) (fnfF_Rep_int_choice n C SPf)
+    eqFfix ((proc.Rep_int_choice C SPf) |. n) (fnfF_Rep_int_choice n C SPf) := by
+  induction n generalizing C SPf with
+  | zero => exact cspF_trans_left_eq cspF_Depth_rest_Zero cspF_NDIV_eqF
+  | succ m ih =>
+      by_cases h : ∀ c, c ∈ sumset C → fnfF_proc (SPf c)
+      · rw [fnfF_Rep_int_choice_succ, dif_pos h]
+        refine ALL_fnfF_procE h ?_
+        rintro ⟨Af, Ysf, Pff, Qf, hSPf, _hPff, _hCond, hUn, hQ⟩
+        have hSPfc : ∀ c, c ∈ sumset C → SPf c =
+            ((((proc.Ext_pre_choice (Af c) (Pff c)) [+] (Qf c)) |~|
+              Rep_int_choice_set (Ysf c)
+                (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+          intro c hc
+          have hcon := congrFun hSPf c
+          rw [if_pos hc] at hcon
+          exact hcon
+        have hAc : ∀ c, c ∈ sumset C → Af c = fnfF_A (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        have hYsc : ∀ c, c ∈ sumset C → Ysf c = fnfF_Ys (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc, fnfF_Ys_get]
+        have hQc : ∀ c, c ∈ sumset C → Qf c = fnfF_Q (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        have hPfc : ∀ c, c ∈ sumset C → Pff c = fnfF_Pf (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        -- expand the left-hand side into the normal-form step
+        refine cspF_trans_left_eq
+          (cspF_Depth_rest_cong rfl
+            (cspF_Rep_int_choice_cong_sum rfl
+              (fun c hc => by rw [hSPfc c hc]; exact cspF_reflex_eq_P))) ?_
+        refine cspF_trans_left_eq cspF_Depth_rest_Dist_sum ?_
+        refine cspF_trans_left_eq
+          (cspF_Rep_int_choice_cong_sum rfl
+            (fun c hc => cspF_fnfF_Depth_rest_dist (hQ c hc))) ?_
+        refine cspF_trans_left_eq (cspF_fnfF_Rep_int_choice_one_step hUn hQ) ?_
+        -- and match it against the right-hand side component by component
+        refine fnfF_Rep_int_choice_step_subexp ?_ hAc hYsc hQc
+          (fun c hc => by rw [← hYsc c hc, ← hAc c hc]; exact hUn c hc)
+        intro a ha
+        have hsub : (sub_sumset C fun c => a ∈ Af c)
+            = sub_sumset C (fun c => a ∈ fnfF_A (SPf c)) := by
+          refine sub_sumset_eq_lm (fun c hc => ?_)
+          rw [hAc c hc]
+        rw [if_pos ha, ← hsub]
+        refine cspF_trans_left_eq ?_
+          (ih (C := sub_sumset C fun c => a ∈ Af c)
+            (SPf := fun c => fnfF_Pf (SPf c) a))
+        refine cspF_trans_left_eq ?_ (cspF_sym cspF_Depth_rest_Dist_sum)
+        refine cspF_Rep_int_choice_cong_sum rfl (fun c hc => ?_)
+        rw [sumset_sub_sumset] at hc
+        rw [hPfc c hc.1]
+        exact cspF_reflex_eq_P
+      · rw [fnfF_Rep_int_choice_succ, dif_neg h]
+        exact cspF_reflex_eq_P
 
 /- (*------------------------------------*
  |                 eqF                |
