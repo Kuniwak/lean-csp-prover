@@ -145,6 +145,9 @@ theorem Link_cong {P Q R : proc PN Event} :
                   data tranfer
  ********************************************************* -/
 
+private theorem unw (pn : PN) : eqF (proc.Proc_name pn : proc PN Event) MF MF (PNdef pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_PN⟩))
+
 axiom internal_data_transfer {N k : Nat} :
     Nat.lt k N ->
       (Buff1'P <---> BuffP N k) =F
@@ -174,15 +177,37 @@ axiom LinkBuff_eq_Buff_step_k {N k : Nat} :
  |        one step       |
  * --------------------- -/
 
-axiom LinkBuff_eq_Buff_step (N : Nat) :
+theorem LinkBuff_eq_Buff_step (N : Nat) :
     BuffP (Nat.succ N) 0 =F
-      (if (N = 0) then Buff1P else Buff1P <---> BuffP N 0)
+      (if (N = 0) then Buff1P else Buff1P <---> BuffP N 0) := by
+  have h := LinkBuff_eq_Buff_step_k (N := Nat.succ N) (k := 0) (Nat.succ_pos N) (Nat.zero_le _)
+  simpa [Buff_to_Link_Buff, Nat.blt, Nat.ble, Nat.succ_eq_add_one] using h
 
 /- --------------------- *
  |          main         |
  * --------------------- -/
 
-axiom LinkBuff_eq_Buff :
-    ∀ N, BuffP N 0 =F LinkBuff N 0
+theorem LinkBuff_eq_Buff :
+    ∀ N, BuffP N 0 =F LinkBuff N 0 := by
+  intro N
+  induction N with
+  | zero =>
+      refine cspF_trans_left_eq (unw (PN.Buff 0 0)) ?_
+      have h1 : PNdef (PN.Buff 0 0) = proc.STOP := by simp [PNdef, Nat.blt]
+      have h2 : LinkBuff 0 0 = (proc.STOP : proc PN Event) := by simp [LinkBuff]
+      rw [h1, h2]
+      exact cspF_reflex_eq_P
+  | succ N ih =>
+      refine cspF_trans_left_eq (LinkBuff_eq_Buff_step N) ?_
+      by_cases hN : N = 0
+      · subst hN
+        have h : LinkBuff (Nat.succ 0) 0 = Buff1P := by simp [LinkBuff]
+        rw [h, if_pos rfl]
+        exact cspF_reflex_eq_P
+      · rw [if_neg hN]
+        have hL : LinkBuff (Nat.succ N) 0 = Buff1P <---> LinkBuff N 0 := by
+          simp [LinkBuff, hN, Nat.blt]
+        rw [hL]
+        exact Link_cong ih
 
 end NBuff
