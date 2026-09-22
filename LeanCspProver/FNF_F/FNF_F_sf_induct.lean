@@ -450,19 +450,21 @@ theorem fsfF_induct2_rel_step_iff
 
 /- existence -/
 
-axiom fsfF_induct2_rel_exists_notin1
+theorem fsfF_induct2_rel_exists_notin1
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
     ¬ fsfF_proc P1 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_left h⟩
 
-axiom fsfF_induct2_rel_exists_notin2
+theorem fsfF_induct2_rel_exists_notin2
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
     ¬ fsfF_proc P2 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => ⟨Pfun P1 P2, fsfF_induct2_rel.fsfF_induct2_rel_etc_right h⟩
 
 axiom fsfF_induct2_rel_exists_in_lm1
     (Pfun : FsfFInduct2Pfun p α)
@@ -485,24 +487,29 @@ axiom fsfF_induct2_rel_exists_in_lm
     fsfF_proc P1 →
       ∀ P2 : proc p α, ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
 
-axiom fsfF_induct2_rel_exists_in
+theorem fsfF_induct2_rel_exists_in
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 : proc p α} :
     fsfF_proc P1 →
-      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+      ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  fun h => fsfF_induct2_rel_exists_in_lm Pfun SP_step h P2
 
-axiom fsfF_induct2_rel_exists
+theorem fsfF_induct2_rel_exists
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α)
     (P1 P2 : proc p α) :
-    ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+    ∃ SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP := by
+  by_cases h : fsfF_proc P1
+  · exact fsfF_induct2_rel_exists_in h
+  · exact fsfF_induct2_rel_exists_notin1 h
 
-axiom fsfF_induct2_rel_unique_exists
+theorem fsfF_induct2_rel_unique_exists
     (Pfun : FsfFInduct2Pfun p α)
     (SP_step : FsfFInduct2Step p α)
     (P1 P2 : proc p α) :
-    ∃! SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP
+    ∃! SP : proc p α, fsfF_induct2_rel Pfun SP_step P1 P2 SP :=
+  (fsfF_induct2_rel_EX1 Pfun SP_step P1 P2).1 (fsfF_induct2_rel_exists Pfun SP_step P1 P2)
 
 /- in fsfF_proc -/
 
@@ -524,7 +531,7 @@ axiom fsfF_induct2_rel_in_lm
                       fsfF_proc (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)) →
         (fsfF_proc P1 ∧ fsfF_proc P2) → fsfF_proc SP
 
-axiom fsfF_induct2_rel_in
+theorem fsfF_induct2_rel_in
     {Pfun : FsfFInduct2Pfun p α}
     {SP_step : FsfFInduct2Step p α}
     {P1 P2 SP : proc p α} :
@@ -542,7 +549,8 @@ axiom fsfF_induct2_rel_in
                       (Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP) →
                         (Q2 = proc.SKIP ∨ Q2 = proc.DIV ∨ Q2 = proc.STOP) →
                           fsfF_proc (SP_step A1 Pf1 Q1 A2 Pf2 Q2 SPf SPf1 SPf2)) →
-            fsfF_proc SP
+            fsfF_proc SP :=
+  fun h h1 h2 hstep => fsfF_induct2_rel_in_lm h hstep ⟨h1, h2⟩
 
 /- syntactical transformation to fsfF -/
 
