@@ -514,9 +514,221 @@ def Buff_to_Link_Buff : PN → proc PN Event
       else
         proc.STOP
 
-axiom LinkBuff_eq_Buff_step_k {N k : Nat} :
+/-- Both buffers empty: nothing to hand over, only the external `inC`. -/
+private theorem link_Buff1_empty (M : Nat) (h : 0 < M) :
+    Buff1P <---> BuffP M 0 =F Event.inC ~> (Buff1'P <---> BuffP M 0) := by
+  have hR := cspF_trans_left_eq (ren_in_Buff_zero M h)
+    (cspF_Act_prefix_step (a := Event.midC)
+      (P := (BuffP M 1) [[Event.inC <--> Event.midC]]))
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong rfl (cspF_Parallel_cong rfl
+      (cspF_trans_left_eq ren_out_Buff1 (cspF_Act_prefix_step (a := Event.inC))) hR)) ?_
+  refine cspF_trans_left_eq (cspF_Hiding_cong rfl cspF_Parallel_step) ?_
+  rw [show ((({Event.midC} : Set Event) ∩ ({Event.inC} : Set Event) ∩
+        ({Event.midC} : Set Event)) ∪
+      (({Event.inC} : Set Event) \ ({Event.midC} : Set Event))) ∪
+      (({Event.midC} : Set Event) \ ({Event.midC} : Set Event))
+      = ({Event.inC} : Set Event) from by ext e; cases e <;> simp]
+  refine cspF_trans_left_eq cspF_Hiding_step ?_
+  rw [procIte_pos (show ({Event.inC} : Set Event) ∩ ({Event.midC} : Set Event) = ∅ from by
+    ext e; cases e <;> simp)]
+  refine cspF_trans_left_eq
+    (cspF_Ext_pre_choice_cong rfl (fun e he => ?_))
+    (cspF_Act_prefix_step_sym (a := Event.inC) (P := Buff1'P <---> BuffP M 0))
+  have hee : e = Event.inC := he
+  subst hee
+  rw [procIte_neg (show Event.inC ∉ ({Event.midC} : Set Event) from by rintro hc; cases hc),
+    procIte_neg (fun hc => by cases hc.2),
+    procIte_pos (show Event.inC ∈ ({Event.inC} : Set Event) from rfl)]
+  exact cspF_Hiding_cong rfl (cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym hR))
+
+/-- Both buffers full: the handshake is blocked, only the external `outC`. -/
+private theorem link_Buff1'_full (M : Nat) (h : 0 < M) :
+    Buff1'P <---> BuffP M M =F Event.outC ~> (Buff1'P <---> BuffP M (M - 1)) := by
+  have hR := cspF_trans_left_eq (ren_in_Buff_full M h)
+    (cspF_Act_prefix_step (a := Event.outC)
+      (P := (BuffP M (M - 1)) [[Event.inC <--> Event.midC]]))
+  have hL := cspF_trans_left_eq ren_out_Buff1'
+    (cspF_Act_prefix_step (a := Event.midC)
+      (P := Buff1P [[Event.outC <--> Event.midC]]))
+  refine cspF_trans_left_eq
+    (cspF_Hiding_cong rfl (cspF_Parallel_cong rfl hL hR)) ?_
+  refine cspF_trans_left_eq (cspF_Hiding_cong rfl cspF_Parallel_step) ?_
+  rw [show ((({Event.midC} : Set Event) ∩ ({Event.midC} : Set Event) ∩
+        ({Event.outC} : Set Event)) ∪
+      (({Event.midC} : Set Event) \ ({Event.midC} : Set Event))) ∪
+      (({Event.outC} : Set Event) \ ({Event.midC} : Set Event))
+      = ({Event.outC} : Set Event) from by ext e; cases e <;> simp]
+  refine cspF_trans_left_eq cspF_Hiding_step ?_
+  rw [procIte_pos (show ({Event.outC} : Set Event) ∩ ({Event.midC} : Set Event) = ∅ from by
+    ext e; cases e <;> simp)]
+  refine cspF_trans_left_eq
+    (cspF_Ext_pre_choice_cong rfl (fun e he => ?_))
+    (cspF_Act_prefix_step_sym (a := Event.outC) (P := Buff1'P <---> BuffP M (M - 1)))
+  have hee : e = Event.outC := he
+  subst hee
+  rw [procIte_neg (show Event.outC ∉ ({Event.midC} : Set Event) from by rintro hc; cases hc),
+    procIte_neg (fun hc => by cases hc.1),
+    procIte_neg (show Event.outC ∉ ({Event.midC} : Set Event) from by rintro hc; cases hc)]
+  exact cspF_Hiding_cong rfl (cspF_Parallel_cong rfl (cspF_sym hL) cspF_reflex_eq_P)
+
+private theorem BtoL_out (M j : Nat) (h : ¬ (1 ≤ M ∧ j ≤ M)) :
+    Buff_to_Link_Buff (PN.Buff M j) = proc.STOP := by
+  have h1 : (Nat.blt 0 M && Nat.ble j M) = false := by
+    rw [Bool.and_eq_false_iff]
+    rcases Nat.lt_or_ge M 1 with hh | hh
+    · exact Or.inl (by rw [Bool.eq_false_iff, ne_eq, Nat.blt_eq]; omega)
+    · exact Or.inr (by rw [Bool.eq_false_iff, ne_eq, Nat.ble_eq]; omega)
+  simp [Buff_to_Link_Buff, h1]
+
+private theorem BtoL_one (j : Nat) (hj : j ≤ 1) :
+    Buff_to_Link_Buff (PN.Buff 1 j) = (if Nat.blt j 1 then Buff1P else Buff1'P) := by
+  have h1 : (Nat.blt 0 1 && Nat.ble j 1) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  simp [Buff_to_Link_Buff, h1]
+
+private theorem BtoL_lt (M j : Nat) (hM : 2 ≤ M) (_hjM : j ≤ M) (hj : Nat.succ j ≤ M) :
+    Buff_to_Link_Buff (PN.Buff M j) = Buff1P <---> BuffP (M - 1) j := by
+  have h1 : (Nat.blt 0 M && Nat.ble j M) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  have h2 : ¬ (M = Nat.succ 0) := by omega
+  have h3 : Nat.blt j M = true := by
+    simp only [Nat.blt_eq]
+    omega
+  simp [Buff_to_Link_Buff, h1, h2, h3]
+
+private theorem BtoL_ge (M j : Nat) (hM : 2 ≤ M) (_hjM : j ≤ M) (hj : M ≤ j) :
+    Buff_to_Link_Buff (PN.Buff M j) = Buff1'P <---> BuffP (M - 1) (j - 1) := by
+  have h1 : (Nat.blt 0 M && Nat.ble j M) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  have h2 : ¬ (M = Nat.succ 0) := by omega
+  have h3 : Nat.blt j M = false := by
+    rw [Bool.eq_false_iff, ne_eq, Nat.blt_eq]
+    omega
+  simp [Buff_to_Link_Buff, h1, h2, h3]
+
+private theorem PNdef_Buff_out (M j : Nat) (h : ¬ (1 ≤ M ∧ j ≤ M)) :
+    PNdef (PN.Buff M j) = proc.STOP := by
+  have h1 : (Nat.blt 0 M && Nat.ble j M) = false := by
+    rw [Bool.and_eq_false_iff]
+    rcases Nat.lt_or_ge M 1 with hh | hh
+    · exact Or.inl (by rw [Bool.eq_false_iff, ne_eq, Nat.blt_eq]; omega)
+    · exact Or.inr (by rw [Bool.eq_false_iff, ne_eq, Nat.ble_eq]; omega)
+  simp [PNdef, h1]
+
+private theorem PNdef_Buff_mid (M j : Nat) (hM : 1 ≤ M) (_hjM : j ≤ M)
+    (hlt : Nat.succ j ≤ M) (hj0 : 1 ≤ j) :
+    PNdef (PN.Buff M j) =
+      ((Event.inC ~> proc.Proc_name (PN.Buff M (Nat.succ j))) [+]
+        (Event.outC ~> proc.Proc_name (PN.Buff M (j - 1)))) := by
+  have h1 : (Nat.blt 0 M && Nat.ble j M) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  have h2 : Nat.blt j M = true := by
+    simp only [Nat.blt_eq]
+    omega
+  have h3 : Nat.blt 0 j = true := by
+    simp only [Nat.blt_eq]
+    omega
+  simp [PNdef, h1, h2, h3]
+
+private theorem PNdef_Buff_zero (M : Nat) (hM : 1 ≤ M) :
+    PNdef (PN.Buff M 0) = ((Event.inC ~> proc.Proc_name (PN.Buff M 1)) [+] proc.STOP) := by
+  have h1 : (Nat.blt 0 M && Nat.ble 0 M) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  have h2 : Nat.blt 0 M = true := by
+    simp only [Nat.blt_eq]
+    omega
+  simp [PNdef, h2]
+
+private theorem PNdef_Buff_full (M : Nat) (hM : 1 ≤ M) :
+    PNdef (PN.Buff M M) =
+      (proc.STOP [+] (Event.outC ~> proc.Proc_name (PN.Buff M (M - 1)))) := by
+  have h1 : (Nat.blt 0 M && Nat.ble M M) = true := by
+    simp only [Bool.and_eq_true, Nat.blt_eq, Nat.ble_eq]
+    omega
+  have h2 : Nat.blt M M = false := by
+    rw [Bool.eq_false_iff, ne_eq, Nat.blt_eq]
+    omega
+  have h3 : Nat.blt 0 M = true := by
+    simp only [Nat.blt_eq]
+    omega
+  simp [PNdef, h2, h3]
+
+private theorem BtoL_10 : Buff_to_Link_Buff (PN.Buff 1 0) = Buff1P := by
+  simp [Buff_to_Link_Buff]
+
+private theorem BtoL_11 : Buff_to_Link_Buff (PN.Buff 1 1) = Buff1'P := by
+  simp [Buff_to_Link_Buff]
+
+theorem LinkBuff_eq_Buff_step_k {N k : Nat} :
     Nat.lt 0 N -> k <= Nat.succ N ->
-      BuffP N k =F Buff_to_Link_Buff (PN.Buff N k)
+      BuffP N k =F Buff_to_Link_Buff (PN.Buff N k) := by
+  intro _h0 _hk
+  refine cspF_fp_induct_cms_eq_left (Pf := PNdef) (f := Buff_to_Link_Buff)
+    (p0 := PN.Buff N k) rfl guardedfun_PN FPmode_def cspF_reflex_eq_P ?_
+  intro p
+  cases p with
+  | Buff1 => exact cspF_sym (unw PN.Buff1)
+  | Buff1' => exact cspF_sym (unw PN.Buff1')
+  | Buff M j =>
+      by_cases hok : 1 ≤ M ∧ j ≤ M
+      · obtain ⟨hM, hjM⟩ := hok
+        by_cases hM2 : 2 ≤ M
+        · by_cases hjlt : Nat.succ j ≤ M
+          · rw [BtoL_lt M j hM2 hjM hjlt]
+            by_cases hj0 : 1 ≤ j
+            · rw [PNdef_Buff_mid M j hM hjM hjlt hj0]
+              simp only [Subst_procfun]
+              rw [BtoL_lt M (j - 1) hM2 (by omega) (by omega)]
+              refine cspF_trans_left_eq ?_
+                (cspF_sym (link_Buff1_hsf (M - 1) j hj0 (by omega)))
+              refine cspF_Ext_choice_cong (cspF_Act_prefix_cong rfl ?_) cspF_reflex_eq_P
+              by_cases hs : Nat.succ (Nat.succ j) ≤ M
+              · rw [BtoL_lt M (Nat.succ j) hM2 (by omega) hs]
+                exact cspF_sym
+                  (internal_data_transfer (show Nat.succ j ≤ M - 1 by omega))
+              · rw [BtoL_ge M (Nat.succ j) hM2 (by omega) (by omega)]
+                exact cspF_reflex_eq_P
+            · have hj : j = 0 := by omega
+              rw [hj, PNdef_Buff_zero M hM]
+              simp only [Subst_procfun]
+              refine cspF_trans_left_eq cspF_Ext_choice_unit_r ?_
+              refine cspF_trans_left_eq ?_
+                (cspF_sym (link_Buff1_empty (M - 1) (show 1 ≤ M - 1 by omega)))
+              refine cspF_Act_prefix_cong rfl ?_
+              rw [BtoL_lt M 1 hM2 (by omega) (by omega)]
+              exact cspF_sym
+                (internal_data_transfer (show Nat.succ 0 ≤ M - 1 by omega))
+          · have hjeq : j = M := by omega
+            rw [hjeq, BtoL_ge M M hM2 (Nat.le_refl M) (Nat.le_refl M), PNdef_Buff_full M hM]
+            simp only [Subst_procfun]
+            refine cspF_trans_left_eq cspF_Ext_choice_unit_l ?_
+            refine cspF_trans_left_eq ?_
+              (cspF_sym (link_Buff1'_full (M - 1) (show 1 ≤ M - 1 by omega)))
+            refine cspF_Act_prefix_cong rfl ?_
+            rw [BtoL_lt M (M - 1) hM2 (by omega) (by omega)]
+            have harith : Nat.succ (M - 1 - 1) = M - 1 := by omega
+            refine cspF_sym (?_ : eqFfix (Buff1'P <---> BuffP (M - 1) (M - 1 - 1)) _)
+            rw [← harith]
+            exact internal_data_transfer (Nat.le_refl _)
+        · have hM1 : M = 1 := by omega
+          rw [hM1] at hjM ⊢
+          interval_cases j
+          · rw [BtoL_10, PNdef_Buff_zero 1 (Nat.le_refl 1)]
+            simp only [Subst_procfun, BtoL_11]
+            refine cspF_trans_left_eq cspF_Ext_choice_unit_r ?_
+            exact cspF_sym (unw PN.Buff1)
+          · rw [BtoL_11, PNdef_Buff_full 1 (Nat.le_refl 1)]
+            simp only [Subst_procfun]
+            refine cspF_trans_left_eq cspF_Ext_choice_unit_l ?_
+            exact cspF_sym (unw PN.Buff1')
+      · rw [PNdef_Buff_out M j hok, BtoL_out M j hok]
+        exact cspF_reflex_eq_P
 
 /- --------------------- *
  |        one step       |
