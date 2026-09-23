@@ -70,9 +70,17 @@ theorem GTs_def (n : Nat) :
 
 /- (*** Spc ***) -/
 
+/- Lean note:
+   Isabelle: `Spcfun (SPC n) = Num n -> (!nat m:(GTs n) .. $(SPC m))`.
+   `!nat m:X .. P m` is the replicated *internal* choice
+   (`Rep_int_choice_nat`); an earlier port spelled it
+   `Rec_prefix Event.Read (GTs n) …`, i.e. the external prefix choice
+   `Read ? m:X -> …`, which inserts visible `Read` events — but `Imp`
+   hides all `Read` events, so `Spc <=F Imp` would not hold. Repaired. -/
+
 def Spcfun : SpcName → proc SpcName Event
   | SpcName.SPC n =>
-      Event.Num n ~> Rec_prefix Event.Read (GTs n) fun m =>
+      Event.Num n ~> Rep_int_choice_nat (GTs n) fun m =>
         proc.Proc_name (SpcName.SPC m)
 
 /- Lean note:
@@ -172,6 +180,47 @@ theorem set3 (n : Nat) :
     Event.Num n ∉ Set.range Event.Read := by
   simp [Set.mem_range]
 
+theorem Read_inj : Function.Injective Event.Read := by
+  intro a b h
+  injection h
+
+@[simp]
+theorem invFun_Read (n : Nat) :
+    Function.invFun Event.Read (Event.Read n) = n :=
+  Function.leftInverse_invFun Read_inj n
+
+/- index sets produced by `cspF_Parallel_step` in the proof below -/
+
+theorem set4 (n : Nat) :
+    ((Set.range Event.Read ∩ Set.range Event.Read ∩ {Event.Read n}) ∪
+        (Set.range Event.Read \ Set.range Event.Read) ∪
+        ({Event.Read n} \ Set.range Event.Read)) = {Event.Read n} := by
+  ext e
+  cases e <;> simp [Set.mem_range]
+
+theorem set5 (n : Nat) :
+    ((Set.range Event.Read ∩ {Event.Num n} ∩ {Event.Read (Nat.succ n)}) ∪
+        ({Event.Num n} \ Set.range Event.Read) ∪
+        ({Event.Read (Nat.succ n)} \ Set.range Event.Read)) = {Event.Num n} := by
+  ext e
+  cases e <;> simp [Set.mem_range]
+
+theorem set6 (n : Nat) :
+    ({Event.Read n} : Set Event) \ Set.range Event.Read = ∅ := by
+  simp [Set.diff_eq_empty]
+
+theorem set7 (n : Nat) :
+    ({Event.Read n} : Set Event) ∩ Set.range Event.Read = {Event.Read n} := by
+  simp
+
+theorem set8 (n : Nat) :
+    ({Event.Num n} : Set Event) ∩ Set.range Event.Read = ∅ := by
+  ext e
+  simp only [Set.mem_inter_iff, Set.mem_singleton_iff, Set.mem_empty_iff_false,
+    iff_false, not_and]
+  rintro rfl
+  exact set3 n
+
 /- *********************************************************
                guardedfun (rutine work)
  ********************************************************* -/
@@ -180,11 +229,16 @@ theorem set3 (n : Nat) :
    Isabelle's `declare csp_prefix_ss_def[simp]` and `declare inj_on_def[simp]`
    have no direct Lean analogue here. -/
 
-@[simp] axiom guardedfun_Spcfun :
-    guardedfun Spcfun
+@[simp] theorem guardedfun_Spcfun :
+    guardedfun Spcfun := by
+  intro pn
+  cases pn with
+  | SPC n => simp [Spcfun, guarded, noHide, Rep_int_choice_nat]
 
-@[simp] axiom guardedfun_Impfun :
-    guardedfun Impfun
+@[simp] theorem guardedfun_Impfun :
+    guardedfun Impfun := by
+  intro pn
+  cases pn <;> simp [Impfun, guarded, noHide, Rec_prefix]
 
 /- *********************************************************
                    ? SPC <=F IMP ?
@@ -212,14 +266,130 @@ defs FPmode_def [simp]: "FPmode == CPOmode"
    In this example, both modes are available,
    because Spcfun and Impfun are guarded.       -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction from `Spcfun` into
-   the heterogeneously typed target `Imp`. The current Lean port only exposes
-   homogeneous fixed-point-induction rules, so this final refinement proof is
-   kept as an axiom for now, matching the approach already used in
-   `Test_Buffer`. -/
+/- one step of the implementation:
+   `Spc_to_Imp (SPC n) =F Num n -> Spc_to_Imp (SPC (Suc n))`,
+   obtained by unwinding `$UI` and `$(VAR n)`, one synchronised (and then
+   hidden) `Read n`, and one visible `Num n`. -/
 
-axiom Spc_ref_Imp :
-    Spc <=F Imp
+private theorem Spc_to_Imp_step (n : Nat) :
+    eqF (Spc_to_Imp (SpcName.SPC n)) MF MF
+      (Event.Num n ~> Spc_to_Imp (SpcName.SPC (Nat.succ n))) := by
+  -- unwind $UI into an external prefix choice over `range Read`
+  have hUI : eqF (proc.Proc_name ImpName.UI : proc ImpName Event) MF MF
+      (proc.Ext_pre_choice (Set.range Event.Read) fun x =>
+        Event.Num (Function.invFun Event.Read x) ~> proc.Proc_name ImpName.UI) := by
+    have h := «cspF_unwind» (Pf := Impfun) (p0 := ImpName.UI) rfl
+      (Or.inr (Or.inl ⟨rfl, guardedfun_Impfun⟩))
+    simpa [Impfun, Rec_prefix, Set.image_univ] using h
+  -- unwind $(VAR k) into an external prefix choice over `{Read k}`
+  have hVAR : ∀ k : Nat,
+      eqF (proc.Proc_name (ImpName.VAR k) : proc ImpName Event) MF MF
+        (proc.Ext_pre_choice ({Event.Read k} : Set Event) fun _ =>
+          proc.Proc_name (ImpName.VAR (Nat.succ k))) := by
+    intro k
+    have h := «cspF_unwind» (Pf := Impfun) (p0 := ImpName.VAR k) rfl
+      (Or.inr (Or.inl ⟨rfl, guardedfun_Impfun⟩))
+    simp only [Impfun] at h
+    exact cspF_trans_left_eq h cspF_Act_prefix_step
+  -- $UI |[R]| $(VAR n)  =F  ? x:{Read n} -> ((Num n -> $UI) |[R]| $(VAR (Suc n)))
+  have hParA :
+      eqF ((proc.Proc_name ImpName.UI : proc ImpName Event)
+            |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR n)) MF MF
+        (proc.Ext_pre_choice ({Event.Read n} : Set Event) fun _ =>
+          (Event.Num n ~> proc.Proc_name ImpName.UI)
+            |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n))) := by
+    have hstep := cspF_Parallel_step
+      (X := Set.range Event.Read) (Y := Set.range Event.Read)
+      (Z := ({Event.Read n} : Set Event))
+      (Pf := fun x =>
+        Event.Num (Function.invFun Event.Read x) ~> proc.Proc_name ImpName.UI)
+      (Qf := fun _ => proc.Proc_name (ImpName.VAR (Nat.succ n)))
+      (M := (MF : ImpName → domFType Event))
+    rw [set4 n] at hstep
+    refine cspF_trans_left_eq (cspF_Parallel_cong rfl hUI (hVAR n)) ?_
+    refine cspF_trans_left_eq hstep ?_
+    refine cspF_Ext_pre_choice_cong rfl ?_
+    intro a ha
+    rw [Set.mem_singleton_iff] at ha
+    subst ha
+    rw [procIte_pos (Set.mem_range_self n)]
+    simp only [invFun_Read]
+    exact cspF_reflex_eq_P
+  -- hide the synchronised Read:
+  -- Spc_to_Imp (SPC n)  =F  ((Num n -> $UI) |[R]| $(VAR (Suc n))) -- R
+  have hHideA :
+      eqF (Spc_to_Imp (SpcName.SPC n)) MF MF
+        (proc.Hiding
+          ((Event.Num n ~> proc.Proc_name ImpName.UI)
+            |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n)))
+          (Set.range Event.Read)) := by
+    have hne : ¬(({Event.Read n} : Set Event) ∩ Set.range Event.Read = ∅) := by
+      intro h
+      have hm : Event.Read n ∈ ({Event.Read n} : Set Event) ∩ Set.range Event.Read :=
+        ⟨rfl, Set.mem_range_self n⟩
+      rw [h] at hm
+      exact hm
+    have hstep := cspF_Hiding_step
+      (X := Set.range Event.Read) (Y := ({Event.Read n} : Set Event))
+      (Pf := fun _ =>
+        (Event.Num n ~> proc.Proc_name ImpName.UI)
+          |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n)))
+      (M := (MF : ImpName → domFType Event))
+    rw [procIte_neg hne, set6 n, set7 n] at hstep
+    refine cspF_trans_left_eq (cspF_Hiding_cong rfl hParA) ?_
+    refine cspF_trans_left_eq hstep ?_
+    refine cspF_trans_left_eq
+      (cspF_Timeout_cong (cspF_sym cspF_STOP_step)
+        (cspF_Rep_int_choice_com_unit (by simp))) ?_
+    exact cspF_STOP_Timeout
+  -- (Num n -> $UI) |[R]| $(VAR (Suc n))  =F  ? x:{Num n} -> ($UI |[R]| $(VAR (Suc n)))
+  have hParB :
+      eqF ((Event.Num n ~> proc.Proc_name ImpName.UI)
+            |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n))) MF MF
+        (proc.Ext_pre_choice ({Event.Num n} : Set Event) fun _ =>
+          (proc.Proc_name ImpName.UI : proc ImpName Event)
+            |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n))) := by
+    have hstep := cspF_Parallel_step
+      (X := Set.range Event.Read) (Y := ({Event.Num n} : Set Event))
+      (Z := ({Event.Read (Nat.succ n)} : Set Event))
+      (Pf := fun _ => proc.Proc_name ImpName.UI)
+      (Qf := fun _ => proc.Proc_name (ImpName.VAR (Nat.succ (Nat.succ n))))
+      (M := (MF : ImpName → domFType Event))
+    rw [set5 n] at hstep
+    refine cspF_trans_left_eq
+      (cspF_Parallel_cong rfl cspF_Act_prefix_step (hVAR (Nat.succ n))) ?_
+    refine cspF_trans_left_eq hstep ?_
+    refine cspF_Ext_pre_choice_cong rfl ?_
+    intro a ha
+    rw [Set.mem_singleton_iff] at ha
+    subst ha
+    rw [procIte_neg (set3 n), procIte_neg (by simp),
+      procIte_pos (show Event.Num n ∈ ({Event.Num n} : Set Event) from rfl)]
+    exact cspF_Parallel_cong rfl cspF_reflex_eq_P (cspF_sym (hVAR (Nat.succ n)))
+  -- hide nothing (Num n is not hidden) and fold everything together
+  have hstep := cspF_Hiding_step
+    (X := Set.range Event.Read) (Y := ({Event.Num n} : Set Event))
+    (Pf := fun _ =>
+      (proc.Proc_name ImpName.UI : proc ImpName Event)
+        |[Set.range Event.Read]| proc.Proc_name (ImpName.VAR (Nat.succ n)))
+    (M := (MF : ImpName → domFType Event))
+  rw [procIte_pos (set8 n)] at hstep
+  refine cspF_trans_left_eq hHideA ?_
+  refine cspF_trans_left_eq (cspF_Hiding_cong rfl hParB) ?_
+  refine cspF_trans_left_eq hstep ?_
+  exact cspF_sym cspF_Act_prefix_step
+
+theorem Spc_ref_Imp :
+    Spc <=F Imp := by
+  rw [Spc_def]
+  refine cspF_fp_induct_cms_ref_left (Pf := Spcfun) (f := Spc_to_Imp)
+    rfl guardedfun_Spcfun rfl cspF_reflex_ref_P (fun pn => ?_)
+  cases pn with
+  | SPC n =>
+      refine cspF_rw_right_ref (Spc_to_Imp_step n) ?_
+      simp only [Spcfun, Subst_procfun, Subst_procfun_Rep_int_choice_nat]
+      refine cspF_Act_prefix_mono rfl ?_
+      exact cspF_Rep_int_choice_nat_left
+        ⟨Nat.succ n, Nat.lt_succ_self n, cspF_reflex_ref_P⟩
 
 end Test_infinite

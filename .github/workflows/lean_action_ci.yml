@@ -18,6 +18,20 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
+      # The example developments below are deliberately unreachable from the root
+      # module, mirroring the upstream Isabelle ROOT, which builds only the CSP,
+      # CSP_T, CSP_F, DFP and FNF_F sessions and leaves every example out. Build
+      # them explicitly so they are still checked, without widening the root
+      # module's import closure.
+      - name: Build the examples outside the root module
+        run: |
+          lake build \
+            LeanCspProver.UCD.UCD_proc2 \
+            LeanCspProver.NBuff.NBuff \
+            LeanCspProver.Test.Test_Buffer \
+            LeanCspProver.Test.Test_infinite \
+            LeanCspProver.Test.Test_proof \
+            LeanCspProver.Test.Test_rename
       # doc-gen4 over the whole dependency closure takes hours and deploys to GitHub
       # Pages; run it only for pushes to master so PR checks stay at `lake build`.
       - uses: leanprover-community/docgen-action@v1

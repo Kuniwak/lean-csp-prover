@@ -22,9 +22,6 @@ noncomputable section
 
 namespace SA_condition
 
-local instance instInhabitedOfZero (α : Type _) [Zero α] : Inhabited α where
-  default := 0
-
 /-
 (*********************************************************
      Small conditions for Deadlock freedom verification

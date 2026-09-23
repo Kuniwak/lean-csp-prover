@@ -46,29 +46,61 @@ private noncomputable def decideMem {α : Type _} (x : α) (X : Set α) : Bool :
               data type passed on channels
  ********************************************************* -/
 
-axiom D_SI_Init_SessionStart : Type
-axiom D_SI_Init_SessionEnd : Type
-axiom D_SI_Init_ConfigDataRequest : Type
-axiom D_SI_Init_ConfigDataResponse : Type
-axiom D_SI_Init_ConfigDataNotification : Type
-axiom D_SI_Init_ConfigDataAcknowledge : Type
-axiom D_SI_Init_RemoveConfigDataNotification : Type
-axiom D_SI_Init_RemoveConfigDataAcknowledge : Type
-axiom D_SI_Init_ActivateConfigDataNotification : Type
-axiom D_SI_Init_ActivateConfigDataAcknowledge : Type
+/- Lean note:
+   Isabelle's `typedecl` (an unspecified nonempty type) and its unspecified
+   default elements were ported as `axiom`s. They are now `opaque`
+   `NonemptyType`s — the same abstraction without extending the axiom
+   base. -/
 
-axiom default_D_SI_Init_SessionStart : D_SI_Init_SessionStart
-axiom default_D_SI_Init_SessionEnd : D_SI_Init_SessionEnd
-axiom default_D_SI_Init_ConfigDataRequest : D_SI_Init_ConfigDataRequest
-axiom default_D_SI_Init_ConfigDataResponse : D_SI_Init_ConfigDataResponse
-axiom default_D_SI_Init_ConfigDataNotification : D_SI_Init_ConfigDataNotification
-axiom default_D_SI_Init_ConfigDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
-axiom default_D_SI_Init_RemoveConfigDataNotification : D_SI_Init_RemoveConfigDataNotification
-axiom default_D_SI_Init_RemoveConfigDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
-axiom default_D_SI_Init_ActivateConfigDataNotification :
-  D_SI_Init_ActivateConfigDataNotification
-axiom default_D_SI_Init_ActivateConfigDataAcknowledge :
-  D_SI_Init_ActivateConfigDataAcknowledge
+private opaque D_SI_Init_SessionStart_spec : NonemptyType.{0}
+private opaque D_SI_Init_SessionEnd_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataRequest_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataResponse_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_ConfigDataAcknowledge_spec : NonemptyType.{0}
+private opaque D_SI_Init_RemoveConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_RemoveConfigDataAcknowledge_spec : NonemptyType.{0}
+private opaque D_SI_Init_ActivateConfigDataNotification_spec : NonemptyType.{0}
+private opaque D_SI_Init_ActivateConfigDataAcknowledge_spec : NonemptyType.{0}
+
+def D_SI_Init_SessionStart : Type := D_SI_Init_SessionStart_spec.type
+def D_SI_Init_SessionEnd : Type := D_SI_Init_SessionEnd_spec.type
+def D_SI_Init_ConfigDataRequest : Type := D_SI_Init_ConfigDataRequest_spec.type
+def D_SI_Init_ConfigDataResponse : Type := D_SI_Init_ConfigDataResponse_spec.type
+def D_SI_Init_ConfigDataNotification : Type := D_SI_Init_ConfigDataNotification_spec.type
+def D_SI_Init_ConfigDataAcknowledge : Type := D_SI_Init_ConfigDataAcknowledge_spec.type
+def D_SI_Init_RemoveConfigDataNotification : Type :=
+  D_SI_Init_RemoveConfigDataNotification_spec.type
+def D_SI_Init_RemoveConfigDataAcknowledge : Type := D_SI_Init_RemoveConfigDataAcknowledge_spec.type
+def D_SI_Init_ActivateConfigDataNotification : Type :=
+  D_SI_Init_ActivateConfigDataNotification_spec.type
+def D_SI_Init_ActivateConfigDataAcknowledge : Type :=
+  D_SI_Init_ActivateConfigDataAcknowledge_spec.type
+
+noncomputable def default_D_SI_Init_SessionStart : D_SI_Init_SessionStart :=
+  Classical.choice D_SI_Init_SessionStart_spec.property
+noncomputable def default_D_SI_Init_SessionEnd : D_SI_Init_SessionEnd :=
+  Classical.choice D_SI_Init_SessionEnd_spec.property
+noncomputable def default_D_SI_Init_ConfigDataRequest : D_SI_Init_ConfigDataRequest :=
+  Classical.choice D_SI_Init_ConfigDataRequest_spec.property
+noncomputable def default_D_SI_Init_ConfigDataResponse : D_SI_Init_ConfigDataResponse :=
+  Classical.choice D_SI_Init_ConfigDataResponse_spec.property
+noncomputable def default_D_SI_Init_ConfigDataNotification : D_SI_Init_ConfigDataNotification :=
+  Classical.choice D_SI_Init_ConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_ConfigDataAcknowledge : D_SI_Init_ConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_ConfigDataAcknowledge_spec.property
+noncomputable def default_D_SI_Init_RemoveConfigDataNotification :
+    D_SI_Init_RemoveConfigDataNotification :=
+  Classical.choice D_SI_Init_RemoveConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_RemoveConfigDataAcknowledge :
+    D_SI_Init_RemoveConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_RemoveConfigDataAcknowledge_spec.property
+noncomputable def default_D_SI_Init_ActivateConfigDataNotification :
+    D_SI_Init_ActivateConfigDataNotification :=
+  Classical.choice D_SI_Init_ActivateConfigDataNotification_spec.property
+noncomputable def default_D_SI_Init_ActivateConfigDataAcknowledge :
+    D_SI_Init_ActivateConfigDataAcknowledge :=
+  Classical.choice D_SI_Init_ActivateConfigDataAcknowledge_spec.property
 
 instance : Inhabited D_SI_Init_SessionStart where
   default := default_D_SI_Init_SessionStart
@@ -130,13 +162,26 @@ instance : Inhabited D_SI_Init where
 
 noncomputable instance : DecidableEq D_SI_Init := Classical.decEq _
 
-axiom TerminalState : Type
-axiom Trigger : Type
-axiom Message : Type
+/- Lean note:
+   Isabelle's `typedecl` (an unspecified nonempty type) and its unspecified
+   default elements were ported as `axiom`s. They are now `opaque`
+   `NonemptyType`s — the same abstraction without extending the axiom
+   base. -/
 
-axiom default_TerminalState : TerminalState
-axiom default_Trigger : Trigger
-axiom default_Message : Message
+private opaque TerminalState_spec : NonemptyType.{0}
+private opaque Trigger_spec : NonemptyType.{0}
+private opaque Message_spec : NonemptyType.{0}
+
+def TerminalState : Type := TerminalState_spec.type
+def Trigger : Type := Trigger_spec.type
+def Message : Type := Message_spec.type
+
+noncomputable def default_TerminalState : TerminalState :=
+  Classical.choice TerminalState_spec.property
+noncomputable def default_Trigger : Trigger :=
+  Classical.choice Trigger_spec.property
+noncomputable def default_Message : Message :=
+  Classical.choice Message_spec.property
 
 instance : Inhabited TerminalState where
   default := default_TerminalState
@@ -246,8 +291,11 @@ theorem AC_def :
               gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_AC :
-    guardedfun ACfun
+@[simp] theorem guarded_AC :
+    guardedfun ACfun := by
+  intro pn
+  cases pn <;>
+    simp [ACfun, Rec_prefix, guarded, noHide]
 
 /- *********************************************************
                abstract level (deadlock free)
@@ -304,8 +352,11 @@ theorem Abs_def :
                gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_Abs :
-    guardedfun Absfun
+@[simp] theorem guarded_Abs :
+    guardedfun Absfun := by
+  intro pn
+  cases pn <;>
+    simp [Absfun, guarded, noHide]
 
 /- *********************************************************
         relating function between AbsName and ACName
@@ -327,11 +378,6 @@ def Abs_to_AC : AbsName → proc ACName Event
 /- Lean note:
    Isabelle's `declare inj_on_def [simp]` has no direct Lean analogue here. -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction across
-   `AbsName` and `ACName`. The current Lean port keeps this heterogeneous
-   fixed-point argument as an axiom for now. -/
-
 instance Set_FPmode : HasFPmode where
   FPmode := CMSmode
 
@@ -339,7 +385,170 @@ instance Set_FPmode : HasFPmode where
 theorem FPmode_def : FPmode = CMSmode :=
   rfl
 
-axiom ep2_abs :
-    Abs <=F AC
+private theorem inj_C_SI_Init : Function.Injective Event.C_SI_Init := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem unwAC (pn : ACName) :
+    eqF (proc.Proc_name pn : proc ACName Event) MF MF (ACfun pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guarded_AC⟩))
+
+private theorem range_ne {γ : Type _} [Inhabited γ] (f : γ → D_SI_Init) :
+    Set.range f ≠ ∅ :=
+  Set.nonempty_iff_ne_empty.mp ⟨f default, default, rfl⟩
+
+/- ---------- evaluating the guard chain of `$TConfigurationManagement` ---------- -/
+
+private theorem IF_chain_true {b : Bool} {P Q : proc ACName Event} (hb : b = true) :
+    eqF (IF b THEN P ELSE Q) MF MF P := by
+  rw [hb]
+  exact cspF_IF_True
+
+private theorem IF_chain_false {b : Bool} {P Q R : proc ACName Event} (hb : b = false)
+    (h : eqF Q MF MF R) : eqF (IF b THEN P ELSE Q) MF MF R := by
+  rw [hb]
+  exact cspF_trans_left_eq cspF_IF_False h
+
+/- ---------- the fixed-point induction ---------- -/
+
+theorem ep2_abs :
+    Abs <=F AC := by
+  rw [Abs_def, AC_def]
+  refine cspF_fp_induct_ref_left (Pf := Absfun) (f := Abs_to_AC)
+    rfl (Or.inl rfl) guarded_Abs cspF_reflex_ref_P ?_
+  intro pn
+  cases pn with
+  | Abstract =>
+      refine cspF_rw_right_ref
+        (cspF_Parallel_cong rfl (unwAC ACName.TInit) (unwAC ACName.AcquirerInit)) ?_
+      simp only [Absfun, ACfun, Abs_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      refine cspF_rw_right_ref
+        (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+          (A := Set.range D_SI_Init.SStart) (B := Set.range D_SI_Init.SStart)
+          (Pf := fun _ => proc.Proc_name ACName.TConfigurationManagement)
+          (Qf := fun _ => proc.Proc_name ACName.ConfigurationManagement)
+          (Set.image_subset_range _ _) (subset_refl _) (range_ne D_SI_Init.SStart)) ?_
+      exact cspF_reflex_ref_P
+  | Loop =>
+      refine cspF_rw_right_ref
+        (cspF_Parallel_cong rfl (unwAC ACName.TConfigurationManagement)
+          (unwAC ACName.ConfigurationManagement)) ?_
+      simp only [Absfun, ACfun, Abs_to_AC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      -- split the five alternatives offered by `$ConfigurationManagement`
+      refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+      refine cspF_Int_choice_right ?_ ?_
+      · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+        refine cspF_Int_choice_right ?_ ?_
+        · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+          refine cspF_Int_choice_right ?_ ?_
+          · refine cspF_rw_right_ref cspF_Parallel_dist_r ?_
+            refine cspF_Int_choice_right ?_ ?_
+            · -- session end: both sides terminate
+              refine cspF_Int_choice_left1 ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                  (A := Set.univ) (B := Set.range D_SI_Init.SEnd)
+                  (Set.image_subset_range _ _) (Set.subset_univ _)
+                  (range_ne D_SI_Init.SEnd)) ?_
+              refine cspF_Nondet_send_prefix_mono inj_C_SI_Init rfl rfl (fun x hx => ?_)
+              obtain ⟨s, rfl⟩ := hx
+              refine cspF_rw_right_ref
+                (cspF_Parallel_cong rfl
+                  (IF_chain_false (by simp [decideMem])
+                    (IF_chain_false (by simp [decideMem])
+                      (IF_chain_false (by simp [decideMem])
+                        (IF_chain_false (by simp [decideMem])
+                          (IF_chain_true (by simp [decideMem]))))))
+                  cspF_reflex_eq_P) ?_
+              exact cspF_rw_right_ref cspF_Parallel_term cspF_reflex_ref_P
+            · -- configuration data request / response
+              refine cspF_Int_choice_left2 ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                  (A := Set.univ) (B := Set.range D_SI_Init.CDReq)
+                  (Set.image_subset_range _ _) (Set.subset_univ _)
+                  (range_ne D_SI_Init.CDReq)) ?_
+              refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+                (fun _ h => Or.inl (Or.inl (Or.inl h))) (fun x hx => ?_)
+              obtain ⟨c, rfl⟩ := hx
+              refine cspF_rw_right_ref
+                (cspF_Parallel_cong rfl (IF_chain_true (by simp [decideMem]))
+                  cspF_reflex_eq_P) ?_
+              refine cspF_rw_right_ref
+                (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+                  (A := Set.range D_SI_Init.CDRes) (B := Set.range D_SI_Init.CDRes)
+                  (Set.image_subset_range _ _) (subset_refl _)
+                  (range_ne D_SI_Init.CDRes)) ?_
+              exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+                (fun _ h => Or.inl (Or.inl (Or.inl h))) (fun _ _ => cspF_reflex_ref_P)
+          · -- configuration data notification / acknowledge
+            refine cspF_Int_choice_left2 ?_
+            refine cspF_rw_right_ref
+              (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+                (A := Set.univ) (B := Set.range D_SI_Init.CDN)
+                (Set.image_subset_range _ _) (Set.subset_univ _)
+                (range_ne D_SI_Init.CDN)) ?_
+            refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+              (fun _ h => Or.inl (Or.inl (Or.inr h))) (fun x hx => ?_)
+            obtain ⟨c, rfl⟩ := hx
+            refine cspF_rw_right_ref
+              (cspF_Parallel_cong rfl
+                (IF_chain_false (by simp [decideMem]) (IF_chain_true (by simp [decideMem])))
+                cspF_reflex_eq_P) ?_
+            refine cspF_rw_right_ref
+              (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+                (A := Set.range D_SI_Init.CDA) (B := Set.range D_SI_Init.CDA)
+                (Set.image_subset_range _ _) (subset_refl _)
+                (range_ne D_SI_Init.CDA)) ?_
+            exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+              (fun _ h => Or.inl (Or.inl (Or.inr h))) (fun _ _ => cspF_reflex_ref_P)
+        · -- remove configuration data
+          refine cspF_Int_choice_left2 ?_
+          refine cspF_rw_right_ref
+            (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+              (A := Set.univ) (B := Set.range D_SI_Init.RCDN)
+              (Set.image_subset_range _ _) (Set.subset_univ _)
+              (range_ne D_SI_Init.RCDN)) ?_
+          refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+            (fun _ h => Or.inl (Or.inr h)) (fun x hx => ?_)
+          obtain ⟨c, rfl⟩ := hx
+          refine cspF_rw_right_ref
+            (cspF_Parallel_cong rfl
+              (IF_chain_false (by simp [decideMem])
+                (IF_chain_false (by simp [decideMem])
+                  (IF_chain_true (by simp [decideMem]))))
+              cspF_reflex_eq_P) ?_
+          refine cspF_rw_right_ref
+            (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+              (A := Set.range D_SI_Init.RCDA) (B := Set.range D_SI_Init.RCDA)
+              (Set.image_subset_range _ _) (subset_refl _)
+              (range_ne D_SI_Init.RCDA)) ?_
+          exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+            (fun _ h => Or.inl (Or.inr h)) (fun _ _ => cspF_reflex_ref_P)
+      · -- activate configuration data
+        refine cspF_Int_choice_left2 ?_
+        refine cspF_rw_right_ref
+          (cspF_Parallel_Rec_Nondet_send_prefix (f := Event.C_SI_Init)
+            (A := Set.univ) (B := Set.range D_SI_Init.ACDN)
+            (Set.image_subset_range _ _) (Set.subset_univ _)
+            (range_ne D_SI_Init.ACDN)) ?_
+        refine cspF_Nondet_send_prefix_subset inj_C_SI_Init
+          (fun _ h => Or.inr h) (fun x hx => ?_)
+        obtain ⟨c, rfl⟩ := hx
+        refine cspF_rw_right_ref
+          (cspF_Parallel_cong rfl
+            (IF_chain_false (by simp [decideMem])
+              (IF_chain_false (by simp [decideMem])
+                (IF_chain_false (by simp [decideMem])
+                  (IF_chain_true (by simp [decideMem])))))
+            cspF_reflex_eq_P) ?_
+        refine cspF_rw_right_ref
+          (cspF_Parallel_Nondet_send_Rec_prefix (f := Event.C_SI_Init)
+            (A := Set.range D_SI_Init.ACDA) (B := Set.range D_SI_Init.ACDA)
+            (Set.image_subset_range _ _) (subset_refl _)
+            (range_ne D_SI_Init.ACDA)) ?_
+        exact cspF_Nondet_send_prefix_subset inj_C_SI_Init
+          (fun _ h => Or.inr h) (fun _ _ => cspF_reflex_ref_P)
 
 end ep2_acl

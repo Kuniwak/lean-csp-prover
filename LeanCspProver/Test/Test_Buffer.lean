@@ -93,11 +93,16 @@ theorem Set_DFfun_def (pn : DFName) :
                guardedfun (rutine work)
  ********************************************************* -/
 
-@[simp] axiom guardedfun_Bufferfun :
-    guardedfun Bufferfun
+@[simp] theorem guardedfun_Bufferfun :
+    guardedfun Bufferfun := by
+  intro pn
+  cases pn <;> simp [Bufferfun, guarded, noHide]
 
-@[simp] axiom guardedfun_DFfun :
-    guardedfun DFfun
+@[simp] theorem guardedfun_DFfun :
+    guardedfun DFfun := by
+  intro pn
+  cases pn with
+  | DF => simp [DFfun, noHide]
 
 /- *********************************************************
             relation between Buffer and DF
@@ -124,14 +129,40 @@ theorem FPmode_def : FPmode = CMSmode :=
 
 /- (*** manual proof ***) -/
 
-/- Lean note:
-   The original Isabelle proof uses fixed-point induction with
-   `Buffer_to_DF : Name -> (DFName, Event) proc`. The current Lean port only
-   exposes homogeneous fixed-point-induction rules, so this heterogeneously
-   typed proof is kept as an axiom for now. -/
-
-axiom manual_proof_Buffer :
-    (proc.Proc_name DFName.DF : proc DFName Event) <=F Buffer
+theorem manual_proof_Buffer :
+    (proc.Proc_name DFName.DF : proc DFName Event) <=F Buffer := by
+  rw [Buffer]
+  refine cspF_fp_induct_cms_ref_right (Pf := Bufferfun) (f := Buffer_to_DF)
+    rfl guardedfun_Bufferfun rfl cspF_reflex_ref_P (fun pn => ?_)
+  have hunwind :
+      eqF (proc.Proc_name DFName.DF : proc DFName Event) MF MF
+        (DFfun DFName.DF) :=
+    «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guardedfun_DFfun⟩))
+  cases pn with
+  | Empty n =>
+      -- $DF <=F (? r:(left ` UNIV) -> $DF)
+      refine cspF_rw_left_ref hunwind ?_
+      rw [DFfun]
+      change refF (Int_pre_choice Set.univ fun _ => proc.Proc_name DFName.DF)
+        MF MF
+        (Rec_prefix Event.left Set.univ fun r =>
+          Buffer_to_DF (Name.Full r n))
+      rw [Rec_prefix]
+      exact cspF_Int_Ext_pre_choice_subset
+        (by simp [Set.image_univ])
+        (Set.subset_univ _)
+        (fun a _ => cspF_reflex_ref_P)
+  | Full r n =>
+      -- $DF <=F (right (r,n) -> $DF)
+      refine cspF_rw_left_ref hunwind ?_
+      change refF (DFfun DFName.DF) MF MF
+        (Event.right (r, n) ~> proc.Proc_name DFName.DF)
+      refine cspF_rw_right_ref cspF_Act_prefix_step ?_
+      rw [DFfun]
+      exact cspF_Int_Ext_pre_choice_subset
+        (by simp)
+        (Set.subset_univ _)
+        (fun a _ => cspF_reflex_ref_P)
 
 /- (*** semi-automatic proof ***) -/
 

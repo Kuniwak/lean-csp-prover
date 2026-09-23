@@ -134,11 +134,11 @@ theorem Rep_int_choice_com_def (A : Set α) (Pf : α → proc p α) :
         (fun X => (the_elem X).elim proc.DIV Pf) :=
   rfl
 
-def Rep_int_choice_f [Inhabited β] (f : β → α) (X : Set β) (Pf : β → proc p α) :
+def Rep_int_choice_f [Nonempty β] (f : β → α) (X : Set β) (Pf : β → proc p α) :
     proc p α :=
   Rep_int_choice_com (f '' X) fun x => Pf (Function.invFun f x)
 
-theorem Rep_int_choice_f_def [Inhabited β] (f : β → α) (X : Set β)
+theorem Rep_int_choice_f_def [Nonempty β] (f : β → α) (X : Set β)
     (Pf : β → proc p α) :
     Rep_int_choice_f (p := p) f X Pf =
       Rep_int_choice_com (f '' X) (fun x => Pf (Function.invFun f x)) :=
@@ -162,20 +162,20 @@ theorem Send_prefix_def (a : x → α) (x : x) (P : proc p α) :
     Send_prefix (p := p) a x P = a x ~> P :=
   rfl
 
-def Nondet_send_prefix [Inhabited x] (f : x → α) (X : Set x) (Pf : x → proc p α) :
+def Nondet_send_prefix [Nonempty x] (f : x → α) (X : Set x) (Pf : x → proc p α) :
     proc p α :=
   Int_pre_choice (f '' X) fun x => Pf (Function.invFun f x)
 
-theorem Nondet_send_prefix_def [Inhabited x] (f : x → α) (X : Set x)
+theorem Nondet_send_prefix_def [Nonempty x] (f : x → α) (X : Set x)
     (Pf : x → proc p α) :
     Nondet_send_prefix (p := p) f X Pf =
       Int_pre_choice (f '' X) (fun x => Pf (Function.invFun f x)) :=
   rfl
 
-def Rec_prefix [Inhabited x] (f : x → α) (X : Set x) (Pf : x → proc p α) : proc p α :=
+def Rec_prefix [Nonempty x] (f : x → α) (X : Set x) (Pf : x → proc p α) : proc p α :=
   proc.Ext_pre_choice (f '' X) fun x => Pf (Function.invFun f x)
 
-theorem Rec_prefix_def [Inhabited x] (f : x → α) (X : Set x) (Pf : x → proc p α) :
+theorem Rec_prefix_def [Nonempty x] (f : x → α) (X : Set x) (Pf : x → proc p α) :
     Rec_prefix (p := p) f X Pf =
       proc.Ext_pre_choice (f '' X) (fun x => Pf (Function.invFun f x)) :=
   rfl
@@ -415,14 +415,14 @@ theorem Subst_procfun_prod_p (Pf : p → proc q α) (Qf : q → proc r α) (p0 :
   congr 1
   funext X
   cases the_elem X <;> rfl
-@[simp] theorem Subst_procfun_Rep_int_choice_f [Inhabited β]
+@[simp] theorem Subst_procfun_Rep_int_choice_f [Nonempty β]
     (f : β → α) (X : Set β) (Qf : β → proc p α) (Pf : p → proc q α) :
     (Rep_int_choice_f f X Qf) << Pf = Rep_int_choice_f f X (fun x => (Qf x) << Pf) :=
   Subst_procfun_Rep_int_choice_com _ _ _
 @[simp] theorem Subst_procfun_Send_prefix (a : x → α) (v : x) (P : proc p α) (Pf : p → proc q α) :
     (Send_prefix a v P) << Pf = Send_prefix a v (P << Pf) :=
   rfl
-@[simp] theorem Subst_procfun_Rec_prefix [Inhabited x] (a : x → α) (X : Set x) (Pf : x → proc p α)
+@[simp] theorem Subst_procfun_Rec_prefix [Nonempty x] (a : x → α) (X : Set x) (Pf : x → proc p α)
     (Qf : p → proc q α) :
     (Rec_prefix a X Pf) << Qf = Rec_prefix a X (fun x => (Pf x) << Qf) :=
   rfl
@@ -430,7 +430,7 @@ theorem Subst_procfun_prod_p (Pf : p → proc q α) (Qf : q → proc r α) (p0 :
     (Qf : p → proc q α) :
     (Int_pre_choice X Pf) << Qf = Int_pre_choice X (fun x => (Pf x) << Qf) :=
   Subst_procfun_Rep_int_choice_com _ _ _
-@[simp] theorem Subst_procfun_Nondet_send_prefix [Inhabited x]
+@[simp] theorem Subst_procfun_Nondet_send_prefix [Nonempty x]
     (a : x → α) (X : Set x) (Pf : x → proc p α) (Qf : p → proc q α) :
     (Nondet_send_prefix a X Pf) << Qf = Nondet_send_prefix a X (fun x => (Pf x) << Qf) :=
   Subst_procfun_Rep_int_choice_com _ _ _
@@ -582,7 +582,7 @@ private theorem pred_Rep_int_choice_nat_iff {Pf : Nat → proc p α}
     simpa using h {a}
   · intro h X
     cases the_elem X <;> simp [noPN, h]
-theorem noPN_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
+theorem noPN_Rep_int_choice_f [Nonempty β] {f : β → α} {X : Set β}
     {Pf : β → proc p α} (_hf : Injective f) (hPf : ∀ a, noPN (Pf a)) :
     noPN (Rep_int_choice_f (p := p) f X Pf) := by
   rw [Rep_int_choice_f, noPN_Rep_int_choice_com]
@@ -606,7 +606,7 @@ theorem noPN_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
     simpa using h {a}
   · intro h X
     cases the_elem X <;> simp [gSKIP, h]
-theorem gSKIP_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
+theorem gSKIP_Rep_int_choice_f [Nonempty β] {f : β → α} {X : Set β}
     {Pf : β → proc p α} (_hf : Injective f) (hPf : ∀ a, gSKIP (Pf a)) :
     gSKIP (Rep_int_choice_f (p := p) f X Pf) := by
   rw [Rep_int_choice_f, gSKIP_Rep_int_choice_com]
@@ -630,7 +630,7 @@ theorem gSKIP_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
     simpa using h {a}
   · intro h X
     cases the_elem X <;> simp [noHide, h]
-theorem noHide_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
+theorem noHide_Rep_int_choice_f [Nonempty β] {f : β → α} {X : Set β}
     {Pf : β → proc p α} (_hf : Injective f) (hPf : ∀ a, noHide (Pf a)) :
     noHide (Rep_int_choice_f (p := p) f X Pf) := by
   rw [Rep_int_choice_f, noHide_Rep_int_choice_com]
@@ -654,7 +654,7 @@ theorem noHide_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
     simpa using h {a}
   · intro h X
     cases the_elem X <;> simp [guarded, h]
-theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
+theorem guarded_Rep_int_choice_f [Nonempty β] {f : β → α} {X : Set β}
     {Pf : β → proc p α} (_hf : Injective f) (hPf : ∀ a, guarded (Pf a)) :
     guarded (Rep_int_choice_f (p := p) f X Pf) := by
   rw [Rep_int_choice_f, guarded_Rep_int_choice_com]
@@ -667,14 +667,14 @@ theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
 @[simp] theorem noPN_Send_prefix (a : x → α) (v : x) (P : proc p α) :
     noPN (Send_prefix a v P) ↔ noPN P :=
   Iff.rfl
-@[simp] theorem noPN_Rec_prefix [Inhabited x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
+@[simp] theorem noPN_Rec_prefix [Nonempty x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
     noPN (Rec_prefix a X Pf) ↔ (∀ x, noPN (Pf (Function.invFun a x))) :=
   Iff.rfl
 @[simp] theorem noPN_Int_pre_choice (X : Set α) (Pf : α → proc p α) :
     noPN (Int_pre_choice X Pf) ↔ (∀ x, noPN (Pf x)) := by
   rw [Int_pre_choice, noPN_Rep_int_choice_com]
   exact Iff.rfl
-@[simp] theorem noPN_Nondet_send_prefix [Inhabited x]
+@[simp] theorem noPN_Nondet_send_prefix [Nonempty x]
     (a : x → α) (X : Set x) (Pf : x → proc p α) :
     noPN (Nondet_send_prefix a X Pf) ↔ (∀ x, noPN (Pf (Function.invFun a x))) := by
   rw [Nondet_send_prefix, noPN_Int_pre_choice]
@@ -682,7 +682,7 @@ theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
 @[simp] theorem gSKIP_Send_prefix (a : x → α) (v : x) (P : proc p α) :
     gSKIP (Send_prefix a v P) :=
   trivial
-@[simp] theorem gSKIP_Rec_prefix [Inhabited x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
+@[simp] theorem gSKIP_Rec_prefix [Nonempty x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
     gSKIP (Rec_prefix a X Pf) :=
   trivial
 @[simp] theorem gSKIP_Int_pre_choice (X : Set α) (Pf : α → proc p α) :
@@ -690,7 +690,7 @@ theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
   rw [Int_pre_choice, gSKIP_Rep_int_choice_com]
   intro a
   trivial
-@[simp] theorem gSKIP_Nondet_send_prefix [Inhabited x]
+@[simp] theorem gSKIP_Nondet_send_prefix [Nonempty x]
     (a : x → α) (X : Set x) (Pf : x → proc p α) :
     gSKIP (Nondet_send_prefix a X Pf) :=
   gSKIP_Int_pre_choice _ _
@@ -698,14 +698,14 @@ theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
 @[simp] theorem noHide_Send_prefix (a : x → α) (v : x) (P : proc p α) :
     noHide (Send_prefix a v P) ↔ noHide P :=
   Iff.rfl
-@[simp] theorem noHide_Rec_prefix [Inhabited x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
+@[simp] theorem noHide_Rec_prefix [Nonempty x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
     noHide (Rec_prefix a X Pf) ↔ (∀ x, noHide (Pf (Function.invFun a x))) :=
   Iff.rfl
 @[simp] theorem noHide_Int_pre_choice (X : Set α) (Pf : α → proc p α) :
     noHide (Int_pre_choice X Pf) ↔ (∀ x, noHide (Pf x)) := by
   rw [Int_pre_choice, noHide_Rep_int_choice_com]
   exact Iff.rfl
-@[simp] theorem noHide_Nondet_send_prefix [Inhabited x]
+@[simp] theorem noHide_Nondet_send_prefix [Nonempty x]
     (a : x → α) (X : Set x) (Pf : x → proc p α) :
     noHide (Nondet_send_prefix a X Pf) ↔ (∀ x, noHide (Pf (Function.invFun a x))) := by
   rw [Nondet_send_prefix, noHide_Int_pre_choice]
@@ -713,14 +713,14 @@ theorem guarded_Rep_int_choice_f [Inhabited β] {f : β → α} {X : Set β}
 @[simp] theorem guarded_Send_prefix (a : x → α) (v : x) (P : proc p α) :
     guarded (Send_prefix a v P) ↔ noHide P :=
   Iff.rfl
-@[simp] theorem guarded_Rec_prefix [Inhabited x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
+@[simp] theorem guarded_Rec_prefix [Nonempty x] (a : x → α) (X : Set x) (Pf : x → proc p α) :
     guarded (Rec_prefix a X Pf) ↔ (∀ x, noHide (Pf (Function.invFun a x))) :=
   Iff.rfl
 @[simp] theorem guarded_Int_pre_choice (X : Set α) (Pf : α → proc p α) :
     guarded (Int_pre_choice X Pf) ↔ (∀ x, noHide (Pf x)) := by
   rw [Int_pre_choice, guarded_Rep_int_choice_com]
   exact forall_congr' fun x => Iff.rfl
-@[simp] theorem guarded_Nondet_send_prefix [Inhabited x]
+@[simp] theorem guarded_Nondet_send_prefix [Nonempty x]
     (a : x → α) (X : Set x) (Pf : x → proc p α) :
     guarded (Nondet_send_prefix a X Pf) ↔ (∀ x, noHide (Pf (Function.invFun a x))) := by
   rw [Nondet_send_prefix, guarded_Int_pre_choice]

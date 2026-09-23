@@ -173,10 +173,29 @@ def prefsfF : proc p α → proc p α
             --- prefsfF P is fullly sequentialized ---
  *===============================================================* -/
 
-axiom prefsfF_in_lm
+theorem prefsfF_in_lm
     {P : proc p α} :
-    noPN P →
-      fsfF_proc (prefsfF P)
+    noPN P → fsfF_proc (prefsfF P) := by
+  induction P with
+  | STOP => intro _; exact fsfF_SSTOP_in
+  | SKIP => intro _; exact fsfF_SSKIP_in
+  | DIV => intro _; exact fsfF_SDIV_in
+  | Act_prefix a P ih => intro h; exact fsfF_Act_prefix_in (ih h)
+  | Ext_pre_choice A Pf ih => intro h; exact fsfF_Ext_pre_choice_in (fun a => ih a (h a))
+  | Ext_choice P Q ihP ihQ => intro h; exact fsfF_Ext_choice_in (ihP h.1) (ihQ h.2)
+  | Int_choice P Q ihP ihQ => intro h; exact fsfF_Int_choice_in (ihP h.1) (ihQ h.2)
+  | Rep_int_choice C Pf ih => intro h; exact fsfF_Rep_int_choice_in (fun c _ => ih c (h c))
+  | «IF» b P Q ihP ihQ =>
+      intro h
+      cases b
+      · exact ihQ h.2
+      · exact ihP h.1
+  | Parallel P X Q ihP ihQ => intro h; exact fsfF_Parallel_in (ihP h.1) (ihQ h.2)
+  | Hiding P X ih => intro h; exact fsfF_Hiding_in (ih h)
+  | Renaming P r ih => intro h; exact fsfF_Renaming_in (ih h)
+  | Seq_compo P Q ihP ihQ => intro h; exact fsfF_Seq_compo_in (ihP h.1) (ihQ h.2)
+  | Depth_rest P n ih => intro h; exact fsfF_Depth_rest_in (ih h)
+  | Proc_name p0 => intro h; exact absurd h (by simp [noPN])
 
 theorem prefsfF_in
     {P : proc p α} :
@@ -189,11 +208,56 @@ theorem prefsfF_in
            --- prefsfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_prefsfF_eqF_lm
+theorem cspF_prefsfF_eqF_lm
     [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
-    noPN P →
-      eqFfix P (prefsfF P)
+    noPN P → eqFfix P (prefsfF P) := by
+  induction P with
+  | STOP => intro _; exact cspF_SSTOP_eqF
+  | SKIP => intro _; exact cspF_SSKIP_eqF
+  | DIV => intro _; exact cspF_SDIV_eqF
+  | Act_prefix a P ih =>
+      intro h
+      exact cspF_trans_left_eq (cspF_Act_prefix_cong rfl (ih h)) cspF_fsfF_Act_prefix_eqF
+  | Ext_pre_choice A Pf ih =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Ext_pre_choice_cong rfl (fun a _ => ih a (h a))) cspF_fsfF_Ext_pre_choice_eqF
+  | Ext_choice P Q ihP ihQ =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Ext_choice_cong (ihP h.1) (ihQ h.2)) cspF_fsfF_Ext_choice_eqF
+  | Int_choice P Q ihP ihQ =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Int_choice_cong (ihP h.1) (ihQ h.2)) cspF_fsfF_Int_choice_eqF
+  | Rep_int_choice C Pf ih =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Rep_int_choice_cong_sum rfl (fun c _ => ih c (h c))) cspF_fsfF_Rep_int_choice_eqF
+  | «IF» b P Q ihP ihQ =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_IF_cong rfl (ihP h.1) (ihQ h.2)) cspF_fsfF_IF_eqF
+  | Parallel P X Q ihP ihQ =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Parallel_cong rfl (ihP h.1) (ihQ h.2)) cspF_fsfF_Parallel_eqF
+  | Hiding P X ih =>
+      intro h
+      exact cspF_trans_left_eq (cspF_Hiding_cong rfl (ih h)) cspF_fsfF_Hiding_eqF
+  | Renaming P r ih =>
+      intro h
+      exact cspF_trans_left_eq (cspF_Renaming_cong rfl (ih h)) cspF_fsfF_Renaming_eqF
+  | Seq_compo P Q ihP ihQ =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Seq_compo_cong (ihP h.1) (ihQ h.2)) cspF_fsfF_Seq_compo_eqF
+  | Depth_rest P n ih =>
+      intro h
+      exact cspF_trans_left_eq
+        (cspF_Depth_rest_cong rfl (ih h)) cspF_fsfF_Depth_rest_eqF
+  | Proc_name p0 => intro h; exact absurd h (by simp [noPN])
 
 theorem cspF_prefsfF_eqF
     [HasPNfun p α] [HasFPmode]
