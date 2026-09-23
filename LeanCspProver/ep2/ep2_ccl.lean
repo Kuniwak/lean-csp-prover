@@ -54,35 +54,40 @@ theorem trigger_def (p : TerminalState × Trigger) :
   rfl
 
 /- Session start -/
-axiom sessionStart : Trigger → D_SI_Init_SessionStart
+/- Lean note:
+   Isabelle's unspecified `consts` were ported as `axiom`s; they are now
+   `noncomputable opaque` constants (the codomains are inhabited), the
+   same abstraction without extending the axiom base. -/
+
+noncomputable opaque sessionStart : Trigger → D_SI_Init_SessionStart
 
 /- ConfigDataRequest -/
-axiom configDataResponse :
+noncomputable opaque configDataResponse :
   D_SI_Init_ConfigDataRequest × TerminalState →
     D_SI_Init_ConfigDataResponse
 
 /- ConfigDataNotification -/
-axiom configDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
-axiom configData :
+noncomputable opaque configDataAcknowledge : D_SI_Init_ConfigDataAcknowledge
+noncomputable opaque configData :
   D_SI_Init_ConfigDataNotification × TerminalState →
     TerminalState
 
 /- ConfigDataRemove -/
-axiom removeDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
-axiom removeData :
+noncomputable opaque removeDataAcknowledge : D_SI_Init_RemoveConfigDataAcknowledge
+noncomputable opaque removeData :
   D_SI_Init_RemoveConfigDataNotification × TerminalState →
     TerminalState
 
 /- ActivateConfigDataNotification -/
-axiom activateDataAcknowledge : D_SI_Init_ActivateConfigDataAcknowledge
-axiom activateData :
+noncomputable opaque activateDataAcknowledge : D_SI_Init_ActivateConfigDataAcknowledge
+noncomputable opaque activateData :
   D_SI_Init_ActivateConfigDataNotification × TerminalState →
     TerminalState
 
 /- Message -/
-axiom AcqConnectionFailed : Message
-axiom InitialisationFinished : Message
-axiom InitialisationFailed : Message
+noncomputable opaque AcqConnectionFailed : Message
+noncomputable opaque InitialisationFinished : Message
+noncomputable opaque InitialisationFailed : Message
 
 /- *********************************************************
          concrete component description level
@@ -175,21 +180,31 @@ theorem CC_def (p : TerminalState × Trigger) :
                 gProc lemmas (routine work)
  ********************************************************* -/
 
-@[simp] axiom guarded_CC :
-    guardedfun CCfun
+@[simp] theorem guarded_CC :
+    guardedfun CCfun := by
+  intro pn
+  cases pn <;>
+    simp [CCfun, Rec_prefix, guarded, noHide]
 
 /- *********************************************************
         relating function between AbsName and ACName
  ********************************************************* -/
 
+/- Lean note:
+   Isabelle's `!<f> :X .. Pf` (`CSP_syntax.thy:252`,
+   `!<f> :X .. Pf == ! :(f ` X) .. (%x. Pf ((inv f) x))`) is a replicated
+   *internal choice* indexed through `f`; it performs no event.  The port had
+   `Nondet_send_prefix`, which is `!<f> :X -> Pf` and prefixes each branch
+   with `f x`.  The source here writes `..`, so it is `Rep_int_choice_f`. -/
+
 def AC_to_CC : ACName → proc CCName Event
   | ACName.TInit =>
-      Nondet_send_prefix Event.PairTT Set.univ fun p =>
+      Rep_int_choice_f Event.PairTT Set.univ fun p =>
         proc.Hiding
           (proc.Proc_name (CCName.CTInit p))
           (Set.range Event.C_TerminalDisplay)
   | ACName.TConfigurationManagement =>
-      Nondet_send_prefix Event.PairTT Set.univ fun p =>
+      Rep_int_choice_f Event.PairTT Set.univ fun p =>
         proc.Hiding
           (proc.Proc_name (CCName.CTConfigurationManagement p))
           (Set.range Event.C_TerminalDisplay)
@@ -205,22 +220,140 @@ def AC_to_CC : ACName → proc CCName Event
 /- Lean note:
    Isabelle's `declare inj_on_def [simp]` has no direct Lean analogue here. -/
 
-axiom ep2_ccl_terminal_step1 :
-    (ACfun ACName.TInit) << AC_to_CC <=F AC_to_CC ACName.TInit
+private theorem inj_PairTT : Function.Injective Event.PairTT := by
+  intro a b h
+  cases h
+  rfl
 
-axiom ep2_ccl_terminal_step2 :
+private theorem inj_C_SI_Init : Function.Injective Event.C_SI_Init := by
+  intro a b h
+  cases h
+  rfl
+
+private theorem unwCC (pn : CCName) :
+    eqF (proc.Proc_name pn : proc CCName Event) MF MF (CCfun pn) :=
+  «cspF_unwind» rfl (Or.inr (Or.inl ⟨rfl, guarded_CC⟩))
+
+/-- Hiding the terminal display leaves a `C_SI_Init` prefix untouched. -/
+private theorem hide_C_SI_Init (x : D_SI_Init) (P : proc CCName Event) :
+    eqF (proc.Hiding (Event.C_SI_Init x ~> P) (Set.range Event.C_TerminalDisplay)) MF MF
+      (Event.C_SI_Init x ~> proc.Hiding P (Set.range Event.C_TerminalDisplay)) :=
+  cspF_Hiding_Act_prefix_notin (by simp)
+
+theorem ep2_ccl_terminal_step1 :
+    (ACfun ACName.TInit) << AC_to_CC <=F AC_to_CC ACName.TInit := by
+  simp only [AC_to_CC]
+  refine cspF_Rep_int_choice_f_right inj_PairTT (fun q _ => ?_)
+  refine cspF_rw_right_ref
+    (cspF_trans_left_eq (cspF_Hiding_cong rfl (unwCC (CCName.CTInit q)))
+      (hide_C_SI_Init _ _)) ?_
+  simp only [ACfun, AC_to_CC, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+  refine cspF_Nondet_send_prefix_left_x
+    (a := D_SI_Init.SStart (sessionStart (trigger q))) inj_C_SI_Init ⟨_, rfl⟩ ?_
+  refine cspF_Act_prefix_mono rfl ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+    (Pf := fun r => proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement r))
+      (Set.range Event.C_TerminalDisplay))
+    (a := q) inj_PairTT (Set.mem_univ q) cspF_reflex_ref_P
+
+/-- A single acknowledgement branch of the loop: the abstract side picks the
+    very value that the concrete side is about to send, and then the internal
+    choice over terminal states picks the concrete successor state. -/
+private theorem step2_branch {γ : Type} [Inhabited γ] (g : γ → D_SI_Init) (v : γ)
+    (r : TerminalState × Trigger) :
+    refF
+      (Nondet_send_prefix Event.C_SI_Init (Set.range g) fun _ =>
+        Rep_int_choice_f Event.PairTT Set.univ fun s =>
+          proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement s))
+            (Set.range Event.C_TerminalDisplay))
+      MF MF
+      (proc.Hiding
+        (Event.C_SI_Init (g v) ~> proc.Proc_name (CCName.CTConfigurationManagement r))
+        (Set.range Event.C_TerminalDisplay)) := by
+  refine cspF_rw_right_ref (hide_C_SI_Init _ _) ?_
+  refine cspF_Nondet_send_prefix_left_x (a := g v) inj_C_SI_Init ⟨v, rfl⟩ ?_
+  refine cspF_Act_prefix_mono rfl ?_
+  exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+    (Pf := fun s => proc.Hiding (proc.Proc_name (CCName.CTConfigurationManagement s))
+      (Set.range Event.C_TerminalDisplay))
+    (a := r) inj_PairTT (Set.mem_univ r) cspF_reflex_ref_P
+
+/-- The session-end branch: the concrete side reports on the terminal display,
+    which is hidden, and both sides terminate. -/
+private theorem step2_SEnd :
+    refF (proc.SKIP : proc CCName Event) MF MF
+      (proc.Hiding
+        (Event.C_TerminalDisplay InitialisationFinished ~> (proc.SKIP : proc CCName Event))
+        (Set.range Event.C_TerminalDisplay)) :=
+  cspF_rw_right_ref
+    (cspF_trans_left_eq (cspF_Hiding_Act_prefix_in ⟨_, rfl⟩) cspF_SKIP_Hiding_Id)
+    cspF_reflex_ref_P
+
+theorem ep2_ccl_terminal_step2 :
     (ACfun ACName.TConfigurationManagement) << AC_to_CC <=F
-      AC_to_CC ACName.TConfigurationManagement
+      AC_to_CC ACName.TConfigurationManagement := by
+  have hdisj :
+      Event.C_SI_Init '' (Set.univ : Set D_SI_Init) ∩
+        Set.range Event.C_TerminalDisplay = ∅ := by
+    rw [Set.eq_empty_iff_forall_notMem]
+    rintro e ⟨⟨x, -, rfl⟩, y, hy⟩
+    exact absurd hy (by simp)
+  simp only [AC_to_CC]
+  refine cspF_Rep_int_choice_f_right inj_PairTT (fun q _ => ?_)
+  refine cspF_rw_right_ref
+    (cspF_Hiding_cong rfl (unwCC (CCName.CTConfigurationManagement q))) ?_
+  simp only [CCfun, ACfun, AC_to_CC, Subst_procfun_Rec_prefix,
+    Subst_procfun_Nondet_send_prefix, Subst_procfun]
+  refine cspF_rw_right_ref (cspF_Hiding_Rec_prefix_notin hdisj) ?_
+  refine cspF_Rec_prefix_mono inj_C_SI_Init rfl rfl (fun x _ => ?_)
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.CDRes
+      (configDataResponse (Function.invFun D_SI_Init.CDReq x, state q)) q) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.CDA configDataAcknowledge
+      (configData (Function.invFun D_SI_Init.CDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.RCDA removeDataAcknowledge
+      (removeData (Function.invFun D_SI_Init.RCDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl
+    (step2_branch D_SI_Init.ACDA activateDataAcknowledge
+      (activateData (Function.invFun D_SI_Init.ACDN x, state q), trigger q)) ?_
+  refine cspF_rw_right_ref cspF_Hiding_IF ?_
+  refine cspF_IF_mono rfl step2_SEnd ?_
+  exact cspF_rw_right_ref cspF_STOP_Hiding_Id cspF_reflex_ref_P
 
-axiom ACDef_AC_to_CC (p : ACName) :
-    (ACfun p) << AC_to_CC <=F AC_to_CC p
+theorem ACDef_AC_to_CC (p : ACName) :
+    (ACfun p) << AC_to_CC <=F AC_to_CC p := by
+  cases p with
+  | TInit => exact ep2_ccl_terminal_step1
+  | TConfigurationManagement => exact ep2_ccl_terminal_step2
+  | AcquirerInit =>
+      exact cspF_rw_right_ref (unwCC CCName.CAcquirerInit) cspF_reflex_ref_P
+  | ConfigurationManagement =>
+      refine cspF_rw_right_ref (unwCC CCName.CConfigurationManagement) ?_
+      simp only [ACfun, CCfun, Subst_procfun_Nondet_send_prefix, Subst_procfun]
+      exact cspF_reflex_ref_P
 
 /- ****************************
       !!p. AC p <=F CC p
  **************************** -/
 
-axiom ep2_acl_ccl :
-    ∀ p, AC <=F CC p
+theorem ep2_acl_ccl : ∀ p, AC <=F CC p := by
+  intro p
+  rw [AC_def, CC_def]
+  refine cspF_Parallel_mono rfl ?_ ?_
+  · refine cspF_fp_induct_ref_left (Pf := ACfun) (f := AC_to_CC) (p0 := ACName.TInit)
+      rfl (Or.inl rfl) guarded_AC ?_ ACDef_AC_to_CC
+    exact cspF_Rep_int_choice_f_left_x (f := Event.PairTT) (X := Set.univ)
+      (Pf := fun q => proc.Hiding (proc.Proc_name (CCName.CTInit q))
+        (Set.range Event.C_TerminalDisplay))
+      (a := p) inj_PairTT (Set.mem_univ p) cspF_reflex_ref_P
+  · refine cspF_fp_induct_ref_left (Pf := ACfun) (f := AC_to_CC) (p0 := ACName.AcquirerInit)
+      rfl (Or.inl rfl) guarded_AC cspF_reflex_ref_P ACDef_AC_to_CC
 
 /- ****************************
       !!p. Abs <=F CC p

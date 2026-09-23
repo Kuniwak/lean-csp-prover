@@ -109,7 +109,37 @@ theorem fnfF_set_completion_Union_subset {A : Set α} {Ys : Set (Set α)}
  |                   intro, elim, simp                      |
  *----------------------------------------------------------*) -/
 
-axiom fnfF_proc_iff {NP : proc p α} :
+/-- The two pointwise hypotheses of `fnfF_proc_rule` packaged as one `if`. -/
+private theorem fnfF_proc_if_intro {A : Set α} {Pf : α → proc p α}
+    (hPf : ∀ a, a ∈ A → fnfF_proc (Pf a))
+    (hPfDIV : ∀ a, a ∉ A → Pf a = proc.DIV) :
+    ∀ a, (if a ∈ A then fnfF_proc (Pf a) else Pf a = proc.DIV) := by
+  intro a
+  by_cases ha : a ∈ A
+  · rw [if_pos ha]
+    exact hPf a ha
+  · rw [if_neg ha]
+    exact hPfDIV a ha
+
+/-- `fnfF_proc_rule` with the pointwise hypotheses given as one `if`. -/
+private theorem fnfF_proc_rule_if {A : Set α} {Ys : Set (Set α)} {Pf : α → proc p α}
+    {Q : proc p α}
+    (hPf : ∀ a, (if a ∈ A then fnfF_proc (Pf a) else Pf a = proc.DIV))
+    (hCond : fnfF_set_condition A Ys)
+    (hUnion : Set.sUnion Ys ⊆ A)
+    (hQ : Q = proc.SKIP ∨ Q = proc.DIV) :
+    fnfF_proc
+      ((((proc.Ext_pre_choice A Pf) [+] Q) |~|
+        Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+  refine fnfF_proc.fnfF_proc_rule ?_ ?_ hCond hUnion hQ
+  · intro a ha
+    have h := hPf a
+    rwa [if_pos ha] at h
+  · intro a ha
+    have h := hPf a
+    rwa [if_neg ha] at h
+
+theorem fnfF_proc_iff {NP : proc p α} :
     fnfF_proc NP ↔
       ∃ A Ys Pf Q,
         (NP =
@@ -118,9 +148,16 @@ axiom fnfF_proc_iff {NP : proc p α} :
           (∀ a, (if a ∈ A then fnfF_proc (Pf a) else Pf a = proc.DIV)) ∧
           fnfF_set_condition A Ys ∧
           Set.sUnion Ys ⊆ A ∧
-          (Q = proc.SKIP ∨ Q = proc.DIV)
+          (Q = proc.SKIP ∨ Q = proc.DIV) := by
+  constructor
+  · intro h
+    cases h with
+    | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+        exact ⟨A, Ys, Pf, Q, rfl, fnfF_proc_if_intro hPf hPfDIV, hCond, hUnion, hQ⟩
+  · rintro ⟨A, Ys, Pf, Q, rfl, hPf, hCond, hUnion, hQ⟩
+    exact fnfF_proc_rule_if hPf hCond hUnion hQ
 
-axiom fnfF_proc_EX_I {NP : proc p α} :
+theorem fnfF_proc_EX_I {NP : proc p α} :
     (∃ A Ys Pf Q,
         (NP =
             ((((proc.Ext_pre_choice A Pf) [+] Q) |~|
@@ -129,9 +166,10 @@ axiom fnfF_proc_EX_I {NP : proc p α} :
           fnfF_set_condition A Ys ∧
           Set.sUnion Ys ⊆ A ∧
           (Q = proc.SKIP ∨ Q = proc.DIV)) →
-      fnfF_proc NP
+      fnfF_proc NP :=
+  fnfF_proc_iff.mpr
 
-axiom fnfF_proc_EX_E {NP : proc p α} {S : Prop} :
+theorem fnfF_proc_EX_E {NP : proc p α} {S : Prop} :
     fnfF_proc NP →
       ((∃ A Ys Pf Q,
           (NP =
@@ -142,7 +180,8 @@ axiom fnfF_proc_EX_E {NP : proc p α} {S : Prop} :
             Set.sUnion Ys ⊆ A ∧
             (Q = proc.SKIP ∨ Q = proc.DIV)) →
         S) →
-      S
+      S :=
+  fun h hS => hS (fnfF_proc_iff.mp h)
 
 /- (*----------------------------------------------------------*
  |                 ALL fnfF_proc_iff                   |
@@ -156,7 +195,7 @@ private def FnfFData.Ys (d : FnfFData p α) : Set (Set α) := d.2.1
 private def FnfFData.Pf (d : FnfFData p α) : α → proc p α := d.2.2.1
 private def FnfFData.Q (d : FnfFData p α) : proc p α := d.2.2.2
 
-axiom ALL_fnfF_proc_only_if {X : Set ι} {NPf : ι → proc p α} :
+theorem ALL_fnfF_proc_only_if {X : Set ι} {NPf : ι → proc p α} :
     (∀ x ∈ X, fnfF_proc (NPf x)) →
       ∃ Af : ι → Set α, ∃ Ysf : ι → Set (Set α), ∃ Pff : ι → α → proc p α, ∃ Qf : ι → proc p α,
         (NPf =
@@ -169,9 +208,42 @@ axiom ALL_fnfF_proc_only_if {X : Set ι} {NPf : ι → proc p α} :
           (∀ x ∈ X, ∀ a, (if a ∈ Af x then fnfF_proc (Pff x a) else Pff x a = proc.DIV)) ∧
           (∀ x ∈ X, fnfF_set_condition (Af x) (Ysf x)) ∧
           (∀ x ∈ X, Set.sUnion (Ysf x) ⊆ Af x) ∧
-          (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV)
+          (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV) := by
+  intro h
+  have hch : ∀ x : ι, ∃ d : FnfFData p α,
+      x ∈ X →
+        (NPf x =
+            ((((proc.Ext_pre_choice (FnfFData.A d) (FnfFData.Pf d)) [+] (FnfFData.Q d)) |~|
+              Rep_int_choice_set (FnfFData.Ys d)
+                (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))) ∧
+          (∀ a, (if a ∈ FnfFData.A d then fnfF_proc (FnfFData.Pf d a)
+            else FnfFData.Pf d a = proc.DIV)) ∧
+          fnfF_set_condition (FnfFData.A d) (FnfFData.Ys d) ∧
+          Set.sUnion (FnfFData.Ys d) ⊆ FnfFData.A d ∧
+          (FnfFData.Q d = proc.SKIP ∨ FnfFData.Q d = proc.DIV) := by
+    intro x
+    by_cases hx : x ∈ X
+    · rcases fnfF_proc_iff.mp (h x hx) with ⟨A, Ys, Pf, Q, hEq, hPf, hCond, hUnion, hQ⟩
+      exact ⟨(A, Ys, Pf, Q), fun _ => ⟨hEq, hPf, hCond, hUnion, hQ⟩⟩
+    · exact ⟨(∅, ∅, fun _ => proc.DIV, proc.DIV), fun hmem => absurd hmem hx⟩
+  choose F hF using hch
+  refine ⟨fun x => FnfFData.A (F x), fun x => FnfFData.Ys (F x),
+    fun x => FnfFData.Pf (F x), fun x => FnfFData.Q (F x), ?_, ?_, ?_, ?_, ?_⟩
+  · funext x
+    by_cases hx : x ∈ X
+    · rw [if_pos hx]
+      exact (hF x hx).1
+    · rw [if_neg hx]
+  · intro x hx
+    exact (hF x hx).2.1
+  · intro x hx
+    exact (hF x hx).2.2.1
+  · intro x hx
+    exact (hF x hx).2.2.2.1
+  · intro x hx
+    exact (hF x hx).2.2.2.2
 
-axiom ALL_fnfF_proc_iff {X : Set ι} {NPf : ι → proc p α} :
+theorem ALL_fnfF_proc_iff {X : Set ι} {NPf : ι → proc p α} :
     (∀ x ∈ X, fnfF_proc (NPf x)) ↔
       ∃ Af : ι → Set α, ∃ Ysf : ι → Set (Set α), ∃ Pff : ι → α → proc p α, ∃ Qf : ι → proc p α,
         (NPf =
@@ -184,9 +256,16 @@ axiom ALL_fnfF_proc_iff {X : Set ι} {NPf : ι → proc p α} :
           (∀ x ∈ X, ∀ a, (if a ∈ Af x then fnfF_proc (Pff x a) else Pff x a = proc.DIV)) ∧
           (∀ x ∈ X, fnfF_set_condition (Af x) (Ysf x)) ∧
           (∀ x ∈ X, Set.sUnion (Ysf x) ⊆ Af x) ∧
-          (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV)
+          (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV) := by
+  constructor
+  · exact ALL_fnfF_proc_only_if
+  · rintro ⟨Af, Ysf, Pff, Qf, hEq, hPf, hCond, hUnion, hQ⟩ x hx
+    have hx' := congrFun hEq x
+    rw [if_pos hx] at hx'
+    rw [hx']
+    exact fnfF_proc_rule_if (hPf x hx) (hCond x hx) (hUnion x hx) (hQ x hx)
 
-axiom ALL_fnfF_procI {X : Set ι} {NPf : ι → proc p α} :
+theorem ALL_fnfF_procI {X : Set ι} {NPf : ι → proc p α} :
     (∃ Af : ι → Set α, ∃ Ysf : ι → Set (Set α), ∃ Pff : ι → α → proc p α, ∃ Qf : ι → proc p α,
         (NPf =
             (fun x =>
@@ -199,9 +278,10 @@ axiom ALL_fnfF_procI {X : Set ι} {NPf : ι → proc p α} :
           (∀ x ∈ X, fnfF_set_condition (Af x) (Ysf x)) ∧
           (∀ x ∈ X, Set.sUnion (Ysf x) ⊆ Af x) ∧
           (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV)) →
-      ∀ x ∈ X, fnfF_proc (NPf x)
+      ∀ x ∈ X, fnfF_proc (NPf x) :=
+  ALL_fnfF_proc_iff.mpr
 
-axiom ALL_fnfF_procE {X : Set ι} {NPf : ι → proc p α} {S : Prop} :
+theorem ALL_fnfF_procE {X : Set ι} {NPf : ι → proc p α} {S : Prop} :
     (∀ x ∈ X, fnfF_proc (NPf x)) →
       ((∃ Af : ι → Set α, ∃ Ysf : ι → Set (Set α), ∃ Pff : ι → α → proc p α, ∃ Qf : ι → proc p α,
           (NPf =
@@ -217,7 +297,8 @@ axiom ALL_fnfF_procE {X : Set ι} {NPf : ι → proc p α} {S : Prop} :
             (∀ x ∈ X, Set.sUnion (Ysf x) ⊆ Af x) ∧
             (∀ x ∈ X, Qf x = proc.SKIP ∨ Qf x = proc.DIV)) →
         S) →
-      S
+      S :=
+  fun h hS => hS (ALL_fnfF_proc_only_if h)
 
 /- (*======================================================*
  |         function to decompose : fnfF_decompo         |
@@ -246,41 +327,84 @@ theorem fnfF_Ys_get {P : proc p α} {Ys : Set (Set α)} {Pf : Set α → proc p 
     fnfF_Ys (P |~| Rep_int_choice_set Ys Pf) = Ys := by
   simp [fnfF_Ys, Rep_int_choice_set_def]
 
+private theorem fnfF_A_get {A : Set α} {Pf : α → proc p α} {Q R : proc p α} :
+    fnfF_A ((((proc.Ext_pre_choice A Pf) [+] Q) |~| R)) = A :=
+  rfl
+
+private theorem fnfF_Pf_get {A : Set α} {Pf : α → proc p α} {Q R : proc p α} :
+    fnfF_Pf ((((proc.Ext_pre_choice A Pf) [+] Q) |~| R)) = Pf :=
+  rfl
+
+private theorem fnfF_Q_get {A : Set α} {Pf : α → proc p α} {Q R : proc p α} :
+    fnfF_Q ((((proc.Ext_pre_choice A Pf) [+] Q) |~| R)) = Q :=
+  rfl
+
 /- (*------------------------*
  |     decomposition      |
  *------------------------*) -/
 
-axiom cspF_fnfF_nat_decompo [HasPNfun p α] [HasFPmode] {P : proc p α} :
+theorem cspF_fnfF_nat_decompo [HasPNfun p α] [HasFPmode] {P : proc p α} :
     fnfF_proc P →
       eqFfix P
         ((((proc.Ext_pre_choice (fnfF_A P) (fnfF_Pf P)) [+] (fnfF_Q P)) |~|
-          Rep_int_choice_set (fnfF_Ys P) (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+          Rep_int_choice_set (fnfF_Ys P)
+            (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_A_get, fnfF_Pf_get, fnfF_Q_get, fnfF_Ys_get]
+      exact cspF_reflex_eq_P
 
 /- (*--------------------------------------*
  |   properties of fnfF decomposition   |
  *--------------------------------------*) -/
 
-axiom fnfF_Pf_A {P : proc p α} {a : α} :
+theorem fnfF_Pf_A {P : proc p α} {a : α} :
     fnfF_proc P →
       a ∈ fnfF_A P →
-      fnfF_proc ((fnfF_Pf P) a)
+      fnfF_proc ((fnfF_Pf P) a) := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_A_get, fnfF_Pf_get]
+      exact hPf a
 
-axiom fnfF_Pf_DIV {P : proc p α} {a : α} :
+theorem fnfF_Pf_DIV {P : proc p α} {a : α} :
     fnfF_proc P →
       a ∉ fnfF_A P →
-      (fnfF_Pf P) a = proc.DIV
+      (fnfF_Pf P) a = proc.DIV := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_A_get, fnfF_Pf_get]
+      exact hPfDIV a
 
-axiom fnfF_Q_range {P : proc p α} :
+theorem fnfF_Q_range {P : proc p α} :
     fnfF_proc P →
-      fnfF_Q P = proc.SKIP ∨ fnfF_Q P = proc.DIV
+      fnfF_Q P = proc.SKIP ∨ fnfF_Q P = proc.DIV := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_Q_get]
+      exact hQ
 
-axiom fnfF_condition_A_Ys {P : proc p α} :
+theorem fnfF_condition_A_Ys {P : proc p α} :
     fnfF_proc P →
-      fnfF_set_condition (fnfF_A P) (fnfF_Ys P)
+      fnfF_set_condition (fnfF_A P) (fnfF_Ys P) := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_A_get, fnfF_Ys_get]
+      exact hCond
 
-axiom fnfF_Union_Ys_A {P : proc p α} :
+theorem fnfF_Union_Ys_A {P : proc p α} :
     fnfF_proc P →
-      Set.sUnion (fnfF_Ys P) ⊆ fnfF_A P
+      Set.sUnion (fnfF_Ys P) ⊆ fnfF_A P := by
+  intro h
+  cases h with
+  | @fnfF_proc_rule A Ys Pf Q hPf hPfDIV hCond hUnion hQ =>
+      rw [fnfF_A_get, fnfF_Ys_get]
+      exact hUnion
 
 /- (*-----------------------*
  |    DIV, SKIP, STOP    |
@@ -301,28 +425,102 @@ def NSTOP : proc p α :=
 
 /- (*** in fnfF ***) -/
 
-@[simp] axiom fnfF_NSKIP : fnfF_proc (NSKIP (p := p) (α := α))
+private theorem fnfF_set_condition_empty :
+    fnfF_set_condition (∅ : Set α) (∅ : Set (Set α)) := by
+  rintro Y ⟨⟨Y0, hY0, -⟩, -⟩
+  simp at hY0
 
-@[simp] axiom fnfF_NDIV : fnfF_proc (NDIV (p := p) (α := α))
+private theorem fnfF_set_condition_empty_singleton :
+    fnfF_set_condition (∅ : Set α) ({(∅ : Set α)} : Set (Set α)) := by
+  rintro Y ⟨-, hYsub⟩
+  have hY : Y = ∅ := Set.subset_empty_iff.mp (by simpa using hYsub)
+  simp [hY]
 
-@[simp] axiom fnfF_NSTOP : fnfF_proc (NSTOP (p := p) (α := α))
+@[simp] theorem fnfF_NSKIP : fnfF_proc (NSKIP (p := p) (α := α)) := by
+  unfold NSKIP
+  refine fnfF_proc.fnfF_proc_rule ?_ ?_ fnfF_set_condition_empty ?_ (Or.inl rfl)
+  · intro a ha
+    simp at ha
+  · intro _ _
+    rfl
+  · simp
+
+@[simp] theorem fnfF_NDIV : fnfF_proc (NDIV (p := p) (α := α)) := by
+  unfold NDIV
+  refine fnfF_proc.fnfF_proc_rule ?_ ?_ fnfF_set_condition_empty ?_ (Or.inr rfl)
+  · intro a ha
+    simp at ha
+  · intro _ _
+    rfl
+  · simp
+
+@[simp] theorem fnfF_NSTOP : fnfF_proc (NSTOP (p := p) (α := α)) := by
+  unfold NSTOP
+  refine fnfF_proc.fnfF_proc_rule ?_ ?_ fnfF_set_condition_empty_singleton ?_ (Or.inr rfl)
+  · intro a ha
+    simp at ha
+  · intro _ _
+    rfl
+  · simp
 
 /- (*** eqF ***) -/
 
-axiom cspF_NSKIP_eqF [HasPNfun p α] [HasFPmode] :
-    eqFfix (proc.SKIP : proc p α) (NSKIP (p := p) (α := α))
+theorem cspF_NSKIP_eqF [HasPNfun p α] [HasFPmode] :
+    eqFfix (proc.SKIP : proc p α) (NSKIP (p := p) (α := α)) := by
+  unfold NSKIP
+  exact cspF_sym
+    (cspF_trans_left_eq
+      (cspF_Int_choice_cong
+        (cspF_Ext_choice_cong (cspF_sym cspF_STOP_step) cspF_reflex_eq_P)
+        cspF_Rep_int_choice_set_DIV)
+      (cspF_trans_left_eq cspF_Int_choice_unit_r cspF_Ext_choice_unit_l))
 
-axiom cspF_NDIV_eqF [HasPNfun p α] [HasFPmode] :
-    eqFfix (proc.DIV : proc p α) (NDIV (p := p) (α := α))
+theorem cspF_NDIV_eqF [HasPNfun p α] [HasFPmode] :
+    eqFfix (proc.DIV : proc p α) (NDIV (p := p) (α := α)) := by
+  unfold NDIV
+  exact cspF_sym
+    (cspF_trans_left_eq
+      (cspF_Int_choice_cong
+        (cspF_trans_left_eq
+          (cspF_Ext_choice_cong (cspF_sym cspF_STOP_step) cspF_reflex_eq_P)
+          cspF_Ext_choice_unit_l)
+        cspF_Rep_int_choice_set_DIV)
+      cspF_Int_choice_unit_r)
 
-axiom cspF_NSTOP_eqF [HasPNfun p α] [HasFPmode] :
-    eqFfix (proc.STOP : proc p α) (NSTOP (p := p) (α := α))
+theorem cspF_NSTOP_eqF [HasPNfun p α] [HasFPmode] :
+    eqFfix (proc.STOP : proc p α) (NSTOP (p := p) (α := α)) := by
+  unfold NSTOP
+  refine cspF_sym (cspF_trans_left_eq (cspF_Int_choice_cong ?_ ?_) cspF_Int_choice_unit_l)
+  · -- (? :∅ -> DIV) [+] DIV =F DIV
+    exact cspF_trans_left_eq
+      (cspF_Ext_choice_cong (cspF_sym cspF_STOP_step) cspF_reflex_eq_P)
+      cspF_Ext_choice_unit_l
+  · -- !set Y:{∅} .. (? a:Y -> DIV) =F STOP
+    have h1 : eqFfix
+        (Rep_int_choice_set ({(∅ : Set α)} : Set (Set α))
+          (fun Y => proc.Ext_pre_choice Y (fun _ => (proc.DIV : proc p α))))
+        (Rep_int_choice_set ({(∅ : Set α)} : Set (Set α))
+          (fun _ => proc.Ext_pre_choice (∅ : Set α) (fun _ => (proc.DIV : proc p α)))) := by
+      refine cspF_Rep_int_choice_cong_set rfl ?_
+      intro Y hY
+      have hY' : Y = ∅ := hY
+      subst hY'
+      exact cspF_reflex_eq_P
+    have h2 : eqFfix
+        (Rep_int_choice_set ({(∅ : Set α)} : Set (Set α))
+          (fun _ => proc.Ext_pre_choice (∅ : Set α) (fun _ => (proc.DIV : proc p α))))
+        (proc.Ext_pre_choice (∅ : Set α) (fun _ => (proc.DIV : proc p α))) :=
+      cspF_Rep_int_choice_set_unit (by simp)
+    have h3 : eqFfix (proc.Ext_pre_choice (∅ : Set α) (fun _ => (proc.DIV : proc p α)))
+        (proc.STOP : proc p α) :=
+      cspF_sym cspF_STOP_step
+    exact cspF_trans_left_eq h1 (cspF_trans_left_eq h2 h3)
 
 /- (*==============================================================*
  |               convenient rules for fnfF                      |
  *==============================================================*) -/
 
-axiom cspF_fnfF_Depth_rest_dist [HasPNfun p α] [HasFPmode]
+theorem cspF_fnfF_Depth_rest_dist [HasPNfun p α] [HasFPmode]
     {A : Set α} {Ys : Set (Set α)} {Pf : α → proc p α} {Q : proc p α} {n : Nat} :
     (Q = proc.SKIP ∨ Q = proc.DIV) →
       eqFfix
@@ -330,18 +528,46 @@ axiom cspF_fnfF_Depth_rest_dist [HasPNfun p α] [HasFPmode]
             Rep_int_choice_set Ys
               (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) |. Nat.succ n))
         ((((proc.Ext_pre_choice A (fun a => Pf a |. n)) [+] Q) |~|
-          Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))
+          Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+  intro hQ
+  have hQrest : eqFfix (Q |. Nat.succ n) Q := by
+    rcases hQ with rfl | rfl
+    · exact cspF_SKIP_Depth_rest
+    · exact cspF_DIV_Depth_rest
+  have hL : eqFfix ((((proc.Ext_pre_choice A Pf) [+] Q)) |. Nat.succ n)
+      ((proc.Ext_pre_choice A (fun a => Pf a |. n)) [+] Q) :=
+    cspF_trans_left_eq cspF_Depth_rest_Ext_dist
+      (cspF_Ext_choice_cong cspF_Depth_rest_step hQrest)
+  have hR : eqFfix
+      ((Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => (proc.DIV : proc p α))))
+        |. Nat.succ n)
+      (Rep_int_choice_set Ys (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) :=
+    cspF_trans_left_eq cspF_Depth_rest_Dist_set
+      (cspF_Rep_int_choice_cong_set rfl (fun Y _ =>
+        cspF_trans_left_eq cspF_Depth_rest_step
+          (cspF_Ext_pre_choice_cong rfl (fun a _ => cspF_DIV_Depth_rest))))
+  exact cspF_trans_left_eq cspF_Depth_rest_dist (cspF_Int_choice_cong hL hR)
 
 /- left DIV -/
 
-axiom cspF_fsfF_left_DIV [HasPNfun p α] [HasFPmode] {P : proc p α} :
+theorem cspF_fsfF_left_DIV [HasPNfun p α] [HasFPmode] {P : proc p α} :
     eqFfix
       ((((proc.Ext_pre_choice (∅ : Set α) (fun _ => proc.DIV)) [+] proc.DIV) |~| P))
-      P
+      P :=
+  cspF_trans_left_eq
+    (cspF_Int_choice_cong
+      (cspF_trans_left_eq
+        (cspF_Ext_choice_cong (cspF_sym cspF_STOP_step) cspF_reflex_eq_P)
+        cspF_Ext_choice_unit_l)
+      cspF_reflex_eq_P)
+    cspF_Int_choice_unit_l
 
-axiom cspF_fsfF_right_DIV [HasPNfun p α] [HasFPmode]
+theorem cspF_fsfF_right_DIV [HasPNfun p α] [HasFPmode]
     {P : proc p α} {Pf : Set α → proc p α} :
-    eqFfix (P |~| Rep_int_choice_set (∅ : Set (Set α)) Pf) P
+    eqFfix (P |~| Rep_int_choice_set (∅ : Set (Set α)) Pf) P :=
+  cspF_trans_left_eq
+    (cspF_Int_choice_cong cspF_reflex_eq_P cspF_Rep_int_choice_set_DIV)
+    cspF_Int_choice_unit_r
 
 /- (****************** to add them again ******************) -/
 

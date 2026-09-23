@@ -143,10 +143,48 @@ theorem fnfF_Rep_int_choice_succ
  |                      in fnfF_rest                         |
  *===========================================================*) -/
 
-axiom fnfF_Rep_int_choice_in_lm
+/-- The union of all `Ysf`-families is below the union of all `Af`-families,
+    provided each `Ysf c` is below `Af c`. -/
+private theorem step_Ys_Union_subset_A
+    {C : sets_nats α} {Af : aset_anat α → Set α} {Ysf : aset_anat α → Set (Set α)}
+    (hUn : ∀ c, c ∈ sumset C → Set.sUnion (Ysf c) ⊆ Af c) :
+    Set.sUnion (Set.sUnion {Ys | ∃ c, c ∈ sumset C ∧ Ys = Ysf c}) ⊆
+      Set.sUnion {A | ∃ c, c ∈ sumset C ∧ A = Af c} := by
+  rintro x ⟨Y, ⟨Ys0, ⟨c, hc, rfl⟩, hY⟩, hxY⟩
+  exact ⟨Af c, ⟨c, hc, rfl⟩, hUn c hc ⟨Y, hY, hxY⟩⟩
+
+theorem fnfF_Rep_int_choice_in_lm
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
     (∀ c, c ∈ sumset C → fnfF_proc (SPf c)) →
-      fnfF_proc (fnfF_Rep_int_choice n C SPf)
+      fnfF_proc (fnfF_Rep_int_choice n C SPf) := by
+  induction n generalizing C SPf with
+  | zero =>
+      intro _
+      exact fnfF_NDIV
+  | succ n ih =>
+      intro h
+      rw [fnfF_Rep_int_choice_succ, dif_pos h]
+      unfold fnfF_Rep_int_choice_step fnfF_Rep_int_choice_step_A fnfF_Rep_int_choice_step_Ys
+      refine fnfF_proc.fnfF_proc_rule ?_ ?_ fnfF_set_completion_sat_condition ?_ ?_
+      · -- a ∈ ⋃₀ {A | ...} : the recursive call is in `fnfF_proc`
+        intro a ha
+        rw [if_pos ha]
+        refine ih ?_
+        intro c hc
+        rw [sumset_sub_sumset] at hc
+        exact fnfF_Pf_A (h c hc.1) hc.2
+      · -- a ∉ ⋃₀ {A | ...} : `DIV`
+        intro a ha
+        rw [if_neg ha]
+      · -- ⋃₀ (completion) ⊆ ⋃₀ {A | ...}
+        refine fnfF_set_completion_Union_subset ?_
+        exact step_Ys_Union_subset_A (fun c hc => fnfF_Union_Ys_A (h c hc))
+      · -- the `if`-term is `SKIP` or `DIV`
+        by_cases hex : ∃ c, c ∈ sumset C ∧ fnfF_Q (SPf c) = proc.SKIP
+        · rw [if_pos hex]
+          exact Or.inl rfl
+        · rw [if_neg hex]
+          exact Or.inr rfl
 
 /- (*------------------------------------*
  |                 in                 |
@@ -165,7 +203,7 @@ theorem fnfF_Rep_int_choice_in
  |    convenient lemma for subexpresions   |
  *-----------------------------------------*) -/
 
-axiom fnfF_Rep_int_choice_step_subexp
+theorem fnfF_Rep_int_choice_step_subexp
     [HasPNfun p α] [HasFPmode]
     {C : sets_nats α}
     {Af1 Af2 : aset_anat α → Set α}
@@ -181,13 +219,47 @@ axiom fnfF_Rep_int_choice_step_subexp
             (∀ c, c ∈ sumset C → Set.sUnion (Ysf2 c) ⊆ Af2 c) →
               eqFfix
                 (fnfF_Rep_int_choice_step C Af1 Ysf1 Pf1 Qf1)
-                (fnfF_Rep_int_choice_step C Af2 Ysf2 Pf2 Qf2)
+                (fnfF_Rep_int_choice_step C Af2 Ysf2 Pf2 Qf2) := by
+  intro hP hA hYs hQ _
+  have hAset : fnfF_Rep_int_choice_step_A C Af1 = fnfF_Rep_int_choice_step_A C Af2 := by
+    unfold fnfF_Rep_int_choice_step_A
+    congr 1
+    ext A
+    constructor
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, hA c hc⟩
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, (hA c hc).symm⟩
+  have hYset : fnfF_Rep_int_choice_step_Ys C Ysf1 = fnfF_Rep_int_choice_step_Ys C Ysf2 := by
+    unfold fnfF_Rep_int_choice_step_Ys
+    congr 1
+    ext Ys
+    constructor
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, hYs c hc⟩
+    · rintro ⟨c, hc, rfl⟩
+      exact ⟨c, hc, (hYs c hc).symm⟩
+  have hQprop :
+      (∃ x, x ∈ sumset C ∧ Qf1 x = proc.SKIP) ↔ (∃ x, x ∈ sumset C ∧ Qf2 x = proc.SKIP) := by
+    constructor
+    · rintro ⟨x, hx, h⟩
+      exact ⟨x, hx, (hQ x hx) ▸ h⟩
+    · rintro ⟨x, hx, h⟩
+      exact ⟨x, hx, (hQ x hx).symm ▸ h⟩
+  unfold fnfF_Rep_int_choice_step
+  rw [hAset, hYset]
+  simp only [hQprop]
+  refine cspF_Int_choice_cong (cspF_Ext_choice_cong ?_ cspF_reflex_eq_P) cspF_reflex_eq_P
+  exact cspF_Ext_pre_choice_cong rfl (fun a ha => hP a ha)
 
 /- (*------------------------------------*
  |         one step equality          |
  *------------------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_one_step
+set_option maxHeartbeats 1000000 in
+-- The chain rewrites a replicated internal choice through four distribution
+-- laws in a row, each of which carries the whole indexed family along.
+theorem cspF_fnfF_Rep_int_choice_one_step
     [HasPNfun p α] [HasFPmode]
     {C : sets_nats α}
     {Af : aset_anat α → Set α}
@@ -204,16 +276,114 @@ axiom cspF_fnfF_Rep_int_choice_one_step
                   (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))))
           (fnfF_Rep_int_choice_step C Af Ysf
             (fun a => proc.Rep_int_choice (sub_sumset C fun c => a ∈ Af c) (fun c => Pff c a))
-            Qf)
+            Qf) := by
+  intro hYA hQ
+  -- push the internal choice inside
+  refine cspF_trans_left_eq (cspF_Rep_int_choice_sum_dist) ?_
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong (cspF_Rep_int_choice_Ext_Dist_sum hQ)
+      cspF_Rep_int_choice_sum_set_Ext_pre_choice_DIV) ?_
+  -- merge the prefix choices and collapse the terminal part
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong
+      (cspF_Ext_choice_cong cspF_Rep_int_choice_sum_input_set
+        (cspF_SKIP_DIV_Rep_int_choice_sum hQ))
+      cspF_reflex_eq_P) ?_
+  -- distribute the merged prefix choice over the terminal part
+  refine cspF_trans_left_eq
+    (cspF_Int_choice_cong
+      (cspF_Rep_int_choice_input_Dist
+        (by by_cases h : ∃ c, c ∈ sumset C ∧ Qf c = proc.SKIP
+            · rw [if_pos h]; exact Or.inl rfl
+            · rw [if_neg h]; exact Or.inr rfl))
+      cspF_reflex_eq_P) ?_
+  -- the merged prefix set is exactly the one `fnfF_Rep_int_choice_step` uses
+  have hUnion : Set.sUnion (Af '' sumset C)
+      = Set.sUnion {A | ∃ x, x ∈ sumset C ∧ A = Af x} := by
+    congr 1
+    ext A
+    exact ⟨fun ⟨c, hc, hA⟩ => ⟨c, hc, hA.symm⟩, fun ⟨c, hc, hA⟩ => ⟨c, hc, hA.symm⟩⟩
+  unfold fnfF_Rep_int_choice_step
+  rw [hUnion]
+  -- finally enlarge the refusal sets to the completion
+  refine cspF_input_Rep_int_choice_set_subset fnfF_set_completion_subset (fun Y hY => ?_)
+  obtain ⟨⟨Y0, hY0, hY0Y⟩, hYsub⟩ := hY
+  refine ⟨Y0, hY0, hY0Y, ?_⟩
+  intro x hx
+  rcases hYsub hx with hA | hYs
+  · exact hA
+  · exact step_Ys_Union_subset_A hYA hYs
 
 /- (*------------------------------------*
  |              induction             |
  *------------------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_eqF_lm
+set_option maxHeartbeats 1000000 in
+-- The step case chains four rewrites over the whole indexed family and then
+-- feeds the induction hypothesis in at every branch of the merged prefix.
+theorem cspF_fnfF_Rep_int_choice_eqF_lm
     [HasPNfun p α] [HasFPmode]
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
-    eqFfix ((proc.Rep_int_choice C SPf) |. n) (fnfF_Rep_int_choice n C SPf)
+    eqFfix ((proc.Rep_int_choice C SPf) |. n) (fnfF_Rep_int_choice n C SPf) := by
+  induction n generalizing C SPf with
+  | zero => exact cspF_trans_left_eq cspF_Depth_rest_Zero cspF_NDIV_eqF
+  | succ m ih =>
+      by_cases h : ∀ c, c ∈ sumset C → fnfF_proc (SPf c)
+      · rw [fnfF_Rep_int_choice_succ, dif_pos h]
+        refine ALL_fnfF_procE h ?_
+        rintro ⟨Af, Ysf, Pff, Qf, hSPf, _hPff, _hCond, hUn, hQ⟩
+        have hSPfc : ∀ c, c ∈ sumset C → SPf c =
+            ((((proc.Ext_pre_choice (Af c) (Pff c)) [+] (Qf c)) |~|
+              Rep_int_choice_set (Ysf c)
+                (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))) := by
+          intro c hc
+          have hcon := congrFun hSPf c
+          rw [if_pos hc] at hcon
+          exact hcon
+        have hAc : ∀ c, c ∈ sumset C → Af c = fnfF_A (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        have hYsc : ∀ c, c ∈ sumset C → Ysf c = fnfF_Ys (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc, fnfF_Ys_get]
+        have hQc : ∀ c, c ∈ sumset C → Qf c = fnfF_Q (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        have hPfc : ∀ c, c ∈ sumset C → Pff c = fnfF_Pf (SPf c) := by
+          intro c hc
+          rw [hSPfc c hc]
+          rfl
+        -- expand the left-hand side into the normal-form step
+        refine cspF_trans_left_eq
+          (cspF_Depth_rest_cong rfl
+            (cspF_Rep_int_choice_cong_sum rfl
+              (fun c hc => by rw [hSPfc c hc]; exact cspF_reflex_eq_P))) ?_
+        refine cspF_trans_left_eq cspF_Depth_rest_Dist_sum ?_
+        refine cspF_trans_left_eq
+          (cspF_Rep_int_choice_cong_sum rfl
+            (fun c hc => cspF_fnfF_Depth_rest_dist (hQ c hc))) ?_
+        refine cspF_trans_left_eq (cspF_fnfF_Rep_int_choice_one_step hUn hQ) ?_
+        -- and match it against the right-hand side component by component
+        refine fnfF_Rep_int_choice_step_subexp ?_ hAc hYsc hQc
+          (fun c hc => by rw [← hYsc c hc, ← hAc c hc]; exact hUn c hc)
+        intro a ha
+        have hsub : (sub_sumset C fun c => a ∈ Af c)
+            = sub_sumset C (fun c => a ∈ fnfF_A (SPf c)) := by
+          refine sub_sumset_eq_lm (fun c hc => ?_)
+          rw [hAc c hc]
+        rw [if_pos ha, ← hsub]
+        refine cspF_trans_left_eq ?_
+          (ih (C := sub_sumset C fun c => a ∈ Af c)
+            (SPf := fun c => fnfF_Pf (SPf c) a))
+        refine cspF_trans_left_eq ?_ (cspF_sym cspF_Depth_rest_Dist_sum)
+        refine cspF_Rep_int_choice_cong_sum rfl (fun c hc => ?_)
+        rw [sumset_sub_sumset] at hc
+        rw [hPfc c hc.1]
+        exact cspF_reflex_eq_P
+      · rw [fnfF_Rep_int_choice_succ, dif_neg h]
+        exact cspF_reflex_eq_P
 
 /- (*------------------------------------*
  |                 eqF                |
@@ -229,9 +399,15 @@ theorem cspF_fnfF_Rep_int_choice_eqF
  |     auxiliary laws     |
  *------------------------*) -/
 
-axiom cspF_fnfF_Rep_int_choice_Depth_rest
+theorem cspF_fnfF_Rep_int_choice_Depth_rest
     [HasPNfun p α] [HasFPmode]
     {n : Nat} {C : sets_nats α} {SPf : aset_anat α → proc p α} :
-    eqFfix ((fnfF_Rep_int_choice n C SPf) |. n) (fnfF_Rep_int_choice n C SPf)
+    eqFfix ((fnfF_Rep_int_choice n C SPf) |. n) (fnfF_Rep_int_choice n C SPf) := by
+  refine cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_sym (cspF_fnfF_Rep_int_choice_eqF
+      (n := n) (C := C) (SPf := SPf)))) ?_
+  refine cspF_trans_left_eq cspF_Depth_rest_min ?_
+  rw [Nat.min_self]
+  exact cspF_fnfF_Rep_int_choice_eqF
 
 end

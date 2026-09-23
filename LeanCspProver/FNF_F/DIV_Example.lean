@@ -54,28 +54,128 @@ local instance : HasPNfun Nat Nat where
 local instance : HasFPmode where
   FPmode := CPOmode
 
-axiom ALL_Count_DIV :
-    ∀ n m, eqFfix (((fun Qf => Count <<< Qf)^[n]) (fun _ => (proc.DIV : proc Nat Nat)) m) proc.DIV
+theorem ALL_Count_DIV :
+    ∀ n m,
+      eqFfix (((fun Qf => Count <<< Qf)^[n]) (fun _ => (proc.DIV : proc Nat Nat)) m)
+        proc.DIV := by
+  intro n
+  induction n with
+  | zero =>
+      intro m
+      exact cspF_reflex_eq_P
+  | succ n ih =>
+      intro m
+      rw [Function.iterate_succ_apply']
+      change eqFfix
+        (proc.Hiding
+          ((m : Nat) ~>
+            (((fun Qf => Count <<< Qf)^[n]) (fun _ => (proc.DIV : proc Nat Nat)) (Nat.succ m)))
+          ({m} : Set Nat))
+        proc.DIV
+      -- replace the recursive call by DIV using the induction hypothesis
+      have h1 : eqFfix
+          (proc.Hiding
+            ((m : Nat) ~>
+              (((fun Qf => Count <<< Qf)^[n])
+                (fun _ => (proc.DIV : proc Nat Nat)) (Nat.succ m)))
+            ({m} : Set Nat))
+          (proc.Hiding ((m : Nat) ~> (proc.DIV : proc Nat Nat)) ({m} : Set Nat)) :=
+        cspF_Hiding_cong rfl (cspF_Act_prefix_cong rfl (ih (Nat.succ m)))
+      -- m ~> DIV  =F  ? x:{m} -> DIV
+      have h2 : eqFfix
+          (proc.Hiding ((m : Nat) ~> (proc.DIV : proc Nat Nat)) ({m} : Set Nat))
+          (proc.Hiding
+            (proc.Ext_pre_choice ({m} : Set Nat) (fun _ => (proc.DIV : proc Nat Nat)))
+            ({m} : Set Nat)) :=
+        cspF_Hiding_cong rfl cspF_Act_prefix_step
+      -- hide the only offered event
+      have h3 : eqFfix
+          (proc.Hiding
+            (proc.Ext_pre_choice ({m} : Set Nat) (fun _ => (proc.DIV : proc Nat Nat)))
+            ({m} : Set Nat))
+          ((proc.Ext_pre_choice (∅ : Set Nat)
+              (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)))
+            [> Rep_int_choice_com ({m} : Set Nat)
+                (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat))) := by
+        have h := cspF_Hiding_step (X := ({m} : Set Nat)) (Y := ({m} : Set Nat))
+          (Pf := fun _ => (proc.DIV : proc Nat Nat)) (M := MF)
+        rwa [procIte_neg (by simp), Set.diff_self, Set.inter_self] at h
+      -- ? x:∅ -> ...  =F  STOP,  and  STOP [> P  =F  P
+      have h4 : eqFfix
+          ((proc.Ext_pre_choice (∅ : Set Nat)
+              (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)))
+            [> Rep_int_choice_com ({m} : Set Nat)
+                (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)))
+          ((proc.STOP : proc Nat Nat)
+            [> Rep_int_choice_com ({m} : Set Nat)
+                (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat))) :=
+        cspF_Timeout_cong (cspF_sym cspF_STOP_step) cspF_reflex_eq_P
+      have h5 : eqFfix
+          ((proc.STOP : proc Nat Nat)
+            [> Rep_int_choice_com ({m} : Set Nat)
+                (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)))
+          (Rep_int_choice_com ({m} : Set Nat)
+            (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat))) :=
+        cspF_STOP_Timeout
+      -- collapse the singleton internal choice and hide DIV
+      have h6 : eqFfix
+          (Rep_int_choice_com ({m} : Set Nat)
+            (fun _ => proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)))
+          (proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat)) :=
+        cspF_Rep_int_choice_com_unit (by simp)
+      have h7 : eqFfix
+          (proc.Hiding (proc.DIV : proc Nat Nat) ({m} : Set Nat))
+          (proc.DIV : proc Nat Nat) :=
+        cspF_DIV_Hiding_Id
+      exact cspF_trans_left_eq h1 (cspF_trans_left_eq h2 (cspF_trans_left_eq h3
+        (cspF_trans_left_eq h4 (cspF_trans_left_eq h5 (cspF_trans_left_eq h6 h7)))))
 
 theorem Count_DIV (n m : Nat) :
     eqFfix (((fun Qf => Count <<< Qf)^[n]) (fun _ => (proc.DIV : proc Nat Nat)) m) proc.DIV :=
   ALL_Count_DIV n m
 
-axiom CountFIX_DIV :
+private theorem FIX_Count_app :
+    FIX Count 0 = Rep_int_choice_nat Set.univ (fun n => FIXn n Count 0) :=
+  rfl
+
+theorem CountFIX_DIV :
     eqFfix (FIX Count 0)
-      (Rep_int_choice_nat Set.univ (fun _ => (proc.DIV : proc Nat Nat)))
+      (Rep_int_choice_nat Set.univ (fun _ => (proc.DIV : proc Nat Nat))) := by
+  rw [FIX_Count_app]
+  exact cspF_Rep_int_choice_cong_nat rfl (fun n _ => ALL_Count_DIV n 0)
 
 /- (*** full normalising ***) -/
 
-axiom CountFIX_DIV_Xnorm :
+theorem CountFIX_DIV_Xnorm :
     eqFfix (FIX Count 0)
-      (Rep_int_choice_nat Set.univ (fun _ => (NDIV (p := Nat) (α := Nat))))
+      (Rep_int_choice_nat Set.univ (fun _ => (NDIV (p := Nat) (α := Nat)))) :=
+  cspF_trans_left_eq CountFIX_DIV
+    (cspF_Rep_int_choice_cong_nat rfl (fun _ _ => cspF_NDIV_eqF))
 
 /- (*** in extended full normal form ***) -/
 
-axiom DIV_Xnorm_in :
+theorem DIV_Xnorm_in :
     Rep_int_choice_nat Set.univ (fun _ => (NDIV (p := Nat) (α := Nat))) ∈
-      XfnfF_proc (p := Nat) (α := Nat)
+      XfnfF_proc (p := Nat) (α := Nat) := by
+  refine ⟨fun _ => NDIV, rfl, ?_, fun _ => fnfF_NDIV⟩
+  intro n
+  -- (!nat k:univ .. NDIV) |. n  =F  NDIV
+  have h1 : eqFfix
+      ((Rep_int_choice_nat Set.univ (fun _ => (NDIV : proc Nat Nat))) |. n)
+      (Rep_int_choice_nat Set.univ (fun _ => ((NDIV : proc Nat Nat) |. n))) :=
+    cspF_Depth_rest_Dist_nat
+  have h2 : eqFfix
+      (Rep_int_choice_nat Set.univ (fun _ => ((NDIV : proc Nat Nat) |. n)))
+      ((NDIV : proc Nat Nat) |. n) :=
+    cspF_Rep_int_choice_nat_unit (by simp)
+  have h3 : eqFfix ((NDIV : proc Nat Nat) |. n) ((proc.DIV : proc Nat Nat) |. n) :=
+    cspF_Depth_rest_cong rfl (cspF_sym cspF_NDIV_eqF)
+  have h4 : eqFfix ((proc.DIV : proc Nat Nat) |. n) (proc.DIV : proc Nat Nat) :=
+    cspF_DIV_Depth_rest
+  have h5 : eqFfix (proc.DIV : proc Nat Nat) (NDIV : proc Nat Nat) :=
+    cspF_NDIV_eqF
+  exact cspF_sym (cspF_trans_left_eq h1 (cspF_trans_left_eq h2
+    (cspF_trans_left_eq h3 (cspF_trans_left_eq h4 h5))))
 
 /- (*** unwinding test ***) -/
 
