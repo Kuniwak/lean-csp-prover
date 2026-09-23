@@ -11,11 +11,22 @@
 
 import LeanCspProver.CSP_F.CSP_F
 import LeanCspProver.UCD.UCD_data2
-
-open Classical
 open fpmode
 
 noncomputable section
+
+/- Lean note: `open Classical` here trips the mathlib style linter, which asks
+   for explicit decidability.  The predicates below have no decidable instance,
+   so the classical one is introduced file-locally instead.  `low` matches the
+   priority `Classical.propDecidable` is declared with, so it stays a
+   last-resort fallback rather than outranking a genuine instance.
+
+   This is the same fallback `open Classical` provided, just scoped and named;
+   it does not give the predicates real decidability.  `UCD_data1` and
+   `UCD_data2` turned out not to need it at all and have none. -/
+
+attribute [local instance low] Classical.propDecidable
+
 
 local infix:50 " =F " => eqFfix
 local notation:50 P " <=F " Q => refFfix P Q
@@ -61,7 +72,8 @@ theorem inj_stlist :
 
 @[simp]
 theorem inj_event :
-    Function.Injective Event.left ∧ Function.Injective Event.right ∧ Function.Injective Event.mid := by
+    Function.Injective Event.left ∧ Function.Injective Event.right ∧
+      Function.Injective Event.mid := by
   constructor
   · intro a b h
     cases h
@@ -549,8 +561,8 @@ private theorem renR_LR (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Even
 
 private theorem Line_step_nosync {P Q : proc PN Event} {A B : Set Event}
     {Pf Qf : Event → proc PN Event}
-    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
-    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
+    (hP : eqFfix (P [[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
+    (hQ : eqFfix (Q [[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
     (hA : A ⊆ XL) (hB : B ⊆ XR) (hsync : A ∩ B = ∅) :
     eqFfix (Line P Q)
       (proc.Ext_pre_choice ((A \ XR) ∪ (B \ XL)) fun x =>
@@ -564,8 +576,8 @@ private theorem Line_step_nosync {P Q : proc PN Event} {A B : Set Event}
 
 private theorem Line_step_sync {P Q : proc PN Event} {A B : Set Event}
     {Pf Qf : Event → proc PN Event}
-    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
-    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
+    (hP : eqFfix (P [[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf))
+    (hQ : eqFfix (Q [[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf))
     (hA : A ⊆ XL) (hB : B ⊆ XR) (hsync : A ∩ B ≠ ∅) :
     eqFfix (Line P Q)
       ((proc.Ext_pre_choice ((A \ XR) ∪ (B \ XL)) fun x =>
@@ -582,7 +594,7 @@ private theorem Line_step_sync {P Q : proc PN Event} {A B : Set Event}
 /- ---------- folding the expansion back into a Line ---------- -/
 
 private theorem Line_fold_left {P' Q : proc PN Event} {B : Set Event} {Qf : Event → proc PN Event}
-    (hQ : eqFfix (Q[[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf)) :
+    (hQ : eqFfix (Q [[fun_to_rel fR]]) (proc.Ext_pre_choice B Qf)) :
     eqFfix
       (proc.Hiding (Alpha_parallel (P'[[fun_to_rel fL]]) XL XR (proc.Ext_pre_choice B Qf))
         (XL ∩ XR))
@@ -592,7 +604,7 @@ private theorem Line_fold_left {P' Q : proc PN Event} {B : Set Event} {Qf : Even
     (cspF_Alpha_parallel_cong rfl rfl cspF_reflex_eq_P (cspF_sym hQ))
 
 private theorem Line_fold_right {P Q' : proc PN Event} {A : Set Event} {Pf : Event → proc PN Event}
-    (hP : eqFfix (P[[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf)) :
+    (hP : eqFfix (P [[fun_to_rel fL]]) (proc.Ext_pre_choice A Pf)) :
     eqFfix
       (proc.Hiding (Alpha_parallel (proc.Ext_pre_choice A Pf) XL XR (Q'[[fun_to_rel fR]]))
         (XL ∩ XR))
@@ -1051,7 +1063,7 @@ theorem LineSpec_Step_ref1_AttL_AttL {t : List Att} {n x na xa : Nat} :
       (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttC (fill (n / 2 + x)) :: Att.AttL (na, xa) :: t) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttL (na, xa) :: t)
+    · change toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttL (na, xa) :: t)
         = nextL (Att.AttL (n, x) :: Att.AttL (na, xa) :: t)
       rw [toStbOne_AttC_AttL, hnextL]
     · exact cspF_reflex_ref_P
@@ -1077,7 +1089,7 @@ theorem LineSpec_Step_ref1_AttL_AttL {t : List Att} {n x na xa : Nat} :
         (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)})
         (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
         (a := Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m)) inj_stlist ?_ ?_
-      · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m))
+      · change toStbOne (Att.AttL (n, x) :: nextR (Att.AttL (na, xa) :: t, m))
           = nextR (Att.AttL (n, x) :: Att.AttL (na, xa) :: t, m)
         rw [toStbOne_AttL, hnextR m]
       · exact cspF_reflex_ref_P
@@ -1184,7 +1196,7 @@ theorem LineSpec_Step_ref1_AttL_AttC {t : List Att} {n x na : Nat} :
       (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttC na :: t)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttC (fill (n / 2 + x)) :: Att.AttC na :: t) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttC na :: t)
+    · change toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttC na :: t)
         = nextL (Att.AttL (n, x) :: Att.AttC na :: t)
       rw [toStbOne_AttC_AttC', nextL_AttC_cons, hnextL]
     · exact cspF_reflex_ref_P
@@ -1205,7 +1217,7 @@ theorem LineSpec_Step_ref1_AttL_AttC {t : List Att} {n x na : Nat} :
       (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttL (n, x) :: nextR (Att.AttC na :: t, m)) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttC na :: t, m))
+    · change toStbOne (Att.AttL (n, x) :: nextR (Att.AttC na :: t, m))
         = nextR (Att.AttL (n, x) :: Att.AttC na :: t, m)
       rw [toStbOne_AttL, hnextR m]
     · exact cspF_reflex_ref_P
@@ -1286,7 +1298,7 @@ theorem LineSpec_Step_ref1_AttL_AttR {t : List Att} {n x na : Nat} :
       (X := {u | toStbOne u = nextL (Att.AttL (n, x) :: Att.AttR na :: t)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t)
+    · change toStbOne (Att.AttC (fill (n / 2 + x)) :: Att.AttR na :: t)
         = nextL (Att.AttL (n, x) :: Att.AttR na :: t)
       rw [toStbOne_AttC_AttR, hnextL]
     · exact cspF_reflex_ref_P
@@ -1307,7 +1319,7 @@ theorem LineSpec_Step_ref1_AttL_AttR {t : List Att} {n x na : Nat} :
       (X := {u | toStbOne u = nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttL (n, x) :: nextR (Att.AttR na :: t, m)) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttL (n, x) :: nextR (Att.AttR na :: t, m))
+    · change toStbOne (Att.AttL (n, x) :: nextR (Att.AttR na :: t, m))
         = nextR (Att.AttL (n, x) :: Att.AttR na :: t, m)
       rw [toStbOne_AttL, hnextR m]
     · exact cspF_reflex_ref_P
@@ -1393,7 +1405,7 @@ theorem LineSpec_Step_ref1_AttC_AttC {t : List Att} {n na : Nat} :
       (X := {u | toStbOne u = nextL (Att.AttL (n, na / 2) :: Att.AttR (na / 2) :: t)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttR (n / 2) :: Att.AttC na :: t) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttR (n / 2) :: Att.AttC na :: t)
+    · change toStbOne (Att.AttR (n / 2) :: Att.AttC na :: t)
         = nextL (Att.AttL (n, na / 2) :: Att.AttR (na / 2) :: t)
       rw [toStbOne_AttR_AttC, nextL_AttC_cons, hnextL1]
     · exact cspF_reflex_ref_P
@@ -1678,7 +1690,7 @@ theorem LineSpec_Step_ref1_AttC_AttR {t : List Att} {n na : Nat} :
       (X := {u | toStbOne u = nextL (Att.AttC n :: Att.AttR na :: t)})
       (Pf := fun u => ChildAtt (hd u) <---> pLineSpec (tl u))
       (a := Att.AttR (n / 2) :: Att.AttR na :: t) inj_stlist ?_ ?_
-    · show toStbOne (Att.AttR (n / 2) :: Att.AttR na :: t)
+    · change toStbOne (Att.AttR (n / 2) :: Att.AttR na :: t)
         = nextL (Att.AttC n :: Att.AttR na :: t)
       rw [toStbOne_AttR_AttR, hnextL]
     · exact cspF_reflex_ref_P
