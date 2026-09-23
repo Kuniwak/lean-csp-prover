@@ -163,12 +163,12 @@ decreasing_by
 theorem test_updateR :
     updateR ([Att.AttR 2, Att.AttR 4, Att.AttR 0], 8) =
       [Att.AttR 3, Att.AttR 4, Att.AttR 4] := by
-  native_decide
+  simp [updateR, fill, Nat.even_iff, getNat]
 
 theorem test_toStbOne :
     toStbOne [Att.AttR 2, Att.AttL (4, 2), Att.AttC 0, Att.AttR 6] =
       [Att.AttL (4, 2), Att.AttC 2, Att.AttR 0, Att.AttR 6] := by
-  native_decide
+  simp [toStbOne, fill, Nat.even_iff]
 
 /-   lemmas    -/
 

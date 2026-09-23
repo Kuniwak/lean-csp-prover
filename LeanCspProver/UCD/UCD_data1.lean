@@ -71,11 +71,11 @@ def makeStableList : Nat → Nat → List Nat
 
 theorem lineNext_test :
     lineNext [4, 2, 10] 2 = [4, 6, 8] := by
-  native_decide
+  simp [lineNext, fill, Nat.even_iff]
 
 theorem circNext_test :
     circNext [4, 2, 10] = [4, 6, 8] := by
-  native_decide
+  simp [circNext, lineNext, fill, Nat.even_iff]
 
 theorem maxList_test :
     maxList [4, 2, 10, 1, 5] = 10 := by
