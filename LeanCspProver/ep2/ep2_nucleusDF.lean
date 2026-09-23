@@ -47,11 +47,16 @@ noncomputable instance : DecidableEq AbsName := Classical.decEq _
 
 /- Lean note:
    `Absfun Loop` is `c !? x -> (SKIP |~| c !? x -> $Loop)` in the source
-   (`ep2_nucleusDF.thy:37`): the internal choice is the *continuation* of a
-   prefix.  The port had `SKIP |~| (c !? x -> $Loop)`, which hoists the
-   choice out of the prefix and is a different process -- it can terminate
-   immediately, so `$AcConfigManagement |[range c]| $TerminalConfigManagement`
-   does not refine it and `ep2_Abs_AC` is not provable as ported. -/
+   (`ep2_nucleusDF.thy:36-37`): the internal choice is the *continuation* of a
+   prefix.  The port had `SKIP |~| (c !? x -> $Loop)`, which hoists the choice
+   out of the prefix and so does not transcribe the source.  Repaired.
+
+   Note that the hoisted version is not *unprovable* -- writing `O` for it and
+   `N` for the source version, `traces N <= traces O` (`N` admits `<Tick>` only
+   after an odd number of `c`s) and `failures N <= failures O` (at `<>`, `O`
+   adds the `SKIP` branch's refusals), so `N <=F O` and `ep2_Abs_AC` for `O`
+   would follow from the one proved here by transitivity.  The reason to
+   repair it is fidelity to the source, not provability. -/
 
 def Absfun : AbsName → proc AbsName NEvent
   | AbsName.Abstract =>
