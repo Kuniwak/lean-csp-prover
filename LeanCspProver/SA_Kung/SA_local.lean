@@ -233,7 +233,15 @@ theorem local_i_j_hori {r : Type _}
 
 /- (*** i (Suc j) hori ***) -/
 
-theorem local_i_Suc_j_hori_ALL {r : Type _} [Inhabited r]
+/- Lean note:
+   The `Suc` lemmas below carry `[Nonempty r]` because their proofs refute the
+   hypothesis `∀ x, Ev (Event.hori _ x) ∈ Yf _` by instantiating it, which needs
+   an element of `r`.  `Nonempty` (a `Prop`) rather than `Inhabited` (data): the
+   witness never appears in a statement, and `Ring r` supplies `Nonempty r`
+   canonically, so no `Inhabited` instance has to be introduced for it.  The
+   `rev` siblings do not refute this way and need no hypothesis. -/
+
+theorem local_i_Suc_j_hori_ALL {r : Type _} [Nonempty r]
     (n i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     ∀ s : traceType (Event r),
@@ -301,7 +309,7 @@ theorem local_i_Suc_j_hori_ALL {r : Type _} [Inhabited r]
         rcases h with h0 | ⟨y, s2, Y2, heq, h2⟩
         · exfalso
           obtain ⟨-, hY⟩ := Prod.mk.inj h0
-          have hcon := hz (default : r)
+          have hcon := hz (Classical.arbitrary r)
           rw [hY] at hcon
           simp at hcon
         · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
@@ -329,7 +337,7 @@ theorem local_i_Suc_j_hori_ALL {r : Type _} [Inhabited r]
       rcases hs with (h0 | ⟨x', s', Y', heq, h'⟩) | ⟨y', s', Y', heq, h'⟩
       · exfalso
         obtain ⟨-, hY⟩ := Prod.mk.inj h0
-        have hcon := hz (default : r)
+        have hcon := hz (Classical.arbitrary r)
         rw [hY] at hcon
         simp at hcon
       · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
@@ -341,7 +349,7 @@ theorem local_i_Suc_j_hori_ALL {r : Type _} [Inhabited r]
         have := hInVert y' s' h' hz
         omega
 
-theorem local_i_Suc_j_hori {r : Type _} [Inhabited r]
+theorem local_i_Suc_j_hori {r : Type _} [Nonempty r]
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
@@ -481,7 +489,7 @@ theorem local_i_j_vert {r : Type _}
 
 /- (*** (Suc i) j vert ***) -/
 
-theorem local_Suc_i_j_vert_ALL {r : Type _} [Inhabited r]
+theorem local_Suc_i_j_vert_ALL {r : Type _} [Nonempty r]
     (n i j : Nat)
     (Yf : index_type → Set (event (Event r))) :
     ∀ s : traceType (Event r),
@@ -563,7 +571,7 @@ theorem local_Suc_i_j_vert_ALL {r : Type _} [Inhabited r]
         rcases h with h0 | ⟨x, s2, Y2, heq, h2⟩
         · exfalso
           obtain ⟨-, hY⟩ := Prod.mk.inj h0
-          have hcon := hz (default : r)
+          have hcon := hz (Classical.arbitrary r)
           rw [hY] at hcon
           simp at hcon
         · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
@@ -577,7 +585,7 @@ theorem local_Suc_i_j_vert_ALL {r : Type _} [Inhabited r]
       rcases hs with (h0 | ⟨x', s', Y', heq, h'⟩) | ⟨y', s', Y', heq, h'⟩
       · exfalso
         obtain ⟨-, hY⟩ := Prod.mk.inj h0
-        have hcon := hz (default : r)
+        have hcon := hz (Classical.arbitrary r)
         rw [hY] at hcon
         simp at hcon
       · obtain ⟨rfl, rfl⟩ := Prod.mk.inj heq
@@ -589,7 +597,7 @@ theorem local_Suc_i_j_vert_ALL {r : Type _} [Inhabited r]
         have := hInVert y' s' h' hz
         omega
 
-theorem local_Suc_i_j_vert {r : Type _} [Inhabited r]
+theorem local_Suc_i_j_vert {r : Type _} [Nonempty r]
     (s : traceType (Event r))
     (Yf : index_type → Set (event (Event r)))
     (i j : Nat) :
@@ -1531,7 +1539,7 @@ theorem EX1_cal1_rev (x y0 y1 : Nat) :
 
 /- (****** hori ******) -/
 
-theorem local_hori_lm {r : Type _} [Inhabited r]
+theorem local_hori_lm {r : Type _} [Nonempty r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1560,7 +1568,7 @@ theorem local_hori_lm {r : Type _} [Inhabited r]
 
 /- local_hori -/
 
-theorem local_hori {r : Type _} [Inhabited r]
+theorem local_hori {r : Type _} [Nonempty r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1577,7 +1585,7 @@ theorem local_hori {r : Type _} [Inhabited r]
 
 /- (****** vert ******) -/
 
-theorem local_vert_lm {r : Type _} [Inhabited r]
+theorem local_vert_lm {r : Type _} [Nonempty r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :
@@ -1606,7 +1614,7 @@ theorem local_vert_lm {r : Type _} [Inhabited r]
 
 /- local_vert -/
 
-theorem local_vert {r : Type _} [Inhabited r]
+theorem local_vert {r : Type _} [Nonempty r]
     (N i j : Nat)
     (t : traceType (Event r))
     (Yf : index_type → Set (event (Event r))) :

@@ -33,9 +33,6 @@ noncomputable section
 
 namespace SA_main
 
-local instance instInhabitedOfZero (α : Type _) [Zero α] : Inhabited α where
-  default := 0
-
 /-=================================================================*
  |                 main theorem (deadlock freedom)                 |
  *=================================================================-/

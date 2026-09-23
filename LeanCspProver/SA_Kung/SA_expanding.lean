@@ -23,9 +23,6 @@ namespace SA_expanding
 
 local infix:50 " =F " => eqFfix
 
-local instance instInhabitedOfZero (α : Type _) [Zero α] : Inhabited α where
-  default := 0
-
 attribute [local instance] Classical.propDecidable
 
 /- Lean note:
@@ -179,7 +176,7 @@ theorem EX1_isFailureOf_in_alpha1 {r : Type _} (i j : Nat) :
       rintro ⟨b, (⟨y, rfl⟩ | ⟨y, rfl⟩), hb⟩ <;> (injection hb with hb; simp at hb)
 
 theorem EX1_isFailureOf_in_alpha2
-{r : Type _} [Inhabited r] (i j : Nat) (F : Set (failure (Event r))) :
+{r : Type _} [Nonempty r] (i j : Nat) (F : Set (failure (Event r))) :
     ({u : failure (Event r) | ∃ x s Y,
         u = (((Abs_trace [Ev (Event.vert (i, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
           (s, Y) ∈ Faiures_in_hori x (i, j) F} ∪
@@ -249,7 +246,7 @@ theorem EX1_isFailureOf_in_hori_alpha1 {r : Type _} (i j : Nat) :
     · exact Or.inr (Or.inr rfl)
     · exact Or.inr (Or.inl rfl)
 
-theorem EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
+theorem EX1_isFailureOf_in_hori_alpha2 {r : Type _} [Nonempty r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
     {u : failure (Event r) | ∃ y s Y,
       u = (((Abs_trace [Ev (Event.hori (i, j) y)] : traceType (Event r)) ^^^ s), Y) ∧
@@ -305,7 +302,7 @@ theorem EX1_isFailureOf_in_vert_alpha1 {r : Type _} (i j : Nat) :
     · exact Or.inr (Or.inl rfl)
     · exact Or.inr (Or.inr rfl)
 
-theorem EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Inhabited r] (i j : Nat) (a : Event r)
+theorem EX1_isFailureOf_in_vert_alpha2 {r : Type _} [Nonempty r] (i j : Nat) (a : Event r)
     (F : Set (failure (Event r))) :
     {u : failure (Event r) | ∃ x s Y,
       u = (((Abs_trace [Ev (Event.vert (i, j) x)] : traceType (Event r)) ^^^ s), Y) ∧
