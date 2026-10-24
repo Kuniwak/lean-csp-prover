@@ -128,10 +128,76 @@ theorem fsfF_Ext_choice_in
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fsfF_Ext_choice_eqF
+/-- Rearranging the two step bodies so the prefix choices and the terminal
+    parts can be combined separately. -/
+private theorem Ext_choice_regroup
+    [HasPNfun p α] [HasFPmode] {X1 Q1 X2 Q2 : proc p α} :
+    eqFfix ((X1 [+] Q1) [+] (X2 [+] Q2)) ((X1 [+] X2) [+] (Q1 [+] Q2)) := by
+  refine cspF_trans_left_eq (cspF_Ext_choice_assoc_sym (P := X1) (Q := Q1)
+    (R := X2 [+] Q2) (M := MF)) ?_
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong cspF_reflex_eq_P
+      (cspF_Ext_choice_assoc (P := Q1) (Q := X2) (R := Q2) (M := MF))) ?_
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong cspF_reflex_eq_P
+      (cspF_Ext_choice_cong (cspF_Ext_choice_commut (P := Q1) (Q := X2) (M := MF))
+        cspF_reflex_eq_P)) ?_
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong cspF_reflex_eq_P
+      (cspF_Ext_choice_assoc_sym (P := X2) (Q := Q1) (R := Q2) (M := MF))) ?_
+  exact cspF_Ext_choice_assoc (P := X1) (Q := X2) (R := Q1 [+] Q2) (M := MF)
+
+/-- Combining the two terminal parts of a step body. -/
+private theorem Ext_choice_term
+    [HasPNfun p α] [HasFPmode] {Q1 Q2 : proc p α}
+    (hQ1 : Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP)
+    (hQ2 : Q2 = proc.SKIP ∨ Q2 = proc.DIV ∨ Q2 = proc.STOP) :
+    eqFfix (Q1 [+] Q2)
+      (if Q1 = proc.STOP then Q2
+       else if Q2 = proc.STOP then Q1
+       else if (Q1 = proc.SKIP ∨ Q2 = proc.SKIP) then proc.SKIP else proc.DIV) := by
+  rcases hQ1 with rfl | rfl | rfl
+  · rcases hQ2 with rfl | rfl | rfl
+    · simpa using (cspF_Ext_choice_idem (P := (proc.SKIP : proc p α)) (M := MF))
+    · simpa using (cspF_SKIP_DIV_Ext_choice1 (p := p) (q := p) (α := α) (M1 := MF) (M2 := MF))
+    · simpa using (cspF_Ext_choice_unit_r (P := (proc.SKIP : proc p α)) (M := MF))
+  · rcases hQ2 with rfl | rfl | rfl
+    · simpa using (cspF_SKIP_DIV_Ext_choice2 (p := p) (q := p) (α := α) (M1 := MF) (M2 := MF))
+    · simpa using (cspF_Ext_choice_idem (P := (proc.DIV : proc p α)) (M := MF))
+    · simpa using (cspF_Ext_choice_unit_r (P := (proc.DIV : proc p α)) (M := MF))
+  · simpa using (cspF_Ext_choice_unit_l (P := Q2) (M := MF))
+
+theorem cspF_fsfF_Ext_choice_eqF
     [HasPNfun p α] [HasFPmode]
     {P1 P2 : proc p α} :
-    eqFfix (P1 [+] P2) (P1 [+]seq P2)
+    eqFfix (P1 [+] P2) (P1 [+]seq P2) := by
+  rw [fsfF_Ext_choice_def]
+  refine cspF_fsfF_induct2_eqF
+    (Pfun := Pfun_Ext_choice) (SP_step := SP_step_Ext_choice) ?_ ?_ ?_ ?_
+  · intro C1 Rf1 Q hC
+    exact cspF_Ext_choice_Dist_sum_l_nonempty hC
+  · intro Q C2 Rf2 hC
+    exact cspF_Ext_choice_Dist_sum_r_nonempty hC
+  · intro A1 Pf1 Q1 A2 Pf2 Q2 hQ1 hQ2
+    change eqFfix
+      (((proc.Ext_pre_choice A1 Pf1) [+] Q1) [+] ((proc.Ext_pre_choice A2 Pf2) [+] Q2))
+      (SP_step_Ext_choice A1 Pf1 Q1 A2 Pf2 Q2 _ _ _)
+    refine cspF_trans_left_eq Ext_choice_regroup ?_
+    rw [SP_step_Ext_choice_def]
+    refine cspF_Ext_choice_cong ?_ (Ext_choice_term hQ1 hQ2)
+    refine cspF_trans_left_eq cspF_Ext_choice_step ?_
+    refine cspF_Ext_pre_choice_cong rfl (fun a _ => ?_)
+    by_cases hBoth : a ∈ A1 ∧ a ∈ A2
+    · rw [procIte_pos hBoth, if_pos hBoth]
+      exact cspF_fsfF_Int_choice_eqF
+    · rw [procIte_neg hBoth, if_neg hBoth]
+      by_cases hA1 : a ∈ A1
+      · rw [procIte_pos hA1, if_pos hA1]
+        exact cspF_reflex_eq_P
+      · rw [procIte_neg hA1, if_neg hA1]
+        exact cspF_reflex_eq_P
+  · intro A1 Pf1 Q1 A2 Pf2 Q2 SPf SQf SPf1 SQf1 SPf2 SQf2 _ _ _
+    exact cspF_reflex_eq_P
 
 /- *--------------------------------------------------*
  |                                                  |

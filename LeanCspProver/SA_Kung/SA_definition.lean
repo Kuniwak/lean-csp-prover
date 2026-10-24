@@ -28,9 +28,6 @@ namespace SA_definition
 
 local infix:50 " =F " => eqFfix
 
-local instance instInhabitedOfZero (α : Type _) [Zero α] : Inhabited α where
-  default := 0
-
 /- *********************************************************
                          event
  ********************************************************* -/

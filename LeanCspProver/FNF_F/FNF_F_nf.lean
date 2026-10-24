@@ -51,20 +51,59 @@ variable {p : Type u} {α : Type v}
  |                          fsfF --> fnfF                           |
  *==================================================================*) -/
 
-axiom fnfF_fsfF_rel : Nat → proc p α → proc p α → Prop
+/- Lean note:
+   Isabelle declares `fnfF_fsfF_rel` with `inductive_set` (`FNF_F_nf.thy:39`);
+   the port had the relation and its four introduction rules as axioms, which
+   constrains nothing and leaves the uniqueness / existence facts about it
+   unprovable.  It is now a real `inductive`.  The `int` and `step`
+   introduction rules keep their Isabelle statements (with an
+   `if _ then _ else _` premise); since a recursive occurrence under `ite` is
+   not strictly positive for Lean's kernel, the constructors themselves
+   (`int_split` / `step_split`) take the two implications separately, and the
+   original rules are derived -- the same shape as
+   `FNF_F_sf_rest.fsfF_Depth_rest_rel`. -/
+
+inductive fnfF_fsfF_rel : Nat → proc p α → proc p α → Prop where
+  | zero
+      {P : proc p α} :
+      fnfF_fsfF_rel 0 P NDIV
+  | etc
+      {n : Nat} {P : proc p α} :
+      ¬ fsfF_proc P →
+        fnfF_fsfF_rel (Nat.succ n) P (P |. Nat.succ n)
+  | int_split
+      {n : Nat}
+      {C : sets_nats α}
+      {SPf NPf : aset_anat α → proc p α} :
+      (∀ c, c ∈ sumset C → fnfF_fsfF_rel (Nat.succ n) (SPf c) (NPf c)) →
+        (∀ c, c ∉ sumset C → NPf c = proc.DIV) →
+          sumset C ≠ ∅ →
+            (∀ c, c ∈ sumset C → fsfF_proc (SPf c)) →
+              fnfF_fsfF_rel
+                (Nat.succ n)
+                (proc.Rep_int_choice C SPf)
+                (fnfF_Rep_int_choice (Nat.succ n) C NPf)
+  | step_split
+      {n : Nat}
+      {A : Set α}
+      {SPf NPf : α → proc p α}
+      {Q : proc p α} :
+      (∀ a, a ∈ A → fnfF_fsfF_rel n (SPf a) (NPf a)) →
+        (∀ a, a ∉ A → NPf a = proc.DIV) →
+          (∀ a, a ∈ A → fsfF_proc (SPf a)) →
+            (Q = proc.SKIP ∨ Q = proc.DIV ∨ Q = proc.STOP) →
+              fnfF_fsfF_rel
+                (Nat.succ n)
+                ((proc.Ext_pre_choice A SPf) [+] Q)
+                (((proc.Ext_pre_choice A NPf) [+]
+                    (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
+                  Rep_int_choice_set
+                    (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
+                    (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
 
 namespace fnfF_fsfF_rel
 
-axiom zero
-    {P : proc p α} :
-    fnfF_fsfF_rel 0 P NDIV
-
-axiom etc
-    {n : Nat} {P : proc p α} :
-    ¬ fsfF_proc P →
-      fnfF_fsfF_rel (Nat.succ n) P (P |. Nat.succ n)
-
-axiom int
+theorem int
     {n : Nat}
     {C : sets_nats α}
     {SPf NPf : aset_anat α → proc p α} :
@@ -76,9 +115,17 @@ axiom int
             fnfF_fsfF_rel
               (Nat.succ n)
               (proc.Rep_int_choice C SPf)
-              (fnfF_Rep_int_choice (Nat.succ n) C NPf)
+              (fnfF_Rep_int_choice (Nat.succ n) C NPf) := by
+  intro h hC hSPf
+  refine int_split ?_ ?_ hC hSPf
+  · intro c hc
+    have hc' := h c
+    rwa [if_pos hc] at hc'
+  · intro c hc
+    have hc' := h c
+    rwa [if_neg hc] at hc'
 
-axiom step
+theorem step
     {n : Nat}
     {A : Set α}
     {SPf NPf : α → proc p α}
@@ -95,19 +142,102 @@ axiom step
                   (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
                 Rep_int_choice_set
                   (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
-                  (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
+                  (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) := by
+  intro h hSPf hQ
+  refine step_split ?_ ?_ hSPf hQ
+  · intro a ha
+    have ha' := h a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h a
+    rwa [if_neg ha] at ha'
 
 end fnfF_fsfF_rel
 
-/- (*** function ***) -/
+/- (*** exists ***) -/
 
-private axiom fnfF_fsfF_rel_exists_ax
+theorem fnfF_fsfF_rel_exists_zero
+    (SP : proc p α) :
+    ∃ NP : proc p α, fnfF_fsfF_rel 0 SP NP :=
+  ⟨NDIV, fnfF_fsfF_rel.zero⟩
+
+theorem fnfF_fsfF_rel_exists_notin
+    {n : Nat} {P : proc p α} :
+    ¬ fsfF_proc P →
+      ∃ NP : proc p α, fnfF_fsfF_rel n P NP := by
+  intro hP
+  cases n with
+  | zero =>
+      exact fnfF_fsfF_rel_exists_zero P
+  | succ m =>
+      exact ⟨P |. Nat.succ m, fnfF_fsfF_rel.etc hP⟩
+
+private theorem fnfF_fsfF_rel_exists_in_ind {SP : proc p α} (hSP : fsfF_proc SP) :
+    ∀ n : Nat, ∃ NP : proc p α, fnfF_fsfF_rel n SP NP := by
+  induction hSP with
+  | @fsfF_proc_int C Rf hC hRf ih =>
+      intro n
+      cases n with
+      | zero => exact ⟨NDIV, fnfF_fsfF_rel.zero⟩
+      | succ m =>
+          have hall : ∀ c, ∃ NP : proc p α,
+              (c ∈ sumset C → fnfF_fsfF_rel (Nat.succ m) (Rf c) NP) ∧
+                (c ∉ sumset C → NP = proc.DIV) := by
+            intro c
+            by_cases hc : c ∈ sumset C
+            · obtain ⟨NP, hNP⟩ := ih c hc (Nat.succ m)
+              exact ⟨NP, fun _ => hNP, fun h => absurd hc h⟩
+            · exact ⟨proc.DIV, fun h => absurd h hc, fun _ => rfl⟩
+          choose NPf h1 h2 using hall
+          refine ⟨fnfF_Rep_int_choice (Nat.succ m) C NPf,
+            fnfF_fsfF_rel.int (fun c => ?_) hC hRf⟩
+          by_cases hc : c ∈ sumset C
+          · rw [if_pos hc]; exact h1 c hc
+          · rw [if_neg hc]; exact h2 c hc
+  | @fsfF_proc_ext A Pf Q hPf hQ ih =>
+      intro n
+      cases n with
+      | zero => exact ⟨NDIV, fnfF_fsfF_rel.zero⟩
+      | succ m =>
+          have hall : ∀ a, ∃ NP : proc p α,
+              (a ∈ A → fnfF_fsfF_rel m (Pf a) NP) ∧ (a ∉ A → NP = proc.DIV) := by
+            intro a
+            by_cases ha : a ∈ A
+            · obtain ⟨NP, hNP⟩ := ih a ha m
+              exact ⟨NP, fun _ => hNP, fun h => absurd ha h⟩
+            · exact ⟨proc.DIV, fun h => absurd h ha, fun _ => rfl⟩
+          choose NPf h1 h2 using hall
+          refine ⟨_, fnfF_fsfF_rel.step (NPf := NPf) (fun a => ?_) hPf hQ⟩
+          by_cases ha : a ∈ A
+          · rw [if_pos ha]; exact h1 a ha
+          · rw [if_neg ha]; exact h2 a ha
+
+theorem fnfF_fsfF_rel_exists_in
+    {SP : proc p α} :
+    fsfF_proc SP → ∀ n : Nat, ∃ NP : proc p α, fnfF_fsfF_rel n SP NP :=
+  fnfF_fsfF_rel_exists_in_ind
+
+/- *-----------------------*
+ |        exists         |
+ *-----------------------* -/
+
+theorem fnfF_fsfF_rel_exists
     (n : Nat) (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP
+    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP := by
+  by_cases hSP : fsfF_proc SP
+  · exact fnfF_fsfF_rel_exists_in hSP n
+  · exact fnfF_fsfF_rel_exists_notin hSP
+
+/- *-----------------------*
+ |    uniquely exists    |
+ *-----------------------* -/
+
+
+/- (*** function ***) -/
 
 def fnfF_fsfF
     (n : Nat) (SP : proc p α) : proc p α :=
-  Classical.choose (fnfF_fsfF_rel_exists_ax n SP)
+  Classical.choose (fnfF_fsfF_rel_exists n SP)
 
 def fnfF [HasPNfun p α] :
     Nat → proc p α → proc p α :=
@@ -137,11 +267,48 @@ theorem XfnfF_def [HasPNfun p α] :
  ****************************************************************)
 -/
 
-axiom fnfF_fsfF_rel_unique
-    {n : Nat} {SP NP1 NP2 : proc p α} :
-    fnfF_fsfF_rel n SP NP1 →
-      fnfF_fsfF_rel n SP NP2 →
-        NP1 = NP2
+private theorem fnfF_fsfF_rel_unique_ind {n : Nat} {SP NP1 : proc p α}
+    (h1 : fnfF_fsfF_rel n SP NP1) :
+    ∀ NP2 : proc p α, fnfF_fsfF_rel n SP NP2 → NP1 = NP2 := by
+  induction h1 with
+  | zero =>
+      intro NP2 h2
+      cases h2
+      rfl
+  | etc hP =>
+      intro NP2 h2
+      cases h2 with
+      | etc _ => rfl
+      | int_split hrel2 hdiv2 hC2 hfsf2 =>
+          exact absurd (fsfF_procI (Or.inl ⟨_, _, hC2, rfl, hfsf2⟩)) hP
+      | step_split hrel2 hdiv2 hfsf2 hQ2 =>
+          exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hfsf2, hQ2⟩)) hP
+  | @int_split m C SPf NPf hrel hdiv hC hfsf ih =>
+      intro NP2 h2
+      cases h2 with
+      | etc hP => exact absurd (fsfF_procI (Or.inl ⟨_, _, hC, rfl, hfsf⟩)) hP
+      | @int_split _ _ _ NPf2 hrel2 hdiv2 hC2 hfsf2 =>
+          have hNPf : NPf = NPf2 := by
+            funext c
+            by_cases hc : c ∈ sumset C
+            · exact ih c hc _ (hrel2 c hc)
+            · rw [hdiv c hc, hdiv2 c hc]
+          rw [hNPf]
+  | @step_split m A SPf NPf Q hrel hdiv hfsf hQ ih =>
+      intro NP2 h2
+      cases h2 with
+      | etc hP => exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hfsf, hQ⟩)) hP
+      | @step_split _ _ _ NPf2 _ hrel2 hdiv2 hfsf2 hQ2 =>
+          have hNPf : NPf = NPf2 := by
+            funext a
+            by_cases ha : a ∈ A
+            · exact ih a ha _ (hrel2 a ha)
+            · rw [hdiv a ha, hdiv2 a ha]
+          rw [hNPf]
+
+theorem fnfF_fsfF_rel_unique {n : Nat} {SP NP1 NP2 : proc p α} :
+    fnfF_fsfF_rel n SP NP1 → fnfF_fsfF_rel n SP NP2 → NP1 = NP2 :=
+  fun h1 h2 => fnfF_fsfF_rel_unique_ind h1 NP2 h2
 
 lemma fnfF_fsfF_rel_unique_in_lm
     {n : Nat} {SP NP1 : proc p α} :
@@ -172,20 +339,35 @@ theorem fnfF_fsfF_rel_EX1
 
 /- zero -/
 
-axiom fnfF_fsfF_rel_zero_iff
-    {SP NP : proc p α} :
-    fnfF_fsfF_rel 0 SP NP ↔ NP = NDIV
+theorem fnfF_fsfF_rel_zero_iff {SP NP : proc p α} :
+    fnfF_fsfF_rel 0 SP NP ↔ NP = NDIV := by
+  constructor
+  · intro h
+    cases h
+    rfl
+  · rintro rfl
+    exact fnfF_fsfF_rel.zero
 
 /- etc -/
 
-axiom fnfF_fsfF_rel_etc_iff
-    {n : Nat} {P NP : proc p α} :
+theorem fnfF_fsfF_rel_etc_iff {n : Nat} {P NP : proc p α} :
     ¬ fsfF_proc P →
-      (fnfF_fsfF_rel (Nat.succ n) P NP ↔ NP = P |. Nat.succ n)
+      (fnfF_fsfF_rel (Nat.succ n) P NP ↔ NP = P |. Nat.succ n) := by
+  intro hP
+  constructor
+  · intro h
+    cases h with
+    | etc _ => rfl
+    | int_split hrel hdiv hC hfsf =>
+        exact absurd (fsfF_procI (Or.inl ⟨_, _, hC, rfl, hfsf⟩)) hP
+    | step_split hrel hdiv hfsf hQ =>
+        exact absurd (fsfF_procI (Or.inr ⟨_, _, _, rfl, hfsf, hQ⟩)) hP
+  · rintro rfl
+    exact fnfF_fsfF_rel.etc hP
 
 /- int -/
 
-axiom fnfF_fsfF_rel_int_iff
+theorem fnfF_fsfF_rel_int_iff
     {n : Nat}
     {C : sets_nats α}
     {SPf NPf : aset_anat α → proc p α}
@@ -196,11 +378,18 @@ axiom fnfF_fsfF_rel_int_iff
         sumset C ≠ ∅ →
           (∀ c, c ∈ sumset C → fsfF_proc (SPf c)) →
             (fnfF_fsfF_rel (Nat.succ n) (proc.Rep_int_choice C SPf) NP ↔
-              NP = fnfF_Rep_int_choice (Nat.succ n) C NPf)
+              NP = fnfF_Rep_int_choice (Nat.succ n) C NPf) := by
+  intro h hC hfsf
+  have hrel := fnfF_fsfF_rel.int h hC hfsf
+  constructor
+  · intro h2
+    exact fnfF_fsfF_rel_unique h2 hrel
+  · rintro rfl
+    exact hrel
 
 /- step -/
 
-axiom fnfF_fsfF_rel_step_iff
+theorem fnfF_fsfF_rel_step_iff
     {n : Nat}
     {A : Set α}
     {SPf NPf : α → proc p α}
@@ -216,51 +405,20 @@ axiom fnfF_fsfF_rel_step_iff
                     (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
                   Rep_int_choice_set
                     (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
-                    (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))))
+                    (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))))) := by
+  intro h hfsf hQ
+  have hrel := fnfF_fsfF_rel.step h hfsf hQ
+  constructor
+  · intro h2
+    exact fnfF_fsfF_rel_unique h2 hrel
+  · rintro rfl
+    exact hrel
 
 /-
 (****************************************************************
  |                      existency                               |
  ****************************************************************)
 -/
-
-/- (*** exists ***) -/
-
-theorem fnfF_fsfF_rel_exists_zero
-    (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel 0 SP NP :=
-  ⟨NDIV, fnfF_fsfF_rel.zero⟩
-
-theorem fnfF_fsfF_rel_exists_notin
-    {n : Nat} {P : proc p α} :
-    ¬ fsfF_proc P →
-      ∃ NP : proc p α, fnfF_fsfF_rel n P NP := by
-  intro hP
-  cases n with
-  | zero =>
-      exact fnfF_fsfF_rel_exists_zero P
-  | succ m =>
-      exact ⟨P |. Nat.succ m, fnfF_fsfF_rel.etc hP⟩
-
-axiom fnfF_fsfF_rel_exists_in
-    {SP : proc p α} :
-    fsfF_proc SP →
-      ∀ n : Nat, ∃ NP : proc p α, fnfF_fsfF_rel n SP NP
-
-/- *-----------------------*
- |        exists         |
- *-----------------------* -/
-
-theorem fnfF_fsfF_rel_exists
-    (n : Nat) (SP : proc p α) :
-    ∃ NP : proc p α, fnfF_fsfF_rel n SP NP := by
-  by_cases hSP : fsfF_proc SP
-  · exact fnfF_fsfF_rel_exists_in hSP n
-  · exact fnfF_fsfF_rel_exists_notin hSP
-
-/- *-----------------------*
- |    uniquely exists    |
- *-----------------------* -/
 
 theorem fnfF_fsfF_rel_unique_exists
     (n : Nat) (SP : proc p α) :
@@ -271,17 +429,74 @@ theorem fnfF_fsfF_rel_unique_exists
  |                        in fsfF_proc                        |
  *------------------------------------------------------------* -/
 
-axiom fnfF_fsfF_rel_zero_in
-    {SP NP : proc p α} :
-    fnfF_fsfF_rel 0 SP NP →
-      fnfF_proc NP
+theorem fnfF_fsfF_rel_zero_in {SP NP : proc p α} :
+    fnfF_fsfF_rel 0 SP NP → fnfF_proc NP := by
+  intro h
+  rw [fnfF_fsfF_rel_zero_iff.mp h]
+  exact fnfF_NDIV
 
-axiom fnfF_fsfF_rel_in
-    {SP NP : proc p α}
-    {n : Nat} :
-    fsfF_proc SP →
-      fnfF_fsfF_rel n SP NP →
-        fnfF_proc NP
+private theorem cond_step (A : Set α) (Q : proc p α) :
+    fnfF_set_condition A (if Q = proc.STOP then ({A} : Set (Set α)) else ∅) := by
+  by_cases hs : Q = proc.STOP
+  · rw [if_pos hs]
+    intro Y ⟨⟨Y0, hY0, hsub⟩, hYA⟩
+    rw [Set.mem_singleton_iff] at hY0 ⊢
+    subst hY0
+    refine Set.Subset.antisymm ?_ hsub
+    intro a ha
+    rcases hYA ha with h | ⟨Z, hZ, hZa⟩
+    · exact h
+    · rw [Set.mem_singleton_iff] at hZ
+      exact hZ ▸ hZa
+  · rw [if_neg hs]
+    rintro Y ⟨⟨Y0, hY0, -⟩, -⟩
+    exact absurd hY0 (by simp)
+
+private theorem union_step (A : Set α) (Q : proc p α) :
+    Set.sUnion (if Q = proc.STOP then ({A} : Set (Set α)) else ∅) ⊆ A := by
+  by_cases hs : Q = proc.STOP
+  · rw [if_pos hs]
+    rintro a ⟨Z, hZ, hZa⟩
+    rw [Set.mem_singleton_iff] at hZ
+    exact hZ ▸ hZa
+  · rw [if_neg hs]
+    simp
+
+private theorem Q_step (Q : proc p α) :
+    (if Q = proc.SKIP then (proc.SKIP : proc p α) else proc.DIV) = proc.SKIP ∨
+      (if Q = proc.SKIP then (proc.SKIP : proc p α) else proc.DIV) = proc.DIV := by
+  by_cases hs : Q = proc.SKIP
+  · rw [if_pos hs]; exact Or.inl rfl
+  · rw [if_neg hs]; exact Or.inr rfl
+
+private theorem fnfF_fsfF_rel_in_ind {SP : proc p α} (hSP : fsfF_proc SP) :
+    ∀ (n : Nat) (NP : proc p α), fnfF_fsfF_rel n SP NP → fnfF_proc NP := by
+  induction hSP with
+  | @fsfF_proc_int C Rf hC hRf ih =>
+      intro n NP h
+      cases n with
+      | zero => exact fnfF_fsfF_rel_zero_in h
+      | succ m =>
+          cases h with
+          | @etc _ _ hP => exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hP
+          | @int_split _ _ _ NPf hrel hdiv hC2 hfsf =>
+              exact fnfF_Rep_int_choice_in (fun c hc => ih c hc _ _ (hrel c hc))
+  | @fsfF_proc_ext A Pf Q hPf hQ ih =>
+      intro n NP h
+      cases n with
+      | zero => exact fnfF_fsfF_rel_zero_in h
+      | succ m =>
+          cases h with
+          | @etc _ _ hP => exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hP
+          | @step_split _ _ _ NPf _ hrel hdiv hfsf hQ2 =>
+              exact fnfF_proc.fnfF_proc_rule
+                (fun a ha => ih a ha _ _ (hrel a ha)) hdiv
+                (cond_step A Q) (union_step A Q) (Q_step Q)
+
+theorem fnfF_fsfF_rel_in
+    {SP NP : proc p α} {n : Nat} :
+    fsfF_proc SP → fnfF_fsfF_rel n SP NP → fnfF_proc NP :=
+  fun hSP h => fnfF_fsfF_rel_in_ind hSP n NP h
 
 lemma fnfF_fsfF_rel_in_lm
     {SP : proc p α} :
@@ -294,24 +509,107 @@ lemma fnfF_fsfF_rel_in_lm
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fnfF_fsfF_rel_eqF_zero
+theorem cspF_fnfF_fsfF_rel_eqF_zero
     [HasPNfun p α] [HasFPmode]
     {P NP : proc p α} :
-    fnfF_fsfF_rel 0 P NP →
-      eqFfix (P |. 0) NP
+    fnfF_fsfF_rel 0 P NP → eqFfix (P |. 0) NP := by
+  intro h
+  rw [fnfF_fsfF_rel_zero_iff.mp h]
+  exact cspF_trans_left_eq cspF_Depth_rest_Zero cspF_NDIV_eqF
 
-axiom cspF_fnfF_fsfF_rel_eqF_notin
+theorem cspF_fnfF_fsfF_rel_eqF_notin
     [HasPNfun p α] [HasFPmode]
     {n : Nat} {P NP : proc p α} :
-    ¬ fsfF_proc P →
-      fnfF_fsfF_rel n P NP →
-        eqFfix (P |. n) NP
+    ¬ fsfF_proc P → fnfF_fsfF_rel n P NP → eqFfix (P |. n) NP := by
+  intro hP h
+  cases n with
+  | zero => exact cspF_fnfF_fsfF_rel_eqF_zero h
+  | succ m =>
+      rw [(fnfF_fsfF_rel_etc_iff hP).mp h]
+      exact cspF_reflex_eq_P
 
-axiom cspF_fnfF_fsfF_rel_eqF_in
+/-- Cutting at the same depth twice is cutting once. -/
+private theorem depth_rest_idem [HasPNfun p α] [HasFPmode]
+    {P : proc p α} {k : Nat} :
+    eqFfix ((P |. k) |. k) (P |. k) := by
+  have h := cspF_Depth_rest_min (P := P) (n := k) (m := k) (M := (MF : p → domFType α))
+  rwa [Nat.min_self] at h
+
+set_option maxHeartbeats 1000000 in
+-- Both cases rewrite the depth restriction through the whole indexed family
+-- before the induction hypothesis can be used branchwise.
+theorem cspF_fnfF_fsfF_rel_eqF_in
     [HasPNfun p α] [HasFPmode]
     {SP : proc p α} :
     fsfF_proc SP →
-      ∀ n : Nat, ∀ NP : proc p α, fnfF_fsfF_rel n SP NP → eqFfix (SP |. n) NP
+      ∀ n : Nat, ∀ NP : proc p α, fnfF_fsfF_rel n SP NP → eqFfix (SP |. n) NP := by
+  intro hSP
+  induction hSP with
+  | @fsfF_proc_int C Rf hC hRf ih =>
+      intro n NP hrel
+      cases n with
+      | zero => exact cspF_fnfF_fsfF_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot => exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hnot
+          | @int_split _ _ _ NPf hSub _ _ _ =>
+              refine cspF_trans_left_eq cspF_Depth_rest_Dist_sum ?_
+              refine cspF_trans_left_eq
+                (cspF_Rep_int_choice_cong_sum rfl
+                  (fun c hc => ih c hc _ _ (hSub c hc))) ?_
+              refine cspF_trans_left_eq ?_ cspF_fnfF_Rep_int_choice_eqF
+              refine cspF_trans_left_eq ?_ (cspF_sym cspF_Depth_rest_Dist_sum)
+              refine cspF_Rep_int_choice_cong_sum rfl (fun c hc => ?_)
+              have hEq := ih c hc _ _ (hSub c hc)
+              refine cspF_trans_left_eq (cspF_sym hEq) ?_
+              refine cspF_trans_left_eq (cspF_sym depth_rest_idem) ?_
+              exact cspF_Depth_rest_cong rfl hEq
+  | @fsfF_proc_ext A Pf Q hPf hQ ih =>
+      intro n NP hrel
+      cases n with
+      | zero => exact cspF_fnfF_fsfF_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot => exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hnot
+          | @step_split _ _ _ NPf _ hSub hDIV _ hQ' =>
+              -- push the depth restriction through the step body
+              refine cspF_trans_left_eq cspF_Depth_rest_Ext_dist ?_
+              refine cspF_trans_left_eq
+                (cspF_Ext_choice_cong cspF_Depth_rest_step cspF_reflex_eq_P) ?_
+              refine cspF_trans_left_eq
+                (cspF_Ext_choice_cong
+                  (cspF_Ext_pre_choice_cong rfl (fun a ha => ih a ha _ _ (hSub a ha)))
+                  cspF_reflex_eq_P) ?_
+              rcases hQ with rfl | rfl | rfl
+              · -- SKIP
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P
+                    (cspF_SKIP_or_DIV_Depth_rest (Or.inl rfl))) ?_
+                rw [if_pos rfl, if_neg (show ¬ ((proc.SKIP : proc p α) = proc.STOP) by
+                  intro h; cases h)]
+                exact cspF_sym
+                  (cspF_trans_left_eq
+                    (cspF_Int_choice_cong cspF_reflex_eq_P cspF_Rep_int_choice_set_DIV)
+                    cspF_Int_choice_unit_r)
+              · -- DIV
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P
+                    (cspF_SKIP_or_DIV_Depth_rest (Or.inr rfl))) ?_
+                rw [if_neg (show ¬ ((proc.DIV : proc p α) = proc.SKIP) by intro h; cases h),
+                  if_neg (show ¬ ((proc.DIV : proc p α) = proc.STOP) by intro h; cases h)]
+                exact cspF_sym
+                  (cspF_trans_left_eq
+                    (cspF_Int_choice_cong cspF_reflex_eq_P cspF_Rep_int_choice_set_DIV)
+                    cspF_Int_choice_unit_r)
+              · -- STOP
+                refine cspF_trans_left_eq
+                  (cspF_Ext_choice_cong cspF_reflex_eq_P cspF_STOP_Depth_rest) ?_
+                refine cspF_trans_left_eq cspF_Ext_choice_unit_r ?_
+                rw [if_neg (show ¬ ((proc.STOP : proc p α) = proc.SKIP) by intro h; cases h),
+                  if_pos rfl]
+                refine cspF_trans_left_eq cspF_input_DIV ?_
+                exact cspF_Int_choice_cong cspF_reflex_eq_P
+                  (cspF_sym cspF_Rep_int_choice_set_singleton)
 
 theorem cspF_fnfF_fsfF_rel_eqF
     [HasPNfun p α] [HasFPmode]
@@ -332,7 +630,7 @@ theorem cspF_fnfF_fsfF_rel_eqF
 theorem fnfF_fsfF_in_rel
     {n : Nat} {SP : proc p α} :
     fnfF_fsfF_rel n SP (fnfF_fsfF n SP) :=
-  Classical.choose_spec (fnfF_fsfF_rel_exists_ax n SP)
+  Classical.choose_spec (fnfF_fsfF_rel_exists n SP)
 
 theorem fnfF_fsfF_from_rel
     {n : Nat} {SP NP : proc p α} :
@@ -377,7 +675,7 @@ theorem fnfF_fsfF_etc
       (NP := P |. Nat.succ n)).1
     (fnfF_fsfF_rel.etc hP)
 
-axiom fnfF_fsfF_int
+theorem fnfF_fsfF_int
     {n : Nat}
     {C : sets_nats α}
     {SPf : aset_anat α → proc p α} :
@@ -388,9 +686,15 @@ axiom fnfF_fsfF_int
             (fun c =>
               if c ∈ sumset C
               then fnfF_fsfF (Nat.succ n) (SPf c)
-              else proc.DIV)
+              else proc.DIV) := by
+  intro hC hfsf
+  refine fnfF_fsfF_from_rel.1 (fnfF_fsfF_rel.int (fun c => ?_) hC hfsf)
+  by_cases hc : c ∈ sumset C
+  · rw [if_pos hc, if_pos hc]
+    exact fnfF_fsfF_in_rel
+  · rw [if_neg hc, if_neg hc]
 
-axiom fnfF_fsfF_step
+theorem fnfF_fsfF_step
     {n : Nat}
     {A : Set α}
     {SPf : α → proc p α}
@@ -404,7 +708,13 @@ axiom fnfF_fsfF_step
             (if Q = proc.SKIP then proc.SKIP else proc.DIV)) |~|
             Rep_int_choice_set
               (if Q = proc.STOP then ({A} : Set (Set α)) else ∅)
-              (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV)))
+              (fun Y => proc.Ext_pre_choice Y (fun _ => proc.DIV))) := by
+  intro hfsf hQ
+  refine fnfF_fsfF_from_rel.1 (fnfF_fsfF_rel.step (fun a => ?_) hfsf hQ)
+  by_cases ha : a ∈ A
+  · rw [if_pos ha, if_pos ha]
+    exact fnfF_fsfF_in_rel
+  · rw [if_neg ha, if_neg ha]
 
 /- The Isabelle theorem bundle `fnfF_fsfF` is represented by
    `fnfF_fsfF_etc`, `fnfF_fsfF_int`, and `fnfF_fsfF_step`. -/
@@ -446,37 +756,65 @@ theorem fnfF_in [HasPNfun p α]
         theorem --- fnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_fnfF_eqF [HasPNfun p α] [HasFPmode]
+theorem cspF_fnfF_eqF [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix (P |. n) (fnfF n P)
+      eqFfix (P |. n) (fnfF n P) := by
+  intro hMode
+  rw [fnfF_def]
+  exact cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_fsfF_eqF hMode))
+    (cspF_fnfF_fsfF_eqF (n := n) (SP := fsfF P))
 
 /- *------------------------*
  |     auxiliary laws     |
  *------------------------* -/
 
-axiom cspF_fnfF_eqF_Depth_rest [HasPNfun p α] [HasFPmode]
+theorem cspF_fnfF_eqF_Depth_rest [HasPNfun p α] [HasFPmode]
     {n : Nat} {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix ((fnfF n P) |. n) (fnfF n P)
+      eqFfix ((fnfF n P) |. n) (fnfF n P) := by
+  intro hMode
+  refine cspF_trans_left_eq
+    (cspF_Depth_rest_cong rfl (cspF_sym (cspF_fnfF_eqF (n := n) (P := P) hMode))) ?_
+  refine cspF_trans_left_eq cspF_Depth_rest_min ?_
+  rw [Nat.min_self]
+  exact cspF_fnfF_eqF hMode
 
 /- *===============================================================*
           theorem --- XfnfF P is a full normal form ---
  *===============================================================* -/
 
-axiom XfnfF_in [HasPNfun p α] [HasFPmode]
+private theorem XfnfF_eqF_aux [HasPNfun p α] [HasFPmode]
+    {P : proc p α} (hMode : FPmode = CPOmode ∨ FPmode = MIXmode) :
+    eqFfix (Rep_int_choice_nat Set.univ (fun m => fnfF m P)) P :=
+  cspF_trans_left_eq
+    (cspF_Rep_int_choice_cong_nat rfl
+      (fun m _ => cspF_sym (cspF_fnfF_eqF (n := m) (P := P) hMode)))
+    (cspF_sym cspF_nat_Depth_rest_UNIV)
+
+theorem XfnfF_in [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      XfnfF P ∈ XfnfF_proc (p := p) (α := α)
+      XfnfF P ∈ XfnfF_proc (p := p) (α := α) := by
+  intro hMode
+  refine ⟨fun n => fnfF n P, rfl, fun n => ?_, fun n => fnfF_in⟩
+  exact cspF_sym
+    (cspF_trans_left_eq
+      (cspF_Depth_rest_cong rfl (XfnfF_eqF_aux hMode))
+      (cspF_fnfF_eqF hMode))
 
 /- *===============================================================*
           theorem --- XfnfF P is equal to P based on F ---
  *===============================================================* -/
 
-axiom cspF_XfnfF_eqF [HasPNfun p α] [HasFPmode]
+theorem cspF_XfnfF_eqF [HasPNfun p α] [HasFPmode]
     {P : proc p α} :
     (FPmode = CPOmode ∨ FPmode = MIXmode) →
-      eqFfix P (XfnfF P)
+      eqFfix P (XfnfF P) := by
+  intro hMode
+  rw [XfnfF_def]
+  exact cspF_sym (XfnfF_eqF_aux hMode)
 
 /- (****************** to add them again ******************) -/
 

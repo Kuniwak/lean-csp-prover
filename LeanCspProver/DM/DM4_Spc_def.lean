@@ -57,18 +57,27 @@ inductive SpcName where
   | TH0_EAT1
 deriving DecidableEq, Inhabited
 
+/- Lean note:
+   `! x:X -> P` is Isabelle's *internal* prefix choice `Int_pre_choice`
+   (`CSP_syntax.thy:287`, `! :X -> Pf == ! :X .. (%x. x -> Pf x)`), not the
+   external `? x:X -> P`.  The specification here is stated with `!`, and the
+   difference is essential in the stable-failures model: with `?` the
+   specification could refuse nothing in `OBS`, so `Spc <=F Imp` would be
+   false as soon as the implementation sits in a state offering only `Back0`
+   and `Back1` (`DM5_Spc_Imp.Back0_Back1`). -/
+
 def Spcfun : SpcName → proc SpcName Event
   | SpcName.TH0_TH1 =>
-      proc.Ext_pre_choice OBS fun x =>
+      Int_pre_choice OBS fun x =>
         IF decide (x = Event.Eat0) THEN proc.Proc_name SpcName.EAT0_TH1
         ELSE IF decide (x = Event.Eat1) THEN proc.Proc_name SpcName.TH0_EAT1
         ELSE proc.Proc_name SpcName.TH0_TH1
   | SpcName.EAT0_TH1 =>
-      proc.Ext_pre_choice (OBS \ {Event.Eat1}) fun x =>
+      Int_pre_choice (OBS \ {Event.Eat1}) fun x =>
         IF decide (x = Event.End0) THEN proc.Proc_name SpcName.TH0_TH1
         ELSE proc.Proc_name SpcName.EAT0_TH1
   | SpcName.TH0_EAT1 =>
-      proc.Ext_pre_choice (OBS \ {Event.Eat0}) fun x =>
+      Int_pre_choice (OBS \ {Event.Eat0}) fun x =>
         IF decide (x = Event.End1) THEN proc.Proc_name SpcName.TH0_TH1
         ELSE proc.Proc_name SpcName.TH0_EAT1
 
@@ -143,6 +152,6 @@ def Spc_to_Imp : SpcName → proc ImpName Event
 theorem guarded_Spc :
     guardedfun (p := SpcName) (q := SpcName) (α := Event) Spcfun := by
   intro pn
-  cases pn <;> simp [Spcfun, guarded, noHide]
+  cases pn <;> simp [Spcfun, noHide]
 
 end DM4_Spc_def

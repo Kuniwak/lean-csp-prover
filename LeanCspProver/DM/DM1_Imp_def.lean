@@ -246,9 +246,51 @@ noncomputable def is_WR01 (x : Event) : Bool := by
            unfolding & folding process names
  ********************************************************* -/
 
+/- computation lemmas for `is_WR01` and the `Rec_prefix` inverses -/
+
+@[simp]
+theorem is_WR01_WR0 (m : Int) : is_WR01 (Event.WR0 m) = true := by
+  simp [is_WR01]
+
+@[simp]
+theorem is_WR01_WR1 (m : Int) : is_WR01 (Event.WR1 m) = true := by
+  simp [is_WR01]
+
+@[simp]
+theorem is_WR01_RD0 (m : Int) : is_WR01 (Event.RD0 m) = false := by
+  simp [is_WR01]
+
+@[simp]
+theorem is_WR01_RD1 (m : Int) : is_WR01 (Event.RD1 m) = false := by
+  simp [is_WR01]
+
+theorem WR0_inj : Function.Injective Event.WR0 := by
+  intro a b h
+  injection h
+
+theorem WR1_inj : Function.Injective Event.WR1 := by
+  intro a b h
+  injection h
+
+@[simp]
+theorem invFun_WR0 (m : Int) : Function.invFun Event.WR0 (Event.WR0 m) = m :=
+  Function.leftInverse_invFun WR0_inj m
+
+@[simp]
+theorem invFun_WR1 (m : Int) : Function.invFun Event.WR1 (Event.WR1 m) = m :=
+  Function.leftInverse_invFun WR1_inj m
+
+private theorem VAR_index_set (n : Int) :
+    ((Set.range Event.WR0 ∪ Set.range Event.WR1) ∪ ({Event.RD0 n} : Set Event)) ∪
+        ({Event.RD1 n} : Set Event) =
+      Set.insert (Event.RD1 n)
+        (Set.insert (Event.RD0 n) (Set.range Event.WR0 ∪ Set.range Event.WR1)) := by
+  ext e
+  simp [Set.insert, Set.mem_setOf_eq]
+
 /- (*** unfold VAR ***) -/
 
-axiom VAR (n : Int) :
+theorem VAR (n : Int) :
     eqF (proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF
       (proc.Ext_pre_choice
         (Set.insert (Event.RD1 n)
@@ -256,7 +298,49 @@ axiom VAR (n : Int) :
         (fun x =>
           IF is_WR01 x
           THEN proc.Proc_name (ImpName.VAR (getInt x))
-          ELSE proc.Proc_name (ImpName.VAR n)))
+          ELSE proc.Proc_name (ImpName.VAR n))) := by
+  have h0 := «cspF_unwind» (Pf := Impfun) (p0 := ImpName.VAR n) rfl
+    (Or.inr (Or.inl ⟨rfl, guarded_Imp⟩))
+  simp only [Impfun, Rec_prefix, Set.image_univ] at h0
+  refine cspF_trans_left_eq h0 ?_
+  -- turn the two `Act_prefix`es into external prefix choices
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong
+      (cspF_Ext_choice_cong cspF_reflex_eq_P cspF_Act_prefix_step)
+      cspF_Act_prefix_step) ?_
+  -- merge the four external prefix choices (left-associated)
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong
+      (cspF_Ext_choice_cong cspF_Ext_choice_step cspF_reflex_eq_P)
+      cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq
+    (cspF_Ext_choice_cong cspF_Ext_choice_step cspF_reflex_eq_P) ?_
+  refine cspF_trans_left_eq cspF_Ext_choice_step ?_
+  rw [VAR_index_set n]
+  refine cspF_Ext_pre_choice_cong rfl ?_
+  intro x hx
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = RD1 n
+    rw [procIte_neg (by simp), procIte_neg (by simp), is_WR01_RD1]
+    exact cspF_sym cspF_IF_split
+  rcases Set.mem_insert_iff.mp hx with rfl | hx
+  · -- x = RD0 n
+    rw [procIte_neg (by simp), procIte_pos (by simp),
+      procIte_neg (by simp), procIte_neg (by simp), is_WR01_RD0]
+    exact cspF_sym cspF_IF_split
+  rcases hx with ⟨m, rfl⟩ | ⟨m, rfl⟩
+  · -- x = WR0 m
+    rw [procIte_neg (by simp), procIte_pos (by simp),
+      procIte_neg (by simp), procIte_pos (by simp),
+      procIte_neg (by simp), procIte_pos (Set.mem_range_self m),
+      invFun_WR0, is_WR01_WR0]
+    exact cspF_sym cspF_IF_split
+  · -- x = WR1 m
+    rw [procIte_neg (by simp), procIte_pos (by simp),
+      procIte_neg (by simp), procIte_pos (by simp),
+      procIte_neg (by simp), procIte_neg (by simp),
+      invFun_WR1, is_WR01_WR1]
+    exact cspF_sym cspF_IF_split
 
 theorem VAR_simp (n : Int) :
     eqF (proc.Proc_name (ImpName.VAR n) : proc ImpName Event) MF MF

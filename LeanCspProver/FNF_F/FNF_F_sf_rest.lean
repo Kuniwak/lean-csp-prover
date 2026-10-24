@@ -56,21 +56,56 @@ variable {p : Type u} {α : Type v}
 
 /- relation -/
 
-axiom fsfF_Depth_rest_rel : proc p α → Nat → proc p α → Prop
+/- Lean note:
+   Isabelle defines `fsfF_Depth_rest_rel` as an `inductive_set`; an earlier
+   port axiomatized the predicate, its introduction rules, and the
+   uniqueness / inversion / existence facts. It is now a real `inductive`,
+   and all of those become theorems. The `int` and `step` introduction
+   rules keep their Isabelle statements (with an `if _ then _ else _`
+   premise); since a recursive occurrence under `ite` is not strictly
+   positive for Lean's kernel, the constructors themselves
+   (`int_split` / `step_split`) take the two implications separately, and
+   the original rules are derived. -/
+
+inductive fsfF_Depth_rest_rel : proc p α → Nat → proc p α → Prop where
+  | zero
+      {P1 : proc p α} :
+      fsfF_Depth_rest_rel P1 0 SDIV
+  | etc
+      {P1 : proc p α}
+      {n : Nat} :
+      ¬ fsfF_proc P1 →
+        fsfF_Depth_rest_rel P1 (Nat.succ n) (P1 |. Nat.succ n)
+  | int_split
+      {C1 : sets_nats α}
+      {Rf1 SRf : aset_anat α → proc p α}
+      {m : Nat} :
+      (∀ c, c ∈ sumset C1 →
+        fsfF_Depth_rest_rel (Rf1 c) (Nat.succ m) (SRf c)) →
+        (∀ c, c ∉ sumset C1 → SRf c = proc.DIV) →
+          sumset C1 ≠ ∅ →
+            (∀ c, c ∈ sumset C1 → fsfF_proc (Rf1 c)) →
+              fsfF_Depth_rest_rel
+                (proc.Rep_int_choice C1 Rf1)
+                (Nat.succ m)
+                (proc.Rep_int_choice C1 SRf)
+  | step_split
+      {A1 : Set α}
+      {Pf1 SPf : α → proc p α}
+      {Q1 : proc p α}
+      {n : Nat} :
+      (∀ a, a ∈ A1 → fsfF_Depth_rest_rel (Pf1 a) n (SPf a)) →
+        (∀ a, a ∉ A1 → SPf a = proc.DIV) →
+          (∀ a, a ∈ A1 → fsfF_proc (Pf1 a)) →
+            (Q1 = proc.SKIP ∨ Q1 = proc.DIV ∨ Q1 = proc.STOP) →
+              fsfF_Depth_rest_rel
+                ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
+                (Nat.succ n)
+                ((proc.Ext_pre_choice A1 SPf) [+] Q1)
 
 namespace fsfF_Depth_rest_rel
 
-axiom zero
-    {P1 : proc p α} :
-    fsfF_Depth_rest_rel P1 0 SDIV
-
-axiom etc
-    {P1 : proc p α}
-    {n : Nat} :
-    ¬ fsfF_proc P1 →
-      fsfF_Depth_rest_rel P1 (Nat.succ n) (P1 |. Nat.succ n)
-
-axiom int
+theorem int
     {C1 : sets_nats α}
     {Rf1 SRf : aset_anat α → proc p α}
     {m : Nat} :
@@ -82,9 +117,17 @@ axiom int
           fsfF_Depth_rest_rel
             (proc.Rep_int_choice C1 Rf1)
             (Nat.succ m)
-            (proc.Rep_int_choice C1 SRf)
+            (proc.Rep_int_choice C1 SRf) := by
+  intro h hC hRf
+  refine int_split ?_ ?_ hC hRf
+  · intro c hc
+    have hc' := h c
+    rwa [if_pos hc] at hc'
+  · intro c hc
+    have hc' := h c
+    rwa [if_neg hc] at hc'
 
-axiom step
+theorem step
     {A1 : Set α}
     {Pf1 SPf : α → proc p α}
     {Q1 : proc p α}
@@ -97,16 +140,65 @@ axiom step
           fsfF_Depth_rest_rel
             ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
             (Nat.succ n)
-            ((proc.Ext_pre_choice A1 SPf) [+] Q1)
+            ((proc.Ext_pre_choice A1 SPf) [+] Q1) := by
+  intro h hPf hQ
+  refine step_split ?_ ?_ hPf hQ
+  · intro a ha
+    have ha' := h a
+    rwa [if_pos ha] at ha'
+  · intro a ha
+    have ha' := h a
+    rwa [if_neg ha] at ha'
 
 end fsfF_Depth_rest_rel
 
 /- function -/
 
-private axiom fsfF_Depth_rest_rel_exists_ax
+private theorem fsfF_Depth_rest_rel_exists_in'
+    {P1 : proc p α} (hP1 : fsfF_proc P1) :
+    ∀ n, ∃ SP : proc p α, fsfF_Depth_rest_rel P1 n SP := by
+  induction hP1 with
+  | @fsfF_proc_int C Rf hC hRf ih =>
+      intro n
+      cases n with
+      | zero => exact ⟨SDIV, fsfF_Depth_rest_rel.zero⟩
+      | succ m =>
+          refine ⟨proc.Rep_int_choice C (fun c =>
+            if hc : c ∈ sumset C
+            then Classical.choose (ih c hc (Nat.succ m))
+            else proc.DIV), ?_⟩
+          refine fsfF_Depth_rest_rel.int_split ?_ ?_ hC hRf
+          · intro c hc
+            rw [dif_pos hc]
+            exact Classical.choose_spec (ih c hc (Nat.succ m))
+          · intro c hc
+            rw [dif_neg hc]
+  | @fsfF_proc_ext A Pf Q hPf hQ ih =>
+      intro n
+      cases n with
+      | zero => exact ⟨SDIV, fsfF_Depth_rest_rel.zero⟩
+      | succ m =>
+          refine ⟨(proc.Ext_pre_choice A (fun a =>
+            if ha : a ∈ A
+            then Classical.choose (ih a ha m)
+            else proc.DIV)) [+] Q, ?_⟩
+          refine fsfF_Depth_rest_rel.step_split ?_ ?_ hPf hQ
+          · intro a ha
+            rw [dif_pos ha]
+            exact Classical.choose_spec (ih a ha m)
+          · intro a ha
+            rw [dif_neg ha]
+
+private theorem fsfF_Depth_rest_rel_exists_ax
     (P1 : proc p α)
     (n : Nat) :
-    ∃ SP : proc p α, fsfF_Depth_rest_rel P1 n SP
+    ∃ SP : proc p α, fsfF_Depth_rest_rel P1 n SP := by
+  cases n with
+  | zero => exact ⟨SDIV, fsfF_Depth_rest_rel.zero⟩
+  | succ m =>
+      by_cases hP1 : fsfF_proc P1
+      · exact fsfF_Depth_rest_rel_exists_in' hP1 (Nat.succ m)
+      · exact ⟨P1 |. Nat.succ m, fsfF_Depth_rest_rel.etc hP1⟩
 
 def fsfF_Depth_rest
     (P1 : proc p α) (n : Nat) : proc p α :=
@@ -128,13 +220,50 @@ theorem fsfF_Depth_rest_def
  ****************************************************************)
 -/
 
-axiom fsfF_Depth_rest_rel_unique
+theorem fsfF_Depth_rest_rel_unique
     {P1 : proc p α}
     {n : Nat}
     {SP1 SP2 : proc p α} :
     fsfF_Depth_rest_rel P1 n SP1 →
       fsfF_Depth_rest_rel P1 n SP2 →
-        SP1 = SP2
+        SP1 = SP2 := by
+  intro h1
+  induction h1 generalizing SP2 with
+  | zero =>
+      intro h2
+      cases h2
+      rfl
+  | etc hnot =>
+      intro h2
+      cases h2 with
+      | etc _ => rfl
+      | int_split _ _ hC hRf =>
+          exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hnot
+      | step_split _ _ hPf hQ =>
+          exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hnot
+  | @int_split C1 Rf1 SRf m hin hout hC hRf ih =>
+      intro h2
+      cases h2 with
+      | etc hnot =>
+          exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hnot
+      | int_split hin' hout' _ _ =>
+          congr 1
+          funext c
+          by_cases hc : c ∈ sumset C1
+          · exact ih c hc (hin' c hc)
+          · rw [hout c hc, hout' c hc]
+  | @step_split A1 Pf1 SPf Q1 m hin hout hPf hQ ih =>
+      intro h2
+      cases h2 with
+      | etc hnot =>
+          exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hnot
+      | step_split hin' hout' _ _ =>
+          congr 1
+          congr 1
+          funext a
+          by_cases ha : a ∈ A1
+          · exact ih a ha (hin' a ha)
+          · rw [hout a ha, hout' a ha]
 
 lemma fsfF_Depth_rest_rel_unique_in_lm
     {P1 : proc p α}
@@ -174,21 +303,32 @@ lemma fsfF_Depth_rest_rel_EX1
 
 /- zero -/
 
-axiom fsfF_Depth_rest_rel_zero_iff
+theorem fsfF_Depth_rest_rel_zero_iff
     {P1 SP : proc p α} :
-    fsfF_Depth_rest_rel P1 0 SP ↔ SP = SDIV
+    fsfF_Depth_rest_rel P1 0 SP ↔ SP = SDIV := by
+  constructor
+  · intro h
+    exact fsfF_Depth_rest_rel_unique h fsfF_Depth_rest_rel.zero
+  · rintro rfl
+    exact fsfF_Depth_rest_rel.zero
 
 /- etc -/
 
-axiom fsfF_Depth_rest_rel_etc_iff
+theorem fsfF_Depth_rest_rel_etc_iff
     {P1 SP : proc p α}
     {n : Nat} :
     ¬ fsfF_proc P1 →
-      (fsfF_Depth_rest_rel P1 (Nat.succ n) SP ↔ SP = P1 |. Nat.succ n)
+      (fsfF_Depth_rest_rel P1 (Nat.succ n) SP ↔ SP = P1 |. Nat.succ n) := by
+  intro hnot
+  constructor
+  · intro h
+    exact fsfF_Depth_rest_rel_unique h (fsfF_Depth_rest_rel.etc hnot)
+  · rintro rfl
+    exact fsfF_Depth_rest_rel.etc hnot
 
 /- int nat -/
 
-axiom fsfF_Depth_rest_rel_int_iff
+theorem fsfF_Depth_rest_rel_int_iff
     {C1 : sets_nats α}
     {Rf1 SRf : aset_anat α → proc p α}
     {m : Nat}
@@ -202,11 +342,17 @@ axiom fsfF_Depth_rest_rel_int_iff
               (proc.Rep_int_choice C1 Rf1)
               (Nat.succ m)
               SP ↔
-            SP = proc.Rep_int_choice C1 SRf)
+            SP = proc.Rep_int_choice C1 SRf) := by
+  intro h hC hRf
+  constructor
+  · intro hSP
+    exact fsfF_Depth_rest_rel_unique hSP (fsfF_Depth_rest_rel.int h hC hRf)
+  · rintro rfl
+    exact fsfF_Depth_rest_rel.int h hC hRf
 
 /- step -/
 
-axiom fsfF_Depth_rest_rel_step_iff
+theorem fsfF_Depth_rest_rel_step_iff
     {A1 : Set α}
     {Pf1 SPf : α → proc p α}
     {Q1 SP : proc p α}
@@ -220,7 +366,13 @@ axiom fsfF_Depth_rest_rel_step_iff
               ((proc.Ext_pre_choice A1 Pf1) [+] Q1)
               (Nat.succ n)
               SP ↔
-            SP = ((proc.Ext_pre_choice A1 SPf) [+] Q1))
+            SP = ((proc.Ext_pre_choice A1 SPf) [+] Q1)) := by
+  intro h hPf hQ
+  constructor
+  · intro hSP
+    exact fsfF_Depth_rest_rel_unique hSP (fsfF_Depth_rest_rel.step h hPf hQ)
+  · rintro rfl
+    exact fsfF_Depth_rest_rel.step h hPf hQ
 
 /-
 (****************************************************************
@@ -290,12 +442,21 @@ lemma fsfF_Depth_rest_rel_zero_in
   subst SP
   exact fsfF_SDIV_in (p := p) (α := α)
 
-axiom fsfF_Depth_rest_rel_in
+theorem fsfF_Depth_rest_rel_in
     {P1 SP : proc p α}
-    {n : Nat} :
-    fsfF_proc P1 →
-      fsfF_Depth_rest_rel P1 n SP →
-        fsfF_proc SP
+    {n : Nat}
+    (hP1 : fsfF_proc P1)
+    (h : fsfF_Depth_rest_rel P1 n SP) :
+    fsfF_proc SP := by
+  induction h with
+  | zero => exact fsfF_SDIV_in
+  | etc hnot => exact absurd hP1 hnot
+  | int_split hin hout hC hRf ih =>
+      refine fsfF_proc.fsfF_proc_int hC (fun c hc => ?_)
+      exact ih c hc (hRf c hc)
+  | step_split hin hout hPf hQ ih =>
+      refine fsfF_proc.fsfF_proc_ext (fun a ha => ?_) hQ
+      exact ih a ha (hPf a ha)
 
 lemma fsfF_Depth_rest_rel_in_lm
     {P1 : proc p α} :
@@ -312,25 +473,68 @@ lemma fsfF_Depth_rest_rel_in_lm
  |             syntactical transformation to fsfF             |
  *------------------------------------------------------------* -/
 
-axiom cspF_fsfF_Depth_rest_rel_eqF_zero
+theorem cspF_fsfF_Depth_rest_rel_eqF_zero
     [HasPNfun p α] [HasFPmode]
     {P1 SP : proc p α} :
     fsfF_Depth_rest_rel P1 0 SP →
-      eqFfix (P1 |. 0) SP
+      eqFfix (P1 |. 0) SP := by
+  intro h
+  rw [fsfF_Depth_rest_rel_zero_iff.1 h]
+  exact cspF_trans_left_eq cspF_Depth_rest_Zero cspF_SDIV_eqF
 
-axiom cspF_fsfF_Depth_rest_rel_eqF_notin
+theorem cspF_fsfF_Depth_rest_rel_eqF_notin
     [HasPNfun p α] [HasFPmode]
     {P1 SP : proc p α}
     {n : Nat} :
     ¬ fsfF_proc P1 →
       fsfF_Depth_rest_rel P1 n SP →
-        eqFfix (P1 |. n) SP
+        eqFfix (P1 |. n) SP := by
+  intro hnot h
+  cases n with
+  | zero => exact cspF_fsfF_Depth_rest_rel_eqF_zero h
+  | succ m =>
+      rw [(fsfF_Depth_rest_rel_etc_iff hnot).1 h]
+      exact cspF_reflex_eq_P
 
-axiom cspF_fsfF_Depth_rest_rel_eqF_in
+theorem cspF_fsfF_Depth_rest_rel_eqF_in
     [HasPNfun p α] [HasFPmode]
     {P1 : proc p α} :
     fsfF_proc P1 →
-      ∀ n SP, fsfF_Depth_rest_rel P1 n SP → eqFfix (P1 |. n) SP
+      ∀ n SP, fsfF_Depth_rest_rel P1 n SP → eqFfix (P1 |. n) SP := by
+  intro hP1
+  induction hP1 with
+  | fsfF_proc_int hC hRf ih =>
+      intro n SP hrel
+      cases n with
+      | zero =>
+          exact cspF_fsfF_Depth_rest_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot =>
+              exact absurd (fsfF_proc.fsfF_proc_int hC hRf) hnot
+          | int_split hin hout _ _ =>
+              refine cspF_trans_left_eq cspF_Depth_rest_Dist_sum ?_
+              refine cspF_Rep_int_choice_cong_sum rfl (fun c hc => ?_)
+              exact ih c hc (Nat.succ m) _ (hin c hc)
+  | fsfF_proc_ext hPf hQ ih =>
+      intro n SP hrel
+      cases n with
+      | zero =>
+          exact cspF_fsfF_Depth_rest_rel_eqF_zero hrel
+      | succ m =>
+          cases hrel with
+          | etc hnot =>
+              exact absurd (fsfF_proc.fsfF_proc_ext hPf hQ) hnot
+          | step_split hin hout _ hQ' =>
+              refine cspF_trans_left_eq cspF_Depth_rest_Ext_dist ?_
+              refine cspF_Ext_choice_cong ?_ ?_
+              · refine cspF_trans_left_eq cspF_Depth_rest_step ?_
+                refine cspF_Ext_pre_choice_cong rfl (fun a ha => ?_)
+                exact ih a ha m _ (hin a ha)
+              · rcases hQ with rfl | rfl | rfl
+                · exact cspF_SKIP_Depth_rest
+                · exact cspF_DIV_Depth_rest
+                · exact cspF_STOP_Depth_rest
 
 lemma cspF_fsfF_Depth_rest_rel_eqF
     [HasPNfun p α] [HasFPmode]
