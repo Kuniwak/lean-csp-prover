@@ -97,8 +97,8 @@ theorem MT_fixed_point_cms [HasPNfun p α] [HasFPmode]
  |  unique |
  *--------- -/
 
-theorem ALL_cspT_unique_cms [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} :
+theorem ALL_cspT_unique_cms [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
         ∀ pn, eqT (f pn) MT MT (proc.Proc_name pn : proc p α) := by
@@ -112,8 +112,8 @@ theorem ALL_cspT_unique_cms [HasPNfun p α] [HasFPmode]
   change semTf (f pn) MT = (MT : p → domTType α) pn
   exact congrFun huniq pn
 
-theorem cspT_unique_cms [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {p0 : p} :
+theorem cspT_unique_cms [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
         eqT (f p0) MT MT (proc.Proc_name p0 : proc p α) := by
@@ -167,8 +167,8 @@ theorem cspT_unwind_cms [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspT_fp_induct_cms_ref_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refT (f p0) MT MT Q →
         (∀ p, refT ((Pf p) << f) MT MT (f p)) →
@@ -202,8 +202,8 @@ theorem cspT_fp_induct_cms_ref_left [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspT_fp_induct_cms_ref_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       refT Q MT MT (f p0) →
         (∀ p, refT (f p) MT MT ((Pf p) << f)) →
@@ -239,8 +239,8 @@ theorem cspT_fp_induct_cms_ref_right [HasPNfun p α] [HasFPmode]
 
 /-  csp law  -/
 
-theorem cspT_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspT_fp_induct_cms_eq_left [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       eqT (f p0) MT MT Q →
         (∀ p, eqT ((Pf p) << f) MT MT (f p)) →
@@ -255,8 +255,8 @@ theorem cspT_fp_induct_cms_eq_left [HasPNfun p α] [HasFPmode]
       hPf hguard hmode (le_of_eq e0) (fun q => le_of_eq (hfix q))
   exact le_antisymm hR hL
 
-theorem cspT_fp_induct_cms_eq_right [HasPNfun p α] [HasFPmode]
-    {Pf : p → proc p α} {f : p → proc p α} {Q : proc p α} {p0 : p} :
+theorem cspT_fp_induct_cms_eq_right [HasPNfun p α] [HasPNfun q α] [HasFPmode]
+    {Pf : p → proc p α} {f : p → proc q α} {Q : proc q α} {p0 : p} :
     Pf = PNfun → guardedfun Pf → FPmode = CMSmode →
       eqT Q MT MT (f p0) →
         (∀ p, eqT (f p) MT MT ((Pf p) << f)) →

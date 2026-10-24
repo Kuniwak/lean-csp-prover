@@ -282,21 +282,34 @@ theorem isStateOf_each_element
 
 /- lemmas -/
 
-axiom domSF_PAR_flattening_lm1
+theorem domSF_PAR_flattening_lm1
     {κ : Type _} {x : κ} {V : κ → Network ι p α} :
     ALP (V x) =
       Set.sUnion
         (Prod.snd ''
           ((fun ij : ι × κ => (V ij.2).2 ij.1) ''
-            {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x}))
+            {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x})) := by
+  ext a
+  constructor
+  · rintro ⟨i, hi, hai⟩
+    exact ⟨Prod.snd ((V x).2 i), ⟨(V x).2 i, ⟨(i, x), ⟨hi, rfl⟩, rfl⟩, rfl⟩, hai⟩
+  · rintro ⟨T, ⟨PX, ⟨⟨i, j⟩, ⟨hi, rfl⟩, rfl⟩, rfl⟩, haT⟩
+    exact ⟨i, hi, haT⟩
 
-axiom domSF_PAR_flattening_lm2
+theorem domSF_PAR_flattening_lm2
     {κ : Type _} {F : Set κ} {V : κ → Network ι p α} :
     Set.sUnion (Prod.snd '' ((fun i : κ => (PAR (V i), ALP (V i))) '' F)) =
       Set.sUnion
         (Prod.snd ''
           ((fun ij : ι × κ => (V ij.2).2 ij.1) ''
-            {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1}))
+            {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1})) := by
+  ext a
+  constructor
+  · rintro ⟨T, ⟨PX, ⟨j, hj, rfl⟩, rfl⟩, haT⟩
+    rcases haT with ⟨i, hi, hai⟩
+    exact ⟨Prod.snd ((V j).2 i), ⟨(V j).2 i, ⟨(i, j), ⟨hj, hi⟩, rfl⟩, rfl⟩, hai⟩
+  · rintro ⟨T, ⟨PX, ⟨⟨i, j⟩, ⟨hj, hi⟩, rfl⟩, rfl⟩, haT⟩
+    exact ⟨ALP (V j), ⟨(PAR (V j), ALP (V j)), ⟨j, hj, rfl⟩, rfl⟩, ⟨i, hi, haT⟩⟩
 
 /- main -/
 
@@ -304,14 +317,129 @@ axiom domSF_PAR_flattening_lm2
  |      csp law     |
  *------------------*) -/
 
-axiom cspF_PAR_flattening
+theorem cspF_PAR_flattening
     {κ : Type _} {J : Set κ} {V : κ → Network ι p α} {M : p → domFType α} :
     J.Finite →
       (∀ j ∈ J, ((V j).1).Finite) →
         eqF
           (PAR ({j | j ∈ J}, fun j => (PAR (V j), ALP (V j))))
           M M
-          (PAR ({ij : ι × κ | ij.2 ∈ J ∧ ij.1 ∈ (V ij.2).1}, fun ij => (V ij.2).2 ij.1))
+          (PAR ({ij : ι × κ | ij.2 ∈ J ∧ ij.1 ∈ (V ij.2).1}, fun ij => (V ij.2).2 ij.1)) := by
+  intro hJ
+  induction J, hJ using Set.Finite.induction_on with
+  | empty =>
+    intro _
+    change
+      eqF
+        (Rep_parallel {j | j ∈ (∅ : Set κ)} (fun j => (PAR (V j), ALP (V j))))
+        M M
+        (Rep_parallel {ij : ι × κ | ij.2 ∈ (∅ : Set κ) ∧ ij.1 ∈ (V ij.2).1}
+          (fun ij => (V ij.2).2 ij.1))
+    have h1 : ({j | j ∈ (∅ : Set κ)} : Set κ) = ∅ := Set.setOf_mem_eq
+    have h2 : {ij : ι × κ | ij.2 ∈ (∅ : Set κ) ∧ ij.1 ∈ (V ij.2).1} = (∅ : Set (ι × κ)) := by
+      ext ij
+      simp
+    rw [h1, h2, Rep_parallel_empty, Rep_parallel_empty]
+    exact cspF_reflex_eq_P
+  | @insert x F hxF hFfin ih =>
+    intro hV
+    have hVx : ((V x).1).Finite := hV x (Set.mem_insert _ _)
+    have hVF : ∀ j ∈ F, ((V j).1).Finite :=
+      fun j hj => hV j (Set.mem_insert_of_mem _ hj)
+    /- the flattened index set of the tail is finite -/
+    have hTfin : ({ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1}).Finite := by
+      have hsub : {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1} ⊆
+          ⋃ j ∈ F, (fun i => (i, j)) '' (V j).1 := by
+        rintro ⟨i, j⟩ ⟨hj, hi⟩
+        exact Set.mem_biUnion hj ⟨i, hi, rfl⟩
+      exact (Set.Finite.biUnion hFfin (fun j hj => (hVF j hj).image _)).subset hsub
+    /- the flattened index set of the head as an image -/
+    have hSimg : {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x} =
+        (fun i => (i, x)) '' (V x).1 := by
+      ext ⟨i, j⟩
+      constructor
+      · rintro ⟨hi, rfl⟩
+        exact ⟨i, hi, rfl⟩
+      · rintro ⟨i', hi', hEq⟩
+        obtain ⟨rfl, rfl⟩ := Prod.mk.inj hEq
+        exact ⟨hi', rfl⟩
+    have hSfin : ({ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x}).Finite := by
+      rw [hSimg]
+      exact hVx.image _
+    /- head and tail flattened index sets are disjoint -/
+    have hdisj : {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x} ∩
+        {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1} = ∅ := by
+      ext ⟨i, j⟩
+      simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+      rintro ⟨⟨-, rfl⟩, hj, -⟩
+      exact hxF hj
+    /- (* sub 2 *) : the whole flattened index set splits -/
+    have hUnion : {ij : ι × κ | ij.2 ∈ insert x F ∧ ij.1 ∈ (V ij.2).1} =
+        {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x} ∪
+          {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1} := by
+      ext ⟨i, j⟩
+      constructor
+      · rintro ⟨hj, hi⟩
+        rcases hj with rfl | hj
+        · exact Or.inl ⟨hi, rfl⟩
+        · exact Or.inr ⟨hj, hi⟩
+      · rintro (⟨hi, rfl⟩ | ⟨hj, hi⟩)
+        · exact ⟨Set.mem_insert _ _, hi⟩
+        · exact ⟨Set.mem_insert_of_mem _ hj, hi⟩
+    /- unfold the head network into its flattened form -/
+    have hIdx : eqF (PAR (V x)) M M
+        (Rep_parallel {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x}
+          (fun ij : ι × κ => (V ij.2).2 ij.1)) :=
+      cspF_Rep_parallel_index_eq hVx
+        ⟨fun i => (i, x), hSimg, fun i _ i' _ h => (Prod.mk.inj h).1, fun i _ => rfl⟩
+    /- induction hypothesis for the tail -/
+    have hIH : eqF (Rep_parallel F (fun j => (PAR (V j), ALP (V j)))) M M
+        (Rep_parallel {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1}
+          (fun ij : ι × κ => (V ij.2).2 ij.1)) :=
+      ih hVF
+    /- step 1 : peel the inserted component off the outer PAR -/
+    have h1 : eqF
+        (Rep_parallel (insert x F) (fun j => (PAR (V j), ALP (V j))))
+        M M
+        ((PAR (V x)) |[ALP (V x),
+          Set.sUnion (Prod.snd '' ((fun j => (PAR (V j), ALP (V j))) '' F))]|
+          Rep_parallel F (fun j => (PAR (V j), ALP (V j)))) :=
+      cspF_Rep_parallel_induct hFfin hxF
+    /- step 2 : rewrite both parallel components -/
+    have h2 : eqF
+        ((PAR (V x)) |[ALP (V x),
+          Set.sUnion (Prod.snd '' ((fun j => (PAR (V j), ALP (V j))) '' F))]|
+          Rep_parallel F (fun j => (PAR (V j), ALP (V j))))
+        M M
+        ((Rep_parallel {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x}
+            (fun ij : ι × κ => (V ij.2).2 ij.1)) |[ALP (V x),
+          Set.sUnion (Prod.snd '' ((fun j => (PAR (V j), ALP (V j))) '' F))]|
+          Rep_parallel {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1}
+            (fun ij : ι × κ => (V ij.2).2 ij.1)) :=
+      cspF_Alpha_parallel_cong rfl rfl hIdx hIH
+    /- step 3 : merge the two flattened replicated parallels -/
+    have h3 : eqF
+        ((Rep_parallel {ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x}
+            (fun ij : ι × κ => (V ij.2).2 ij.1)) |[ALP (V x),
+          Set.sUnion (Prod.snd '' ((fun j => (PAR (V j), ALP (V j))) '' F))]|
+          Rep_parallel {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1}
+            (fun ij : ι × κ => (V ij.2).2 ij.1))
+        M M
+        (Rep_parallel
+          ({ij : ι × κ | ij.1 ∈ (V x).1 ∧ ij.2 = x} ∪
+            {ij : ι × κ | ij.2 ∈ F ∧ ij.1 ∈ (V ij.2).1})
+          (fun ij : ι × κ => (V ij.2).2 ij.1)) := by
+      rw [domSF_PAR_flattening_lm1 (x := x) (V := V),
+        domSF_PAR_flattening_lm2 (F := F) (V := V)]
+      exact cspF_sym (cspF_Rep_parallel_assoc hdisj hSfin hTfin)
+    change
+      eqF
+        (Rep_parallel {j | j ∈ insert x F} (fun j => (PAR (V j), ALP (V j))))
+        M M
+        (Rep_parallel {ij : ι × κ | ij.2 ∈ insert x F ∧ ij.1 ∈ (V ij.2).1}
+          (fun ij => (V ij.2).2 ij.1))
+    rw [Set.setOf_mem_eq, hUnion]
+    exact cspF_trans_left_eq h1 (cspF_trans_left_eq h2 h3)
 
 /- (*** T and F ***) -/
 

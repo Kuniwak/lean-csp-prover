@@ -449,35 +449,169 @@ private theorem mem_alpha_of_state
  | lemma 1 [Roscoe_Dathi_1987 P.7] |
  *--------------------------------- -/
 
+private theorem mem_Yf_of_mem_ALP_of_deadlock
+    {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}
+    {t : traceType α} {Yf : ι → Set (event α)} {e : event α}
+    (hDead : isDeadlockStateOf (t, Yf) (I, FXf))
+    (he : e ∈ Ev '' ALP (I, FXf)) :
+    ∃ k ∈ I, e ∈ Yf k := by
+  have hmem : e ∈ Set.sUnion (Yf '' I) := mem_union_of_deadlock hDead he
+  rcases Set.mem_sUnion.mp hmem with ⟨S, ⟨k, hk, rfl⟩, heS⟩
+  exact ⟨k, hk, heS⟩
+
+private theorem mem_alpha_of_state_inj
+    {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}
+    {t : traceType α} {Yf : ι → Set (event α)} {k : ι} {a : α}
+    (hState : isStateOf (t, Yf) (I, FXf))
+    (hk : k ∈ I)
+    (he : Ev a ∈ Yf k) :
+    a ∈ Prod.snd (FXf k) := by
+  rcases (hState.2 k hk).2 he with ⟨b, hb, hEq⟩
+  obtain rfl : b = a := Ev.inj hEq
+  exact hb
+
 /- (*** only if ***) -/
 
-axiom Lemma1_Roscoe_Dathi_1987_only_if
+theorem Lemma1_Roscoe_Dathi_1987_only_if
     {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}
     {t : traceType α} {Yf : ι → Set (event α)}
     (hTD : triple_disjoint (I, FXf))
     (hBusy : BusyNetwork (I, FXf))
     (hDead : isDeadlockStateOf (t, Yf) (I, FXf)) :
-    ∀ i ∈ I, isBlockedIn (I, FXf) i (t, Yf)
+    ∀ i ∈ I, isBlockedIn (I, FXf) i (t, Yf) := by
+  intro i hi
+  have hState : isStateOf (t, Yf) (I, FXf) := hDead.1
+  refine ⟨hTD, ?_, ?_⟩
+  · /- (* 1 *) : busy --> i is deadlock-free --> EX j -/
+    have hStateI : isStateOf (t rest-tr Prod.snd (FXf i), Yf) (({i} : Set ι), FXf) :=
+      isStateOf_each_element hState hi
+    have hNotDead := hBusy i hi (t rest-tr Prod.snd (FXf i), Yf)
+    have hNe : Yf i ≠ Ev '' Prod.snd (FXf i) := by
+      intro hEq
+      exact hNotDead (isDeadlockStateOf_singleton_iff.mpr ⟨hStateI, hEq⟩)
+    have hSub : Yf i ⊆ Ev '' Prod.snd (FXf i) := (hState.2 i hi).2
+    have hExists : ∃ e, e ∈ Ev '' Prod.snd (FXf i) ∧ e ∉ Yf i := by
+      by_contra hAll
+      push_neg at hAll
+      exact hNe (Set.Subset.antisymm hSub (fun e he => hAll e he))
+    rcases hExists with ⟨e, heA, heY⟩
+    rcases heA with ⟨a, ha, rfl⟩
+    obtain ⟨j, hj, hEvYj⟩ :=
+      mem_Yf_of_mem_ALP_of_deadlock hDead ⟨a, ⟨i, hi, ha⟩, rfl⟩
+    have hij : i ≠ j := by
+      intro h
+      exact heY (h ▸ hEvYj)
+    refine ⟨j, hState, hij, hi, hj, ?_⟩
+    exact Set.nonempty_iff_ne_empty.mp
+      ⟨Ev a, ⟨⟨a, ha, rfl⟩, heY⟩, (hState.2 j hj).2 hEvYj⟩
+  · /- (* 2 *) : every request of i is ungranted wrt the vocabulary -/
+    intro j hReq
+    have hij : i ≠ j := hReq.2.1
+    have hjI : j ∈ I := hReq.2.2.2.1
+    refine ⟨⟨hReq, ?_⟩, ?_⟩
+    · /- (* 2-1 *) -/
+      rintro e ⟨⟨a, hai, rfl⟩, hEvj⟩
+      have haj : a ∈ Prod.snd (FXf j) := by
+        rcases hEvj with ⟨b, hb, hEq⟩
+        obtain rfl : b = a := Ev.inj hEq
+        exact hb
+      obtain ⟨k, hk, hEvYk⟩ :=
+        mem_Yf_of_mem_ALP_of_deadlock hDead ⟨a, ⟨i, hi, hai⟩, rfl⟩
+      by_cases hki : k = i
+      · subst hki
+        exact Or.inl hEvYk
+      · by_cases hkj : k = j
+        · subst hkj
+          exact Or.inr hEvYk
+        · exact absurd (mem_alpha_of_state_inj hState hk hEvYk)
+            (fun hak => triple_disjoint_no_common hTD hi hjI hk
+              hij (fun h => hkj h.symm) hki hai haj hak)
+    · /- (* 2-2 *) -/
+      rintro e (⟨⟨a, hai, rfl⟩, heY⟩ | ⟨⟨a, haj, rfl⟩, heY⟩)
+      · obtain ⟨k, hk, hEvYk⟩ :=
+          mem_Yf_of_mem_ALP_of_deadlock hDead ⟨a, ⟨i, hi, hai⟩, rfl⟩
+        have hki : k ≠ i := by
+          intro h
+          exact heY (h ▸ hEvYk)
+        have hak : a ∈ Prod.snd (FXf k) := mem_alpha_of_state_inj hState hk hEvYk
+        exact ⟨a, mem_VocabularyOf_iff.mpr
+          ⟨i, hi, k, hk, fun h => hki h.symm, hai, hak⟩, rfl⟩
+      · obtain ⟨k, hk, hEvYk⟩ :=
+          mem_Yf_of_mem_ALP_of_deadlock hDead ⟨a, ⟨j, hjI, haj⟩, rfl⟩
+        have hkj : k ≠ j := by
+          intro h
+          exact heY (h ▸ hEvYk)
+        have hak : a ∈ Prod.snd (FXf k) := mem_alpha_of_state_inj hState hk hEvYk
+        exact ⟨a, mem_VocabularyOf_iff.mpr
+          ⟨j, hjI, k, hk, fun h => hkj h.symm, haj, hak⟩, rfl⟩
 
 /- (*** if ***) -/
 
-axiom Lemma1_Roscoe_Dathi_1987_if
+theorem Lemma1_Roscoe_Dathi_1987_if
     {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}
     {t : traceType α} {Yf : ι → Set (event α)}
     (hTD : triple_disjoint (I, FXf))
     (hBusy : BusyNetwork (I, FXf))
     (hState : isStateOf (t, Yf) (I, FXf))
     (hBlocked : ∀ i ∈ I, isBlockedIn (I, FXf) i (t, Yf)) :
-    isDeadlockStateOf (t, Yf) (I, FXf)
+    isDeadlockStateOf (t, Yf) (I, FXf) := by
+  let _ := hBusy
+  refine ⟨hState, ?_⟩
+  apply Set.Subset.antisymm
+  · /- (* <= *) -/
+    rintro e ⟨S, ⟨k, hk, rfl⟩, heS⟩
+    rcases (hState.2 k hk).2 heS with ⟨a, ha, rfl⟩
+    exact ⟨a, ⟨k, hk, ha⟩, rfl⟩
+  · /- (* => *) -/
+    rintro e ⟨a, ⟨i, hi, hai⟩, rfl⟩
+    by_cases hYi : Ev a ∈ Yf i
+    · exact Set.mem_sUnion.mpr ⟨Yf i, ⟨i, hi, rfl⟩, hYi⟩
+    · obtain ⟨-, ⟨j0, hReq0⟩, hAll⟩ := hBlocked i hi
+      have hVocab : Ev a ∈ Ev '' VocabularyOf (I, FXf) :=
+        (hAll j0 hReq0).2 (Or.inl ⟨⟨a, hai, rfl⟩, hYi⟩)
+      rcases hVocab with ⟨b, hb, hEq⟩
+      rw [Ev.inj hEq] at hb
+      rcases mem_VocabularyOf_iff.mp hb with ⟨ia, hia, jb, hjb, hne, haia, hajb⟩
+      by_cases h1 : ia = i
+      · subst h1
+        have hReq : isRequestOf (I, FXf) ia (t, Yf) jb :=
+          ⟨hState, hne, hia, hjb,
+            Set.nonempty_iff_ne_empty.mp
+              ⟨Ev a, ⟨⟨a, hai, rfl⟩, hYi⟩, ⟨a, hajb, rfl⟩⟩⟩
+        have hmem : Ev a ∈ Yf ia ∪ Yf jb :=
+          (hAll jb hReq).1.2 ⟨⟨a, hai, rfl⟩, ⟨a, hajb, rfl⟩⟩
+        rcases hmem with h | h
+        · exact absurd h hYi
+        · exact Set.mem_sUnion.mpr ⟨Yf jb, ⟨jb, hjb, rfl⟩, h⟩
+      · by_cases h2 : jb = i
+        · subst h2
+          have hReq : isRequestOf (I, FXf) jb (t, Yf) ia :=
+            ⟨hState, fun h => hne h.symm, hjb, hia,
+              Set.nonempty_iff_ne_empty.mp
+                ⟨Ev a, ⟨⟨a, hai, rfl⟩, hYi⟩, ⟨a, haia, rfl⟩⟩⟩
+          have hmem : Ev a ∈ Yf jb ∪ Yf ia :=
+            (hAll ia hReq).1.2 ⟨⟨a, hai, rfl⟩, ⟨a, haia, rfl⟩⟩
+          rcases hmem with h | h
+          · exact absurd h hYi
+          · exact Set.mem_sUnion.mpr ⟨Yf ia, ⟨ia, hia, rfl⟩, h⟩
+        · exact absurd hajb
+            (fun hak => triple_disjoint_no_common hTD hi hia hjb
+              (fun h => h1 h.symm) hne h2 hai haia hak)
 
-axiom Lemma1_Roscoe_Dathi_1987
+theorem Lemma1_Roscoe_Dathi_1987
     {I : Set ι} {FXf : ι → (Set (failure α) × Set α)}
     {t : traceType α} {Yf : ι → Set (event α)}
     (hTD : triple_disjoint (I, FXf))
     (hBusy : BusyNetwork (I, FXf))
     (hState : isStateOf (t, Yf) (I, FXf)) :
     isDeadlockStateOf (t, Yf) (I, FXf) ↔
-      ∀ i ∈ I, isBlockedIn (I, FXf) i (t, Yf)
+      ∀ i ∈ I, isBlockedIn (I, FXf) i (t, Yf) := by
+  let _ := hState
+  constructor
+  · intro hDead
+    exact Lemma1_Roscoe_Dathi_1987_only_if hTD hBusy hDead
+  · intro hBlocked
+    exact Lemma1_Roscoe_Dathi_1987_if hTD hBusy hState hBlocked
 
 /-(****************** to add it again ******************)
 

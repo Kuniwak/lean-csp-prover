@@ -98,27 +98,40 @@ theorem traces_subst_Bot {P : proc p α} {M : q → domTType α} :
     traces_prod_Bot (ι := p) (κ := q) (α := α) (M := M)
   rw [hBot]
 
-private theorem FIXn_succ {Pf : p → proc p α} {n : Nat} :
-    FIXn (n.succ) Pf = Pf <<< FIXn n Pf := by
-  funext p0
-  simp [FIXn, Function.iterate_succ_apply', Subst_procfun_prod]
+/- Lean note:
+   the Isabelle original writes the raw iteration
+     `ALL p. traces (((Pf <<<) ^^ n) (%q. DIV) p) M = ([[Pf]]Tfun ^^ n) Bot p`
+   and *not* `FIX[n] Pf p`.  Since
+   `Pf <<< :: ('p => ('r,'a) proc) => ('p => ('r,'a) proc)` leaves `'r` free
+   while the constant `FIX[n]` is homogeneous
+   (`nat => ('p => ('p,'a) proc) => ('p => ('p,'a) proc)`), phrasing the lemma
+   with `FIXn` would pin `'r := 'p` and weaken it.  The raw form is kept here;
+   `FIXn_def` specialises it to `FIXn` at the call sites. -/
 
 theorem traces_iteration_semTfun_Bot
-    {Pf : p → proc p α} {n : Nat} {M : p → domTType α} :
-    ∀ p0, traces (FIXn n Pf p0) M = ((semTfun Pf)^[n]) Bot p0 := by
+    {Pf : p → proc p α} {n : Nat} {M : q → domTType α} :
+    ∀ p0, traces
+        (((fun Qf : p → proc q α => Pf <<< Qf)^[n])
+          (fun _ => (proc.DIV : proc q α)) p0) M
+      = ((semTfun Pf)^[n]) Bot p0 := by
   induction n with
   | zero =>
       intro p0
       have h :=
         congrArg (fun F : p → domTType α => F p0)
-          (traces_prod_Bot (ι := p) (κ := p) (α := α) (M := M))
-      simpa [FIXn, semTfun_def, semTf_def] using h
+          (traces_prod_Bot (ι := p) (κ := q) (α := α) (M := M))
+      simpa [semTfun_def, semTf_def] using h
   | succ n ih =>
       intro p0
-      have hfun : (fun q => traces (FIXn n Pf q) M) = ((semTfun Pf)^[n]) Bot := by
-        funext q
-        exact ih q
-      rw [FIXn_succ, Function.iterate_succ_apply', Subst_procfun_prod_p, traces_subst, hfun]
+      have hfun :
+          (fun r => traces
+            (((fun Qf : p → proc q α => Pf <<< Qf)^[n])
+              (fun _ => (proc.DIV : proc q α)) r) M) = ((semTfun Pf)^[n]) Bot := by
+        funext r
+        exact ih r
+      rw [Function.iterate_succ_apply' (f := fun Qf : p → proc q α => Pf <<< Qf),
+        Function.iterate_succ_apply' (f := semTfun Pf),
+        Subst_procfun_prod_p, traces_subst, hfun]
       simp [semTfun_def, semTf_def]
 
 theorem traces_FIX
@@ -138,7 +151,7 @@ theorem traces_FIX
           by rw [← traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0]; exact ht⟩
     · rintro ⟨T, ⟨n, rfl⟩, ht⟩
       refine Or.inr ⟨n, trivial, ?_⟩
-      rw [traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0]
+      rw [FIXn_def, traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0]
       exact ht
   exact le_antisymm (subdomT_iff.mpr fun t ht => (hiff t).mp ht)
     (subdomT_iff.mpr fun t ht => (hiff t).mpr ht)
@@ -336,7 +349,7 @@ theorem traces_FIXn_plus_sub_lm
     {Pf : p → proc p α} {M : p → domTType α} :
     ∀ n m p0, traces (FIXn n Pf p0) M <= traces (FIXn (n + m) Pf p0) M := by
   intro n m p0
-  rw [traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0,
+  rw [FIXn_def, FIXn_def, traces_iteration_semTfun_Bot (Pf := Pf) (n := n) (M := M) p0,
     traces_iteration_semTfun_Bot (Pf := Pf) (n := n + m) (M := M) p0]
   exact iterate_Bot_mono n m p0
 

@@ -58,11 +58,6 @@ theorem semF_prod_Bot [HasPNfun p α] [HasFPmode] :
 
 /- (*** iteration lemmas ***) -/
 
-private theorem FIXn_succ {Pf : p → proc p α} {n : Nat} :
-    FIXn (n.succ) Pf = Pf <<< FIXn n Pf := by
-  funext p0
-  simp [FIXn, Function.iterate_succ_apply', Subst_procfun_prod]
-
 theorem semTfun_iteration_semFfun_Bot
     {Pf : p → proc p α} {n : Nat} :
     ∀ p0, ((semTfun Pf)^[n]) Bot p0 = fstF (((semFfun Pf)^[n]) Bot p0) := by
@@ -89,27 +84,41 @@ theorem semTfun_iteration_semFfun_Bot
         _ = fstF (((semFfun Pf)^[n.succ]) Bot p0) := by
               simp [Function.iterate_succ_apply', semFfun_def, semFf_def]
 
-theorem semF_iteration_semFfun_Bot [HasPNfun p α] [HasFPmode]
+/- Lean note:
+   as for `traces_iteration_semTfun_Bot`, the Isabelle originals write the raw
+   iteration `((Pf <<<) ^^ n) (%q. DIV) p` and not `FIX[n] Pf p`.  `Pf <<<`
+   leaves the target process-name type free, while the constant `FIX[n]` is
+   homogeneous, so phrasing these with `FIXn` would weaken them.  `FIXn_def`
+   specialises them to `FIXn` at the call sites. -/
+
+theorem semF_iteration_semFfun_Bot [HasPNfun q α] [HasFPmode]
     {Pf : p → proc p α} {n : Nat} :
-    ∀ p0, semF (FIXn n Pf p0) = ((semFfun Pf)^[n]) Bot p0 := by
+    ∀ p0, semF (((fun Qf : p → proc q α => Pf <<< Qf)^[n])
+                  (fun _ => (proc.DIV : proc q α)) p0)
+      = ((semFfun Pf)^[n]) Bot p0 := by
   induction n with
   | zero =>
       intro p0
-      have h :=
-        congrArg (fun F : p → domFType α => F p0)
-          (semF_prod_Bot (p := p) (α := α))
-      simpa [FIXn, semF_def, semFf_def] using h
+      have hBot : (fun _ : p => semF (proc.DIV : proc q α)) = (Bot : p → domFType α) := by
+        simpa [semF_def, semFf_def] using
+          (traces_failures_prod_Bot (ι := p) (κ := q) (α := α) (M := (MF : q → domFType α)))
+      simpa using congrArg (fun F : p → domFType α => F p0) hBot
   | succ n ih =>
       intro p0
-      have hfun : (fun q => semF (FIXn n Pf q)) = ((semFfun Pf)^[n]) Bot := by
-        funext q
-        exact ih q
-      rw [FIXn_succ, Subst_procfun_prod_p, semF_subst, hfun]
+      have hfun :
+          (fun r => semF (((fun Qf : p → proc q α => Pf <<< Qf)^[n])
+            (fun _ => (proc.DIV : proc q α)) r)) = ((semFfun Pf)^[n]) Bot := by
+        funext r
+        exact ih r
+      rw [Function.iterate_succ_apply' (f := fun Qf : p → proc q α => Pf <<< Qf),
+        Subst_procfun_prod_p, semF_subst, hfun]
       simp [Function.iterate_succ_apply', semFfun_def]
 
-theorem semF_iteration_semFfun_Bot_sndF [HasPNfun p α] [HasFPmode]
+theorem semF_iteration_semFfun_Bot_sndF [HasPNfun q α] [HasFPmode]
     {Pf : p → proc p α} {n : Nat} {p0 : p} :
-    failures (FIXn n Pf p0) MF = sndF (((semFfun Pf)^[n]) Bot p0) := by
+    failures (((fun Qf : p → proc q α => Pf <<< Qf)^[n])
+                (fun _ => (proc.DIV : proc q α)) p0) MF
+      = sndF (((semFfun Pf)^[n]) Bot p0) := by
   exact semF_decompo_sndF (semF_iteration_semFfun_Bot (Pf := Pf) (n := n) p0)
 
 /- (*** FIX ***) -/
@@ -164,12 +173,12 @@ private theorem semF_FIX_isLUB_p [HasPNfun p α] [HasFPmode]
     isLUB (semF (FIX Pf p0)) {y | ∃ x, (∃ n, x = ((semFfun Pf)^[n]) Bot) ∧ y = x p0} := by
   constructor
   · rintro y ⟨x, ⟨n, rfl⟩, rfl⟩
-    rw [← semF_iteration_semFfun_Bot (Pf := Pf) (n := n) p0]
+    rw [← semF_iteration_semFfun_Bot (Pf := Pf) (q := p) (n := n) p0]
     exact semF_FIXn_le_FIX
   · intro T hT
     have hTn : ∀ n : Nat, semF (FIXn n Pf p0) ≤ T := by
       intro n
-      rw [semF_iteration_semFfun_Bot (Pf := Pf) (n := n) p0]
+      rw [FIXn_def, semF_iteration_semFfun_Bot (Pf := Pf) (q := p) (n := n) p0]
       exact hT _ ⟨((semFfun Pf)^[n]) Bot, ⟨n, rfl⟩, rfl⟩
     rw [subdomF_decompo]
     constructor
