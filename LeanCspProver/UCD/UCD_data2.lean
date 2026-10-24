@@ -9,8 +9,6 @@
 
 import LeanCspProver.UCD.UCD_data1
 
-open Classical
-
 /- 
 (*****************************************************************
 
@@ -354,7 +352,7 @@ private theorem guardR_updateR {s : List Att} {x : Nat} :
               have h := ih (by simp)
               rcases updateR_AttR_EX (a := b) (s := u) (x := x) with ⟨m, v, hv⟩
               rw [hv] at h
-              simp [updateR, hv, guardR_cons2]
+              simp only [updateR, hv, List.head!_cons, guardR_cons2]
               exact h
 
 private theorem ChkR_updateR_iff {s : List Att} {x : Nat} :
@@ -504,7 +502,7 @@ theorem nextL_nextR_order {t : List Att} {x : Nat} :
                   | cons c w =>
                       have hIH := ih (Or.inr ⟨by simp [guardL], hRs, hCs⟩)
                       rcases nextL_AttL_cons_EX (n := m) (x := y) (t := c :: w) with ⟨a', s', hs'⟩
-                      simp [nextR, nextL, hs'] at hIH ⊢
+                      simp only [nextR, hs', nextL, List.cons.injEq, true_and] at hIH ⊢
                       exact hIH
               | AttC m =>
                   cases u with
@@ -561,7 +559,7 @@ theorem guardR_hd {a : Att} {t : List Att} :
           | nil =>
               simp [ChkR, guardR] at h ⊢
           | cons b u =>
-              simp [guardR]
+              simp only [guardR]
               exact ih m (by simpa [ChkR] using h.2)
 
 @[simp] theorem ChkR_guardR_AttC {s : List Att} :
@@ -582,7 +580,7 @@ theorem guardR_hd {a : Att} {t : List Att} :
           | nil =>
               simp [ChkR, guardR] at h ⊢
           | cons b u =>
-              simp [guardR]
+              simp only [guardR]
               exact ih m (by simpa [ChkR] using h.2)
 
 @[simp] theorem ChkLCR_guardR_next {t : List Att} :
@@ -663,7 +661,8 @@ theorem guardR_hd {a : Att} {t : List Att} :
 
 @[simp] theorem nextL_AttL_nextL_AttL {n x m y : Nat} {t : List Att} :
     nextL (Att.AttL (n, x) :: nextL (Att.AttL (m, y) :: t)) =
-      Att.AttL (fill (n / 2 + x), fill (m / 2 + y) / 2) :: nextL (nextL (Att.AttL (m, y) :: t)) := by
+      Att.AttL (fill (n / 2 + x), fill (m / 2 + y) / 2) ::
+        nextL (nextL (Att.AttL (m, y) :: t)) := by
   cases t with
   | nil =>
       simp [nextL]
@@ -793,13 +792,13 @@ theorem ChkLCR_toStbOne {a : Att} {t : List Att} :
           | AttL my =>
               rcases my with ⟨m, y⟩
               have hL := ChkLCR_nextL (s := Att.AttL (m, y) :: u) (by simp [guardL])
-              simp [toStbOne, ChkLCR_AttL_cons, hL]
+              simp only [toStbOne, ChkLCR_AttL_cons, hL]
               exact ChkLCR_AttL_cons.mp h
           | AttC m =>
-              simp [toStbOne, nextL, ChkLCR_AttL_cons, ChkLCR_AttR_cons]
+              simp only [toStbOne, nextL, ChkLCR_AttL_cons, ChkLCR_AttR_cons]
               exact ChkLCR_AttC_cons.mp h
           | AttR m =>
-              simp [toStbOne, ChkLCR_AttC_cons, ChkR_AttR_cons]
+              simp only [toStbOne, ChkLCR_AttC_cons, ChkR_AttR_cons]
               exact ChkLCR_AttR_cons.mp h
       | AttR n =>
           cases b with
@@ -812,19 +811,20 @@ theorem ChkLCR_toStbOne {a : Att} {t : List Att} :
                   | AttL ny =>
                       rcases ny with ⟨na, xx⟩
                       have h1 := ChkLCR_nextL (s := Att.AttL (na, xx) :: w) (by simp [guardL])
-                      simp [toStbOne, ChkLCR_AttL_cons, h1]
+                      simp only [toStbOne, nextL_AttL_nextL_AttL, ChkLCR_AttL_cons,
+                        guardL_nextL_AttL, ChkLCR_nextL, h1]
                       exact ChkLCR_AttL_cons.mp (ChkLCR_AttL_cons.mp h)
                   | AttC na =>
-                      simp [toStbOne, ChkLCR_AttL_cons, ChkLCR_AttC_cons, ChkR_AttR_cons]
+                      simp only [toStbOne, ChkLCR_AttL_cons, ChkLCR_AttC_cons, ChkR_AttR_cons]
                       exact ChkLCR_AttC_cons.mp (ChkLCR_AttL_cons.mp h)
                   | AttR na =>
-                      simp [toStbOne, ChkLCR_AttL_cons, ChkLCR_AttR_cons, ChkR_AttR_cons]
+                      simp only [toStbOne, ChkLCR_AttL_cons, ChkLCR_AttR_cons, ChkR_AttR_cons]
                       exact ChkLCR_AttR_cons.mp (ChkLCR_AttL_cons.mp h)
           | AttC m =>
-              simp [toStbOne, nextL, ChkLCR_AttC_cons, ChkR_AttR_cons]
+              simp only [toStbOne, nextL, ChkLCR_AttC_cons, ChkR_AttR_cons]
               exact ChkLCR_AttC_cons.mp h
           | AttR m =>
-              simp [toStbOne, ChkLCR_AttR_cons, ChkR_AttR_cons]
+              simp only [toStbOne, ChkLCR_AttR_cons, ChkR_AttR_cons]
               exact ChkLCR_AttR_cons.mp h
 
 theorem ChkLCR_tl {a : Att} {t : List Att} :
@@ -1124,7 +1124,8 @@ theorem nextR_AttR_EX {n x : Nat} {t : List Att} :
   | nil =>
       exact ⟨Att.AttC (fill (n + x)), [], by simp [nextR]⟩
   | cons b u =>
-      exact ⟨Att.AttC (fill (n + getNat (hd (updateR (b :: u, x))))), updateR (b :: u, x), by simp [nextR]⟩
+      exact ⟨Att.AttC (fill (n + getNat (hd (updateR (b :: u, x))))), updateR (b :: u, x),
+        by simp [nextR]⟩
 
 theorem hd_nextR_AttC_EX {n y : Nat} {t : List Att} :
     ∃ x s, nextR (Att.AttC n :: t, y) = Att.AttL (n, x) :: s := by
@@ -1158,7 +1159,7 @@ private theorem guardR_nextR_nextL_aux :
               rcases updateR_AttR_EX (a := b) (s := u) (x := z) with ⟨m, v, hv⟩
               have hg := guardR_updateR (s := b :: u) (x := z) (by simp)
               rw [hv] at hg
-              simp [nextL, nextR, hv, guardR_cons2]
+              simp only [nextL, nextR, hv, List.head!_cons, guardR_cons2]
               exact hg
       | AttL nx =>
           rcases nx with ⟨n, x⟩
@@ -1172,7 +1173,7 @@ private theorem guardR_nextR_nextL_aux :
                   have hIH := ih z (ChkLCR_AttL_cons.mp hC) (by simp [guardL]) hRs
                   rcases nextL_AttL_cons_EX (n := m) (x := y) (t := u) with ⟨a', s', hs⟩
                   rw [hs] at hIH
-                  simp [nextL, hs, nextR]
+                  simp only [nextL, hs, nextR, guardR_AttL]
                   exact hIH
               | AttC m =>
                   cases u with
@@ -1181,13 +1182,13 @@ private theorem guardR_nextR_nextL_aux :
                       rcases updateR_AttR_EX (a := c) (s := w) (x := z) with ⟨mv, v, hv⟩
                       have hg := guardR_updateR (s := c :: w) (x := z) (by simp)
                       rw [hv] at hg
-                      simp [nextL, nextR, hv, guardR_cons2]
+                      simp only [nextL, nextR, hv, List.head!_cons, guardR_cons2]
                       exact hg
               | AttR m =>
                   rcases updateR_AttR_EX (a := Att.AttR m) (s := u) (x := z) with ⟨mv, v, hv⟩
                   have hg := guardR_updateR (s := Att.AttR m :: u) (x := z) (by simp)
                   rw [hv] at hg
-                  simp [nextL, nextR, hv, guardR_cons2]
+                  simp only [nextL, nextR, hv, List.head!_cons, guardR_cons2]
                   exact hg
 
 theorem guardR_nextR_nextL_lm {n : Nat} :
@@ -1240,7 +1241,7 @@ private theorem guardR_nextR_AttR_aux {t : List Att} {m x : Nat} :
       rcases updateR_AttR_EX (a := b) (s := u) (x := x) with ⟨mv, v, hv⟩
       have hg := guardR_updateR (s := b :: u) (x := x) (by simp)
       rw [hv] at hg
-      simp [nextR, hv, guardR_cons2]
+      simp only [nextR, hv, List.head!_cons, guardR_cons2]
       exact hg
 
 theorem guardR_nextR_AttR_lm {n : Nat} :
@@ -1296,7 +1297,7 @@ theorem guardL_toStb_AttC {s : List Nat} :
         toStbOne (Att.AttC a :: toStb (List.map Att.AttC u)) from by simp [toStb]]
       rcases toStbOne_AttC_hd a (toStb (List.map Att.AttC u)) with ⟨m, t', ht⟩ | ⟨m, t', ht⟩
       · simp [ht, guardL]
-      · simp [ht, guardL]
+      · simp only [guardL, ht, Att.AttL.injEq, reduceCtorEq, exists_const, or_false]
         exact ⟨m.1, m.2, rfl⟩
 
 private theorem guardR_cons_map_AttC {c : Att} {u : List Nat} :
@@ -1321,7 +1322,7 @@ theorem guardR_toStbOne_map_AttC_lm {n : Nat} :
       | nil => simp [toStbOne, guardR]
       | cons b w =>
           simp only [List.map_cons]
-          simp [toStbOne, nextL]
+          simp only [toStbOne, nextL, guardR_AttL]
           exact guardR_cons_map_AttC (Or.inr ⟨b / 2, rfl⟩)
 
 theorem guardR_toStbOne_AttC {t : List Att} {a : Nat} :
@@ -1546,7 +1547,7 @@ private theorem guardR_nextR_toStb_AttC_aux {s : List Nat} {x : Nat} :
             (t := toStbOne (Att.AttC b :: toStb (List.map Att.AttC w))) (by simp))
             with ⟨w1, w2, hw⟩
           rw [hw] at hg ⊢
-          simp [nextR]
+          simp only [nextR, guardR_AttL]
           exact hg
 
 theorem guardR_nextR_toStb_AttC_lm {n : Nat} :

@@ -10,8 +10,6 @@
 import LeanCspProver.CSP.Infra_HOL
 import LeanCspProver.CSP.Infra_list
 
-open Classical
-
 abbrev hd [Inhabited α] : List α → α := List.head!
 abbrev last [Inhabited α] : List α → α := List.getLast!
 
@@ -228,7 +226,7 @@ theorem circNexts_nil_iff {N : Nat} : ∀ s : List Nat, (circNexts N s = []) ↔
       simp [circNexts, ih]
 
 @[simp]
-theorem circNexts_nil {N : Nat} : ∀ s : List Nat, circNexts N [] = [] := by
+theorem circNexts_nil {N : Nat} : ∀ _ : List Nat, circNexts N [] = [] := by
   intro s
   induction N with
   | zero =>
@@ -285,12 +283,14 @@ theorem lineNext_even {s : List Nat} {nn : Nat} : allEven (lineNext s nn) := by
       cases t with
       | nil =>
           intro n hn
-          simp [_root_.set, lineNext] at hn
+          simp only [_root_.set, lineNext, ↓reduceIte, List.mem_cons, List.not_mem_nil, or_false,
+            Set.setOf_eq_eq_singleton, Set.mem_singleton_iff] at hn
           rcases hn with rfl
           exact even_fill
       | cons b u =>
           intro n hn
-          simp [_root_.set, lineNext] at hn
+          simp only [_root_.set, lineNext, reduceCtorEq, ↓reduceIte, List.head!_cons, List.mem_cons,
+            Set.mem_setOf_eq] at hn
           rcases hn with rfl | hn
           · exact even_fill
           · exact ih _ hn
@@ -334,7 +334,7 @@ theorem maxList_max {s : List Nat} : ∀ n ∈ set s, n ≤ maxList s := by
   | nil =>
       simp at hn
   | cons a t ih =>
-      simp [_root_.set] at hn
+      simp only [_root_.set, List.mem_cons, Set.mem_setOf_eq] at hn
       rcases hn with rfl | hn
       · exact Nat.le_max_left _ _
       · exact le_trans (ih _ hn) (Nat.le_max_right _ _)
@@ -356,13 +356,13 @@ theorem minList_min {s : List Nat} : ∀ n ∈ set s, minList s ≤ n := by
       cases t with
       | nil =>
           simp [_root_.set] at hn
-          simpa [minList, hn]
+          simp [minList, hn]
       | cons b u =>
-          simp [_root_.set] at hn
+          simp only [_root_.set, List.mem_cons, Set.mem_setOf_eq] at hn
           rcases hn with rfl | hn
-          · simpa [minList] using (Nat.min_le_left a (minList (b :: u)))
+          · simp [minList]
           · have hn' : n ∈ set (b :: u) := by simpa [_root_.set] using hn
-            exact le_trans (by simpa [minList] using (Nat.min_le_right a (minList (b :: u)))) (ih _ hn')
+            exact le_trans (by simp [minList]) (ih _ hn')
 
 @[simp]
 theorem maxList_min_nth {s : List Nat} [Inhabited Nat] :
@@ -380,7 +380,7 @@ theorem maxList_exist {s : List Nat} : s ≠ [] → maxList s ∈ set s := by
   | cons a t ih =>
       cases t with
       | nil =>
-          simpa [_root_.set, maxList]
+          simp [_root_.set, maxList]
       | cons b u =>
           by_cases h : a ≤ maxList (b :: u)
           · have hmem : maxList (b :: u) = b ∨ maxList (b :: u) ∈ u := by
@@ -397,7 +397,8 @@ theorem maxList_exist {s : List Nat} : s ≠ [] → maxList s ∈ set s := by
               have hEq' : max a (max b (maxList u)) = max b (maxList u) := by
                 simpa [maxList] using hEq
               simp [_root_.set, maxList, hEq', hu]
-          · have hEq : max a (maxList (b :: u)) = a := Nat.max_eq_left (Nat.le_of_lt (Nat.lt_of_not_ge h))
+          · have hEq : max a (maxList (b :: u)) = a :=
+              Nat.max_eq_left (Nat.le_of_lt (Nat.lt_of_not_ge h))
             have hEq' : max a (max b (maxList u)) = a := by
               simpa [maxList] using hEq
             simp [_root_.set, maxList, hEq']
@@ -415,7 +416,7 @@ theorem minList_exist {s : List Nat} : s ≠ [] → minList s ∈ set s := by
   | cons a t ih =>
       cases t with
       | nil =>
-          simpa [_root_.set, minList]
+          simp [_root_.set, minList]
       | cons b u =>
           by_cases h : a ≤ minList (b :: u)
           · have hEq : min a (minList (b :: u)) = a := Nat.min_eq_left h
@@ -557,7 +558,7 @@ theorem alleven_hd {n : Nat} {s : List Nat} :
     have hm' : m = n ∨ m ∈ s := Or.inr hm
     exact h m (by simpa [_root_.set] using hm')
   · rintro ⟨hn, hs⟩ m hm
-    simp [_root_.set] at hm
+    simp only [_root_.set, List.mem_cons, Set.mem_setOf_eq] at hm
     rcases hm with rfl | hm
     · exact hn
     · exact hs _ hm
@@ -591,8 +592,7 @@ theorem stable_min_max {s : List Nat} :
     · rw [maxList_le_forall]
       intro n hn
       exact (hs n hn).le
-  · intro hEq
-    intro n hn
+  · intro hEq n hn
     apply le_antisymm
     · simpa [hEq] using (maxList_max (n := n) hn)
     · exact minList_min n hn
@@ -612,8 +612,8 @@ theorem stable_lineNext_lm {s : List Nat} {N : Nat} :
             rw [ha]
             have htwo : N + N = 2 * N := by omega
             rw [show (2 * N) / 2 + N = N + N by omega, htwo]
-            simp [fill, hEven]
-          simpa [lineNext, hfill]
+            simp [fill]
+          simp [lineNext, hfill]
       | cons b u =>
           have ha : a = 2 * N := hs a (by simp [_root_.set])
           have hb : hd (b :: u) = 2 * N := by
@@ -629,7 +629,7 @@ theorem stable_lineNext_lm {s : List Nat} {N : Nat} :
             have hEven : Even (N + N) := ⟨N, by omega⟩
             have htwo : N + N = 2 * N := by omega
             rw [show (2 * N) / 2 + (2 * N) / 2 = N + N by omega, htwo]
-            simp [fill, hEven]
+            simp [fill]
           have hrest : lineNext (b :: u) N = b :: u := ih htail
           have hfirst' : fill (a / 2 + hd (b :: u) / 2) = a := by
             have hb' : b = 2 * N := hs b (by simp [_root_.set])
@@ -766,7 +766,7 @@ theorem stableList_makeStableList_lm {l n : Nat} :
     have hminmem : minList (makeStableList l n) ∈ set (makeStableList l n) := minList_exist hne
     have hmin : minList (makeStableList l n) = n := by
       simpa [hset] using hminmem
-    simpa [hmEq, hmin]
+    simp [hmEq, hmin]
 
 @[simp]
 theorem stableList_makeStableList {s : List Nat} {l n : Nat} :
@@ -783,7 +783,7 @@ theorem allEven_makeStableList {l n : Nat} :
       simp [makeStableList, allEven]
   | succ l ih =>
       intro m hm
-      simp [_root_.set, makeStableList] at hm
+      simp only [_root_.set, makeStableList, List.mem_cons, Set.mem_setOf_eq] at hm
       rcases hm with rfl | hm
       · exact hn
       · exact ih _ hm
@@ -794,7 +794,8 @@ theorem makeStableList_hd_stableList_if {l : Nat} :
   | zero =>
       intro s hs
       rcases hs with ⟨hlen, _⟩
-      cases s <;> simp at hlen <;> simp [makeStableList]
+      cases s <;> simp at hlen
+      simp [makeStableList]
   | succ l ih =>
       intro s hs
       rcases hs with ⟨hlen, hstable⟩
@@ -816,24 +817,26 @@ theorem makeStableList_hd_stableList_if {l : Nat} :
               have hconst : ∀ n ∈ set (b :: u), n = b := by
                 intro n hn
                 have hn' : n = b ∨ n ∈ u := by simpa [_root_.set] using hn
-                have hnmin : n = minList (a :: b :: u) := hstable n (by simpa [_root_.set] using Or.inr hn')
+                have hnmin : n = minList (a :: b :: u) :=
+                  hstable n (by simpa [_root_.set] using Or.inr hn')
                 have hbmin : b = minList (a :: b :: u) := hstable b (by simp [_root_.set])
                 exact hnmin.trans hbmin.symm
               have hsetbu : set (b :: u) = {b} := by
                 ext n
                 constructor
                 · intro hn
-                  simpa [hconst n hn]
+                  simp [hconst n hn]
                 · intro hn
                   have hn' : n = b := by simpa using hn
-                  simpa [hn', _root_.set]
+                  simp [hn', _root_.set]
               have hminbu : minList (b :: u) = b := by
-                have hmem : minList (b :: u) ∈ (_root_.set (b :: u) : Set Nat) := minList_exist (by simp)
+                have hmem : minList (b :: u) ∈ (_root_.set (b :: u) : Set Nat) :=
+                  minList_exist (by simp)
                 simpa [hsetbu] using hmem
               have hstable' : stableList (b :: u) := by
                 intro n hn
                 have hnEq : n = b := by simpa [hsetbu] using hn
-                simpa [hnEq, hminbu]
+                simp [hnEq, hminbu]
               have ht : b :: u = makeStableList l b := by
                 simpa [hd] using ih (b :: u) ⟨hlen', hstable'⟩
               simpa [makeStableList, hd, hab] using congrArg (List.cons a) (by simpa [hab] using ht)
@@ -853,7 +856,7 @@ theorem makeStableList_hd_stableList_only_if {l : Nat} :
       | succ l =>
           have ht : t = makeStableList l a := by
             simpa [makeStableList, hd] using hs
-          simp [ht, makeStableList, length_makeStableList]
+          simp [ht, length_makeStableList]
 
 theorem makeStableList_hd_stableList {s : List Nat} {l : Nat} :
     (s = makeStableList l (hd s)) ↔ (s.length = l ∧ stableList s) := by
@@ -1229,7 +1232,7 @@ theorem lineNext_minList_other_less {s : List Nat} {nn i : Nat} :
 theorem circNext_maxList_le {s : List Nat} {n : Nat} :
     s ≠ [] → allEven s → n ∈ set (circNext s) → n ≤ maxList s := by
   intro hs hEvenS hn
-  simp [circNext, hs] at hn
+  simp only [circNext, hs, ↓reduceIte, mem_set] at hn
   apply lineNext_maxList_le (s := s) (nn := hd s / 2)
   · exact hs
   · exact hEvenS
@@ -1249,7 +1252,7 @@ theorem maxList_circNext_le {s : List Nat} :
 theorem circNext_minList_le {s : List Nat} {n : Nat} :
     s ≠ [] → allEven s → n ∈ set (circNext s) → minList s ≤ n := by
   intro hs hEvenS hn
-  simp [circNext, hs] at hn
+  simp only [circNext, hs, ↓reduceIte, mem_set] at hn
   apply lineNext_minList_le (s := s) (nn := hd s / 2)
   · exact hs
   · exact hEvenS
@@ -1261,7 +1264,7 @@ theorem minList_circNext_le {s : List Nat} :
     s ≠ [] → allEven s → minList s ≤ minList (circNext s) := by
   intro hs hEvenS
   by_cases hnil : circNext s = []
-  · simpa [circNext_nil_iff.mp hnil]
+  · simp [circNext_nil_iff.mp hnil]
   · exact (minList_le_forall (t := circNext s) (m := minList s) hnil).2
       (fun n hn => circNext_minList_le hs hEvenS hn)
 
@@ -1273,7 +1276,7 @@ theorem circNext_minList_less {s : List Nat} {i : Nat} :
         (Nat.succ i < s.length ∧ minList s < nth s (Nat.succ i))) →
       minList s < nth (circNext s) i := by
   intro hs hEvenS hi hiEq hCase
-  simp [circNext, hs]
+  simp only [circNext, hs, ↓reduceIte]
   rcases hCase with ⟨hiLast, hhd⟩ | ⟨hi1, hnext⟩
   · have hlastEq : last s = minList s := by
       symm
@@ -1300,7 +1303,7 @@ theorem circNext_minList_other_less {s : List Nat} {i : Nat} :
     s ≠ [] → allEven s → i < s.length → minList s < nth s i →
       minList s < nth (circNext s) i := by
   intro hs hEvenS hi hlt
-  simp [circNext, hs]
+  simp only [circNext, hs, ↓reduceIte]
   apply lineNext_minList_other_less (s := s) (nn := hd s / 2) (i := i)
   · exact hs
   · exact hEvenS
@@ -1394,7 +1397,8 @@ theorem unstable_exists_diff_one_lm {s : List Nat} :
       by_cases hiLast : Nat.succ i = s.length
       · exact Or.inl ⟨hiLast, hhd⟩
       · have hi1 : Nat.succ i < s.length := Nat.lt_of_le_of_ne (Nat.succ_le_of_lt hQi.1) hiLast
-        have hminLe : minList s ≤ nth s (Nat.succ i) := maxList_min_nth (s := s) (i := Nat.succ i) hi1
+        have hminLe : minList s ≤ nth s (Nat.succ i) :=
+          maxList_min_nth (s := s) (i := Nat.succ i) hi1
         have hlt : minList s < nth s (Nat.succ i) := by
           by_contra hnot
           have hEq : nth s (Nat.succ i) = minList s := by
@@ -1405,7 +1409,7 @@ theorem unstable_exists_diff_one_lm {s : List Nat} :
           have hcontra :
               ¬ Q (Nat.succ i) := Nat.findGreatest_is_greatest
                 (P := Q) (n := s.length - 1) (k := Nat.succ i) (by
-                  simpa [i] using Nat.lt_succ_self i) hiBound
+                  simp [i]) hiBound
           exact hcontra hQsucc
         exact Or.inr ⟨hi1, hlt⟩
   | inr hkpos =>
@@ -1459,7 +1463,7 @@ theorem Suc_length_list_EX {s t : List α} :
 /- howMany <= -/
 
 theorem howMany_le_lm {M : Nat} :
-    ∀ s t (j : Nat),
+    ∀ s t (_ : Nat),
       (s.length = t.length ∧ (∀ i, (i < t.length ∧ M ≠ nth s i) → M ≠ nth t i)) →
         howMany M t ≤ howMany M s := by
   intro s
@@ -1541,8 +1545,7 @@ theorem howMany_less_lm {M : Nat} :
               have ha : M = a := by simpa using hjEq.symm
               have hb : M ≠ b := by
                 intro hb
-                have : M < M := by simpa [hb] using hjLt
-                exact lt_irrefl _ this
+                simp [hb] at hjLt
               have hab : a ≠ b := by
                 intro hab
                 exact hb (ha.trans hab)
@@ -1714,7 +1717,7 @@ theorem circNexts_eventually_stable {s : List Nat} :
     · rw [maxList_le_forall]
       intro n hn
       rcases (in_set_nth).1 hn with ⟨i, hi, rfl⟩
-      simpa [hStableIdx i hi]
+      simp [hStableIdx i hi]
   · have hUnstable : ∃ i, i < s.length ∧ minList s < nth s i := by
       push_neg at hStableIdx
       rcases hStableIdx with ⟨i, hi, hne⟩

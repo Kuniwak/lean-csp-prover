@@ -9,11 +9,22 @@
             *------------------------------------------- -/
 
 import LeanCspProver.UCD.UCD_proc1
-
-open Classical
 open fpmode
 
 noncomputable section
+
+/- Lean note: `open Classical` here trips the mathlib style linter, which asks
+   for explicit decidability.  The predicates below have no decidable instance,
+   so the classical one is introduced file-locally instead.  `low` matches the
+   priority `Classical.propDecidable` is declared with, so it stays a
+   last-resort fallback rather than outranking a genuine instance.
+
+   This is the same fallback `open Classical` provided, just scoped and named;
+   it does not give the predicates real decidability.  `UCD_data1` and
+   `UCD_data2` turned out not to need it at all and have none. -/
+
+attribute [local instance low] Classical.propDecidable
+
 
 local infix:50 " =F " => eqFfix
 local notation:50 P " <=F " Q => refFfix P Q
@@ -377,7 +388,7 @@ private theorem renC_LR (v : Nat) (P : proc PN Event) (Qf : Nat → proc PN Even
 private theorem PreCirc_step {P Q : proc PN Event} {A B : Set Event}
     {Pf Qf : Event → proc PN Event}
     (hP : eqFfix P (proc.Ext_pre_choice A Pf))
-    (hQ : eqFfix (Q[[fun_to_rel fC]]) (proc.Ext_pre_choice B Qf))
+    (hQ : eqFfix (Q [[fun_to_rel fC]]) (proc.Ext_pre_choice B Qf))
     (hA : A ⊆ LeftRight) (hB : B ⊆ LeftRight) :
     eqFfix (P <=-=> Q)
       (proc.Ext_pre_choice (A ∩ B) fun x => Pf x |[LeftRight]| Qf x) := by
@@ -824,7 +835,8 @@ theorem Set_PNRdef_def (pn : PNR) :
 def CircSpec_to_PreCircSpecC : PNR → proc PNRC Event
   | PNR.CircSpec s =>
       IF tl s ≠ [] THEN
-        proc.Hiding (pPreCircSpecC (hd s) (toStb (List.map Att.AttC (tl s)))) (Set.range Event.right)
+        proc.Hiding (pPreCircSpecC (hd s) (toStb (List.map Att.AttC (tl s))))
+          (Set.range Event.right)
       ELSE
         proc.STOP
 
@@ -975,7 +987,8 @@ theorem CircSpec_PreCircSpecC_lm {s : List Nat} :
 theorem CircSpec_PreCircSpecC {s : List Nat} :
   tl s ≠ [] →
     refF (pCircSpec s) MF MF
-      (proc.Hiding (pPreCircSpecC (hd s) (toStb (List.map Att.AttC (tl s)))) (Set.range Event.right)) := by
+      (proc.Hiding (pPreCircSpecC (hd s) (toStb (List.map Att.AttC (tl s))))
+        (Set.range Event.right)) := by
   intro hs
   simpa [CircSpec_to_PreCircSpecC, hs] using
     (CircSpec_PreCircSpecC_lm (s := s) hs)

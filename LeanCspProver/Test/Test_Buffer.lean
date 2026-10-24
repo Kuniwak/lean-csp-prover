@@ -143,7 +143,7 @@ theorem manual_proof_Buffer :
       -- $DF <=F (? r:(left ` UNIV) -> $DF)
       refine cspF_rw_left_ref hunwind ?_
       rw [DFfun]
-      show refF (Int_pre_choice Set.univ fun _ => proc.Proc_name DFName.DF)
+      change refF (Int_pre_choice Set.univ fun _ => proc.Proc_name DFName.DF)
         MF MF
         (Rec_prefix Event.left Set.univ fun r =>
           Buffer_to_DF (Name.Full r n))
@@ -155,7 +155,7 @@ theorem manual_proof_Buffer :
   | Full r n =>
       -- $DF <=F (right (r,n) -> $DF)
       refine cspF_rw_left_ref hunwind ?_
-      show refF (DFfun DFName.DF) MF MF
+      change refF (DFfun DFName.DF) MF MF
         (Event.right (r, n) ~> proc.Proc_name DFName.DF)
       refine cspF_rw_right_ref cspF_Act_prefix_step ?_
       rw [DFfun]
